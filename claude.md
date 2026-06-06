@@ -16,17 +16,17 @@ You are building a **Resource Intelligence & Project Economics Platform** — an
 
 ## Tech Stack
 
-> **IMPORTANT: Confirm the tech stack with the team before starting. The choices below are recommendations. Update this section once finalized.**
+> **Confirm with the team before starting. Update this section once decided.**
 
-```
-Frontend:       [To be decided — React/Next.js recommended]
-Backend:        [To be decided — Node.js/Express or Python/FastAPI recommended]
-Database:       [To be decided — PostgreSQL recommended]
-Auth:           [To be decided — JWT or session-based]
-Hosting:        [To be decided]
-```
+| Layer | Choice | Notes |
+|---|---|---|
+| Frontend | TBD — React/Next.js recommended | |
+| Backend | TBD — Node.js/Express or Python/FastAPI recommended | |
+| Database | TBD — PostgreSQL recommended | |
+| Auth | TBD — JWT or session-based | |
+| Hosting | TBD | |
 
-Once the tech stack is decided, update this section and use it as the source of truth throughout the build.
+Once the tech stack is decided, update this table and use it as the source of truth throughout the build.
 
 ---
 
@@ -36,36 +36,24 @@ Once the tech stack is decided, update this section and use it as the source of 
 project/
 ├── prd/PRD.md                        # Product requirements (read-only reference)
 ├── fsd/FSD.md                        # Functional specs (read-only reference)
-├── modules/                          # Module-wise requirements and specs
-│   ├── 01-auth-and-roles/
-│   │   ├── REQUIREMENTS.md           # What this module does
-│   │   ├── SCHEMA.md                 # Entity fields for this module
-│   │   ├── API.md                    # Endpoints
-│   │   └── SCREENS.md               # UI views and components
-│   ├── 02-client-management/
-│   ├── 03-project-management/
-│   ├── 04-resource-management/
-│   ├── 05-allocation-tracking/
-│   ├── 06-non-human-costs/
-│   ├── 07-utilization-dashboards/
-│   ├── 08-financial-engine/
-│   ├── 09-invoicing/
-│   ├── 10-bench-forecasting/
-│   ├── 11-worklog/
-│   ├── 12-alerts/
-│   └── 13-audit-history/
 ├── shared/                           # Cross-cutting references
 │   ├── ENTITIES.md                   # Master entity definitions
 │   ├── BUSINESS-RULES.md             # Formulas, calculations, constraints
 │   ├── ACCESS-MATRIX.md              # Who sees/edits what
 │   └── GLOSSARY.md                   # Term definitions
-├── tickets/                          # Generated JIRA-ready tickets
-├── src/                              # Application source code
-│   ├── backend/
-│   ├── frontend/
-│   └── shared/                       # Shared types, constants
+├── modules/                          # Module-wise specifications (13 modules)
+│   └── {NN}-{module-name}/
+│       ├── REQUIREMENTS.md           # What this module does + acceptance criteria
+│       ├── SCHEMA.md                 # Entity fields for this module
+│       ├── API.md                    # Endpoints
+│       ├── SCREENS.md               # UI views and components
+│       ├── DEPENDENCIES.md          # Upstream and downstream module dependencies
+│       └── JOBS.md                  # Background jobs (only if module has any)
+├── tickets/                          # JIRA-ready story breakdowns per module
+│   └── {module-name}.md
 ├── CLAUDE.md                         # This file
-└── README.md
+├── ROADMAP.md                        # Phase-wise build plan with estimates
+└── README.md                         # Project overview and setup guide
 ```
 
 ---
@@ -162,7 +150,9 @@ modules/{module-name}/
 ├── REQUIREMENTS.md    → Understand what this module does
 ├── SCHEMA.md          → Know the exact entity fields
 ├── API.md             → Know the endpoints to build
-└── SCREENS.md         → Know the UI components to build
+├── SCREENS.md         → Know the UI components to build
+├── DEPENDENCIES.md    → Verify prerequisites exist
+└── JOBS.md            → Background jobs to implement (if present)
 ```
 
 Also read:
@@ -176,7 +166,8 @@ Also read:
 3. API endpoints from API.md with access control middleware
 4. Business logic layer for calculations (reference BUSINESS-RULES.md)
 5. Validation middleware matching FSD §11 rules
-6. Audit logging for all write operations
+6. Background jobs from JOBS.md (if present) — scheduled and event-triggered
+7. Audit logging for all write operations
 
 ### Step 3: Build Frontend
 1. Components from SCREENS.md
