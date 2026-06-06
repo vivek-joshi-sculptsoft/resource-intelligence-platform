@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login | Resource Intelligence Platform</title>
+<style>
+  :root {
+    --bg-page: #F0F1FA;
+    --bg-card: #ffffff;
+    --bg-sidebar: #F5F6FC;
+    --bg-header: #ffffff;
+    --bg-hover: #F0F1FA;
+    --bg-stripe: #F5F6FC;
+    --c-primary: #2B3990;
+    --c-primary-dark: #1B2B65;
+    --c-primary-light: #4A5BB5;
+    --c-accent: #FF4B2B;
+    --c-accent-hover: #E63E1F;
+    --c-accent-soft: #FFF0EC;
+    --c-text: #1e1b4b;
+    --c-text-secondary: #6b7280;
+    --c-text-muted: #7C85C0;
+    --c-border: #D6DAF0;
+    --c-border-light: #E8EAF6;
+    --c-danger: #ef4444;
+    --c-success: #22c55e;
+    --shadow-card: 0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04);
+    --radius-card: 12px;
+    --radius-input: 8px;
+    --radius-btn: 8px;
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    font-family: var(--font-family);
+    background: linear-gradient(135deg, #1B2B65, #2B3990, #4A5BB5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+    color: var(--c-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ── Login Card ─────────────────────────────────────── */
+  .login-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    box-shadow: 0 8px 32px rgba(43,57,144,0.2);
+    padding: 40px 36px 36px;
+    animation: cardEntrance 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  @keyframes cardEntrance {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ── Logo & Heading ─────────────────────────────────── */
+  .logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 28px;
+  }
+
+  .logo-icon {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 16px;
+  }
+
+  .logo-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--c-primary-dark);
+    text-align: center;
+    line-height: 1.3;
+    letter-spacing: -0.3px;
+  }
+
+  .logo-subtitle {
+    font-size: 13px;
+    color: var(--c-text-muted);
+    margin-top: 4px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Error Alert ────────────────────────────────────── */
+  .error-alert {
+    display: none;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: var(--radius-input);
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    align-items: flex-start;
+    gap: 10px;
+    animation: alertSlide 0.3s ease-out;
+  }
+
+  .error-alert.visible {
+    display: flex;
+  }
+
+  @keyframes alertSlide {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .error-alert-icon {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    color: var(--c-danger);
+    margin-top: 1px;
+  }
+
+  .error-alert-text {
+    font-size: 13.5px;
+    color: #991b1b;
+    line-height: 1.45;
+    flex: 1;
+  }
+
+  .error-alert-dismiss {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #b91c1c;
+    padding: 2px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+  }
+
+  .error-alert-dismiss:hover {
+    background: #fee2e2;
+  }
+
+  .error-alert-dismiss svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* ── Form ────────────────────────────────────────────── */
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-label {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--c-text);
+  }
+
+  .input-wrapper {
+    position: relative;
+  }
+
+  .form-input {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    font-size: 14.5px;
+    font-family: var(--font-family);
+    color: var(--c-text);
+    background: var(--bg-card);
+    border: 1.5px solid var(--c-border);
+    border-radius: var(--radius-input);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .form-input::placeholder {
+    color: var(--c-text-muted);
+    font-weight: 400;
+  }
+
+  .form-input:focus {
+    border-color: var(--c-primary);
+    box-shadow: 0 0 0 3px rgba(43, 57, 144, 0.12);
+  }
+
+  .form-input.password-input {
+    padding-right: 46px;
+  }
+
+  /* ── Password Toggle ────────────────────────────────── */
+  .password-toggle {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    color: var(--c-text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s, background 0.15s;
+  }
+
+  .password-toggle:hover {
+    color: var(--c-primary);
+    background: var(--bg-hover);
+  }
+
+  .password-toggle svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* ── Remember / Forgot Row ──────────────────────────── */
+  .form-options {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: -4px;
+  }
+
+  .remember-me {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .remember-me input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--c-primary);
+    cursor: pointer;
+    border-radius: 4px;
+  }
+
+  .remember-me span {
+    font-size: 13.5px;
+    color: var(--c-text-secondary);
+  }
+
+  .forgot-link {
+    font-size: 13.5px;
+    color: var(--c-primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.15s;
+  }
+
+  .forgot-link:hover {
+    color: var(--c-primary-dark);
+    text-decoration: underline;
+  }
+
+  /* ── Sign In Button ─────────────────────────────────── */
+  .btn-signin {
+    width: 100%;
+    height: 46px;
+    background: linear-gradient(135deg, #FF4B2B, #FF6B4A);
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: var(--font-family);
+    border: none;
+    border-radius: var(--radius-btn);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+    letter-spacing: 0.3px;
+    margin-top: 4px;
+  }
+
+  .btn-signin:hover {
+    filter: brightness(0.92);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(255, 75, 43, 0.35);
+  }
+
+  .btn-signin:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(255, 75, 43, 0.25);
+  }
+
+  /* ── Footer ─────────────────────────────────────────── */
+  .page-footer {
+    margin-top: 32px;
+    font-size: 12.5px;
+    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+    letter-spacing: 0.2px;
+  }
+
+  /* ── Error Toggle (stakeholder preview) ─────────────── */
+  .error-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--font-family);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 6px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    z-index: 100;
+    letter-spacing: 0.2px;
+  }
+
+  .error-toggle:hover {
+    background: rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+  }
+
+  /* ── Responsive ─────────────────────────────────────── */
+  @media (max-width: 480px) {
+    body {
+      padding: 16px;
+      justify-content: flex-start;
+      padding-top: 48px;
+    }
+
+    .login-card {
+      padding: 32px 24px 28px;
+      border-radius: 10px;
+    }
+
+    .logo-title {
+      font-size: 19px;
+    }
+
+    .form-options {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .page-footer {
+      margin-top: 24px;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <div class="login-card">
+    <!-- Logo & Title -->
+    <div class="logo-container">
+      <svg class="logo-icon" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="56" height="56" rx="14" fill="#EEF0FA"/>
+        <rect x="10" y="30" width="8" height="16" rx="2" fill="#4A5BB5"/>
+        <rect x="21" y="22" width="8" height="24" rx="2" fill="#2B3990"/>
+        <rect x="32" y="14" width="8" height="32" rx="2" fill="#1B2B65"/>
+        <path d="M14 28L25 20L36 24L46 12" stroke="#FF4B2B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="46" cy="12" r="3" fill="#FF4B2B"/>
+      </svg>
+      <div class="logo-title">Resource Intelligence Platform</div>
+      <div class="logo-subtitle">by SculptSoft</div>
+    </div>
+
+    <!-- Error Alert (hidden by default) -->
+    <div class="error-alert" id="errorAlert">
+      <svg class="error-alert-icon" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd"/>
+      </svg>
+      <span class="error-alert-text">Invalid email or password. Please try again.</span>
+      <button class="error-alert-dismiss" onclick="hideError()" aria-label="Dismiss error">
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Login Form -->
+    <form class="login-form" onsubmit="handleSubmit(event)">
+      <div class="form-group">
+        <label class="form-label" for="email">Email</label>
+        <div class="input-wrapper">
+          <input
+            class="form-input"
+            type="email"
+            id="email"
+            placeholder="name@company.com"
+            required
+            autocomplete="email"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <div class="input-wrapper">
+          <input
+            class="form-input password-input"
+            type="password"
+            id="password"
+            placeholder="Enter your password"
+            required
+            autocomplete="current-password"
+          />
+          <button type="button" class="password-toggle" onclick="togglePassword()" aria-label="Toggle password visibility" id="passwordToggle">
+            <!-- Eye Open -->
+            <svg id="eyeOpen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <!-- Eye Closed (hidden by default) -->
+            <svg id="eyeClosed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+              <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+              <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+              <path d="M14.12 14.12a3 3 0 11-4.24-4.24"/>
+              <line x1="1" y1="1" x2="23" y2="23"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-options">
+        <label class="remember-me">
+          <input type="checkbox" id="remember" />
+          <span>Remember me</span>
+        </label>
+        <a href="#" class="forgot-link" onclick="event.preventDefault()">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="btn-signin">Sign In</button>
+    </form>
+  </div>
+
+  <div class="page-footer">&copy; 2026 SculptSoft. All rights reserved.</div>
+
+  <!-- Stakeholder preview toggle -->
+  <button class="error-toggle" id="errorToggle" onclick="toggleError()">Show Error State</button>
+
+<script>
+  // Password show/hide toggle
+  function togglePassword() {
+    const input = document.getElementById('password');
+    const eyeOpen = document.getElementById('eyeOpen');
+    const eyeClosed = document.getElementById('eyeClosed');
+
+    if (input.type === 'password') {
+      input.type = 'text';
+      eyeOpen.style.display = 'none';
+      eyeClosed.style.display = 'block';
+    } else {
+      input.type = 'password';
+      eyeOpen.style.display = 'block';
+      eyeClosed.style.display = 'none';
+    }
+  }
+
+  // Error alert controls
+  function showError() {
+    document.getElementById('errorAlert').classList.add('visible');
+  }
+
+  function hideError() {
+    document.getElementById('errorAlert').classList.remove('visible');
+    updateToggleLabel();
+  }
+
+  function toggleError() {
+    const alert = document.getElementById('errorAlert');
+    alert.classList.toggle('visible');
+    updateToggleLabel();
+  }
+
+  function updateToggleLabel() {
+    const alert = document.getElementById('errorAlert');
+    const toggle = document.getElementById('errorToggle');
+    toggle.textContent = alert.classList.contains('visible') ? 'Hide Error State' : 'Show Error State';
+  }
+
+  // Form submit handler (mockup only)
+  function handleSubmit(e) {
+    e.preventDefault();
+    showError();
+    updateToggleLabel();
+  }
+</script>
+
+</body>
+</html>

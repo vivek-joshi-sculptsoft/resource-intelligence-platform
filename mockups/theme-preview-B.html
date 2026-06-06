@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theme B: Professional Corporate — Resource Intelligence Platform</title>
+<style>
+  :root {
+    --bg-page: #f1f5f9;
+    --bg-card: #ffffff;
+    --bg-sidebar: #0f2b45;
+    --bg-header: #0f2b45;
+    --bg-hover: #e8f1fc;
+    --bg-stripe: #f8fafc;
+    --c-primary: #1B3A5C;
+    --c-accent: #2c7be5;
+    --c-accent-hover: #1a68cc;
+    --c-text: #334155;
+    --c-text-secondary: #64748b;
+    --c-text-muted: #94a3b8;
+    --c-border: #e2e8f0;
+    --shadow-card: 0 1px 4px rgba(15,43,69,0.06);
+    --radius-card: 8px;
+    --radius-input: 6px;
+    --radius-btn: 6px;
+    --c-danger: #ef4444;
+    --c-success: #22c55e;
+    --login-bg: linear-gradient(135deg, #0f2b45, #1B3A5C);
+    --login-card-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    color: var(--c-text);
+    background: #e2e8f0;
+    line-height: 1.5;
+  }
+
+  /* ── Theme Banner ── */
+  .theme-banner {
+    background: var(--bg-header);
+    color: #ffffff;
+    padding: 24px 32px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 3px solid var(--c-accent);
+  }
+  .theme-banner h1 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .theme-banner p {
+    font-size: 13px;
+    color: #8da4bc;
+    font-weight: 400;
+  }
+
+  /* ── Section Dividers ── */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 32px 40px 16px;
+  }
+  .section-divider::before,
+  .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #94a3b8;
+  }
+  .section-divider span {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--c-primary);
+    white-space: nowrap;
+  }
+
+  /* ══════════════════════════════════════════
+     SECTION 1: LOGIN PAGE
+     ══════════════════════════════════════════ */
+  .login-section {
+    background: var(--login-bg);
+    min-height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 64px 24px;
+    position: relative;
+  }
+  .login-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(44,123,229,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(44,123,229,0.06) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .login-card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    box-shadow: var(--login-card-shadow);
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .login-logo {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .login-logo .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    background: var(--c-primary);
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
+  .login-logo .icon svg {
+    width: 28px;
+    height: 28px;
+    fill: none;
+    stroke: #ffffff;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .login-logo h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--c-primary);
+    line-height: 1.3;
+  }
+  .login-logo p {
+    font-size: 13px;
+    color: var(--c-text-muted);
+    margin-top: 4px;
+  }
+
+  .login-field {
+    margin-bottom: 20px;
+  }
+  .login-field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--c-text);
+    margin-bottom: 6px;
+  }
+  .login-field input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--c-border);
+    border-radius: var(--radius-input);
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--c-text);
+    background: #fff;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none;
+  }
+  .login-field input:focus {
+    border-color: var(--c-accent);
+    box-shadow: 0 0 0 3px rgba(44,123,229,0.12);
+  }
+  .login-field input::placeholder {
+    color: var(--c-text-muted);
+  }
+
+  .login-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--c-accent);
+    color: #ffffff;
+    border: none;
+    border-radius: var(--radius-btn);
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-top: 8px;
+  }
+  .login-btn:hover {
+    background: var(--c-accent-hover);
+  }
+
+  .login-forgot {
+    text-align: center;
+    margin-top: 16px;
+  }
+  .login-forgot a {
+    font-size: 13px;
+    color: var(--c-accent);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .login-forgot a:hover {
+    text-decoration: underline;
+  }
+
+  /* ══════════════════════════════════════════
+     SECTION 2: DASHBOARD
+     ══════════════════════════════════════════ */
+  .dashboard-section {
+    background: var(--bg-page);
+    min-height: 640px;
+  }
+
+  /* Header */
+  .dash-header {
+    background: var(--bg-header);
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .dash-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #ffffff;
+  }
+  .dash-header-left .hdr-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--c-accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dash-header-left .hdr-icon svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: #fff;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .dash-header-left span {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+  .dash-header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    color: #8da4bc;
+    font-size: 13px;
+  }
+  .dash-header-right .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--c-accent);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .dash-header-right .user-name {
+    color: #ffffff;
+    font-weight: 500;
+  }
+
+  /* Layout */
+  .dash-body {
+    display: flex;
+    min-height: 580px;
+  }
+
+  /* Sidebar */
+  .dash-sidebar {
+    width: 220px;
+    background: var(--bg-sidebar);
+    padding: 16px 0;
+    flex-shrink: 0;
+  }
+  .dash-sidebar .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    color: #8da4bc;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+    border-left: 3px solid transparent;
+    text-decoration: none;
+  }
+  .dash-sidebar .nav-item:hover {
+    background: rgba(44,123,229,0.08);
+    color: #b8ccdf;
+  }
+  .dash-sidebar .nav-item.active {
+    background: rgba(44,123,229,0.15);
+    color: #ffffff;
+    border-left-color: var(--c-accent);
+    font-weight: 600;
+  }
+  .dash-sidebar .nav-item svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .dash-sidebar .nav-section-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #506a84;
+    padding: 20px 20px 6px;
+    font-weight: 700;
+  }
+
+  /* Content */
+  .dash-content {
+    flex: 1;
+    padding: 24px;
+    overflow: auto;
+  }
+  .dash-content h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--c-primary);
+    margin-bottom: 20px;
+  }
+
+  /* KPI Cards */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .kpi-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    padding: 20px;
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--c-border);
+  }
+  .kpi-card .kpi-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--c-text-secondary);
+    margin-bottom: 8px;
+  }
+  .kpi-card .kpi-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--c-primary);
+    line-height: 1.2;
+  }
+  .kpi-card .kpi-sub {
+    font-size: 12px;
+    color: var(--c-text-muted);
+    margin-top: 4px;
+  }
+
+  /* Table */
+  .dash-table-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--c-border);
+    overflow: hidden;
+  }
+  .dash-table-card .table-title {
+    padding: 16px 20px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--c-primary);
+    border-bottom: 1px solid var(--c-border);
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .data-table thead th {
+    background: var(--c-primary);
+    color: #ffffff;
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+  .data-table tbody tr {
+    border-bottom: 1px solid var(--c-border);
+    transition: background 0.1s;
+  }
+  .data-table tbody tr:nth-child(even) {
+    background: var(--bg-stripe);
+  }
+  .data-table tbody tr:hover {
+    background: var(--bg-hover);
+  }
+  .data-table tbody td {
+    padding: 10px 16px;
+    color: var(--c-text);
+    white-space: nowrap;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .status-badge.active {
+    background: rgba(34,197,94,0.1);
+    color: #16a34a;
+  }
+  .status-badge.bench {
+    background: rgba(239,68,68,0.1);
+    color: #dc2626;
+  }
+
+  /* ══════════════════════════════════════════
+     SECTION 3: DATA ENTRY FORM
+     ══════════════════════════════════════════ */
+  .form-section {
+    background: var(--bg-page);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 48px 24px 64px;
+  }
+
+  .form-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--c-border);
+    width: 100%;
+    max-width: 560px;
+    overflow: hidden;
+  }
+
+  .form-card-header {
+    background: var(--c-primary);
+    color: #ffffff;
+    padding: 18px 28px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+
+  .form-card-body {
+    padding: 28px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--c-text);
+    margin-bottom: 6px;
+  }
+  .form-group label .req {
+    color: var(--c-danger);
+    margin-left: 2px;
+  }
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--c-border);
+    border-radius: var(--radius-input);
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--c-text);
+    background: #fff;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .form-group input:focus,
+  .form-group select:focus {
+    border-color: var(--c-accent);
+    box-shadow: 0 0 0 3px rgba(44,123,229,0.12);
+  }
+  .form-group input.error {
+    border-color: var(--c-danger);
+    box-shadow: 0 0 0 3px rgba(239,68,68,0.08);
+  }
+  .form-group .error-msg {
+    font-size: 12px;
+    color: var(--c-danger);
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+  }
+  .form-group .error-msg svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: var(--c-danger);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+
+  .form-group .select-wrap {
+    position: relative;
+  }
+  .form-group .select-wrap::after {
+    content: '';
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid var(--c-text-muted);
+    pointer-events: none;
+  }
+  .form-group select {
+    padding-right: 36px;
+    cursor: pointer;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 8px;
+    border-top: 1px solid var(--c-border);
+    margin-top: 28px;
+    padding-top: 20px;
+  }
+  .btn {
+    padding: 10px 24px;
+    border-radius: var(--radius-btn);
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    transition: background 0.15s, box-shadow 0.15s;
+  }
+  .btn-secondary {
+    background: #fff;
+    color: var(--c-text);
+    border: 1.5px solid var(--c-border);
+  }
+  .btn-secondary:hover {
+    background: var(--bg-stripe);
+    border-color: #cbd5e1;
+  }
+  .btn-primary {
+    background: var(--c-accent);
+    color: #ffffff;
+  }
+  .btn-primary:hover {
+    background: var(--c-accent-hover);
+  }
+</style>
+</head>
+<body>
+
+<!-- ╔══════════════════════════════════════════════╗
+     ║          THEME BANNER                       ║
+     ╚══════════════════════════════════════════════╝ -->
+<div class="theme-banner">
+  <h1>Theme B: Professional Corporate</h1>
+  <p>Structured, authoritative, data-confident. Navy sidebar/headers, blue accents, dense tables.</p>
+</div>
+
+<!-- ── Section 1: Login ── -->
+<div class="section-divider"><span>Preview 1: Login</span></div>
+
+<div class="login-section">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="icon">
+        <!-- Shield + chart icon -->
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2L3 7v5c0 5.25 3.83 10.15 9 11.25C17.17 22.15 21 17.25 21 12V7l-9-5z"/>
+          <polyline points="8 14 10.5 11 13 13.5 16 9"/>
+        </svg>
+      </div>
+      <h2>Resource Intelligence Platform</h2>
+      <p>Sign in to your account</p>
+    </div>
+
+    <div class="login-field">
+      <label>Email Address</label>
+      <input type="email" placeholder="you@company.com">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" placeholder="Enter your password">
+    </div>
+
+    <button class="login-btn">Sign In</button>
+
+    <div class="login-forgot">
+      <a href="#">Forgot password?</a>
+    </div>
+  </div>
+</div>
+
+<!-- ── Section 2: Dashboard ── -->
+<div class="section-divider"><span>Preview 2: Dashboard</span></div>
+
+<div class="dashboard-section">
+  <!-- Header -->
+  <div class="dash-header">
+    <div class="dash-header-left">
+      <div class="hdr-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2L3 7v5c0 5.25 3.83 10.15 9 11.25C17.17 22.15 21 17.25 21 12V7l-9-5z"/>
+          <polyline points="8 14 10.5 11 13 13.5 16 9"/>
+        </svg>
+      </div>
+      <span>Resource Intelligence Platform</span>
+    </div>
+    <div class="dash-header-right">
+      <span style="color:#8da4bc; font-size:12px;">CEO</span>
+      <span class="user-name">Vivek Sharma</span>
+      <div class="avatar">VS</div>
+    </div>
+  </div>
+
+  <div class="dash-body">
+    <!-- Sidebar -->
+    <nav class="dash-sidebar">
+      <div class="nav-section-label">Main</div>
+
+      <a class="nav-item active" href="#">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Clients
+      </a>
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        Projects
+      </a>
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Resources
+      </a>
+
+      <div class="nav-section-label">Tracking</div>
+
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Allocations
+      </a>
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Dashboards
+      </a>
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Worklogs
+      </a>
+
+      <div class="nav-section-label">System</div>
+
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </a>
+    </nav>
+
+    <!-- Content -->
+    <div class="dash-content">
+      <h2>Dashboard</h2>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Billable Utilization</div>
+          <div class="kpi-value">74%</div>
+          <div class="kpi-sub">Target: 80%</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">On Bench</div>
+          <div class="kpi-value">4</div>
+          <div class="kpi-sub">of 34 resources</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Active Projects</div>
+          <div class="kpi-value">12</div>
+          <div class="kpi-sub">3 in pipeline</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Monthly Revenue</div>
+          <div class="kpi-value" style="font-size:26px;">&#8377;42.8L</div>
+          <div class="kpi-sub">June 2026</div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="dash-table-card">
+        <div class="table-title">Recent Assignments</div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Resource</th>
+              <th>Project</th>
+              <th>Allocation</th>
+              <th>Role</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Vivek Sharma</td>
+              <td>Project Phoenix</td>
+              <td>60%</td>
+              <td>Tech Lead</td>
+              <td><span class="status-badge active">Active</span></td>
+            </tr>
+            <tr>
+              <td>Priya Patel</td>
+              <td>Atlas Migration</td>
+              <td>80%</td>
+              <td>Senior Dev</td>
+              <td><span class="status-badge active">Active</span></td>
+            </tr>
+            <tr>
+              <td>Arjun Mehta</td>
+              <td>Meridian API</td>
+              <td>40%</td>
+              <td>Full Stack</td>
+              <td><span class="status-badge active">Active</span></td>
+            </tr>
+            <tr>
+              <td>Neha Gupta</td>
+              <td>Nexus Portal</td>
+              <td>100%</td>
+              <td>QA Lead</td>
+              <td><span class="status-badge active">Active</span></td>
+            </tr>
+            <tr>
+              <td>Rajesh Kumar</td>
+              <td>&mdash;</td>
+              <td>0%</td>
+              <td>DevOps</td>
+              <td><span class="status-badge bench">Bench</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Section 3: Data Entry Form ── -->
+<div class="section-divider"><span>Preview 3: Data Entry Form</span></div>
+
+<div class="form-section">
+  <div class="form-card">
+    <div class="form-card-header">Add New User</div>
+    <div class="form-card-body">
+
+      <div class="form-group">
+        <label>Full Name <span class="req">*</span></label>
+        <input type="text" value="Amit Desai">
+      </div>
+
+      <div class="form-group">
+        <label>Email Address <span class="req">*</span></label>
+        <input type="email" value="amit.desai@company.com" class="error">
+        <div class="error-msg">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          A user with this email already exists
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Password <span class="req">*</span></label>
+        <input type="password" placeholder="Minimum 8 characters">
+      </div>
+
+      <div class="form-group">
+        <label>Role <span class="req">*</span></label>
+        <div class="select-wrap">
+          <select>
+            <option value="">Select a role...</option>
+            <option>CEO</option>
+            <option>CTO</option>
+            <option>Delivery Manager</option>
+            <option selected>Project Manager</option>
+            <option>Finance</option>
+            <option>HR</option>
+            <option>Engineer</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Link to Resource</label>
+        <div class="select-wrap">
+          <select>
+            <option value="">No resource linked</option>
+            <option selected>Amit Desai (PM)</option>
+            <option>Vivek Sharma (Tech Lead)</option>
+            <option>Priya Patel (Senior Dev)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-secondary">Cancel</button>
+        <button class="btn btn-primary">Save User</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Client Detail — Nexus Healthcare — Resource Intelligence Platform</title>
+<style>
+:root {
+  --bg-page: #F0F1FA; --bg-card: #ffffff; --bg-sidebar: #F5F6FC;
+  --bg-header: #ffffff; --bg-hover: #F0F1FA; --bg-stripe: #F5F6FC;
+  --c-primary: #2B3990; --c-primary-dark: #1B2B65; --c-primary-light: #4A5BB5;
+  --c-accent: #FF4B2B; --c-accent-hover: #E63E1F; --c-accent-soft: #FFF0EC;
+  --c-text: #1e1b4b; --c-text-secondary: #6b7280; --c-text-muted: #7C85C0;
+  --c-border: #D6DAF0; --c-border-light: #E8EAF6;
+  --c-danger: #ef4444; --c-success: #22c55e; --c-warning: #f59e0b;
+  --shadow-card: 0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --radius-card: 12px; --radius-input: 8px; --radius-btn: 8px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg-page); color: var(--c-text); min-height: 100vh; }
+
+/* Role Switcher */
+.role-switcher { position: sticky; top: 0; z-index: 100; background: var(--c-primary-dark); padding: 8px 24px; display: flex; align-items: center; gap: 8px; }
+.role-switcher span { color: #fff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-right: 8px; }
+.role-btn { padding: 6px 14px; border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; background: transparent; color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+.role-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.role-btn.active { background: #fff; color: var(--c-primary-dark); border-color: #fff; }
+
+/* App Header */
+.app-header { background: var(--bg-header); border-bottom: 1px solid var(--c-border-light); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.app-logo { display: flex; align-items: center; gap: 10px; }
+.app-logo svg { width: 28px; height: 28px; }
+.app-logo h1 { font-size: 16px; font-weight: 700; color: var(--c-primary); }
+.app-user { display: flex; align-items: center; gap: 10px; }
+.app-user .avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--c-primary), var(--c-primary-light)); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+.app-user .user-name { font-size: 13px; font-weight: 500; color: var(--c-text); }
+.app-user .user-role { font-size: 11px; color: var(--c-text-secondary); }
+
+/* Layout */
+.app-layout { display: flex; min-height: calc(100vh - 56px - 40px); }
+
+/* Sidebar */
+.sidebar { width: 240px; background: var(--bg-sidebar); border-right: 1px solid var(--c-border-light); padding: 16px 0; flex-shrink: 0; }
+.sidebar-nav { list-style: none; }
+.sidebar-nav li a { display: flex; align-items: center; gap: 10px; padding: 10px 20px; color: var(--c-text-secondary); text-decoration: none; font-size: 13px; font-weight: 500; transition: all 0.15s; border-left: 3px solid transparent; }
+.sidebar-nav li a:hover { background: var(--bg-hover); color: var(--c-text); }
+.sidebar-nav li a.active { background: var(--c-accent-soft); color: var(--c-accent); border-left-color: var(--c-accent); font-weight: 600; }
+.sidebar-nav li a svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+/* Main */
+.main-content { flex: 1; padding: 24px; }
+
+/* Breadcrumb */
+.breadcrumb { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 13px; }
+.breadcrumb a { color: var(--c-text-muted); text-decoration: none; }
+.breadcrumb a:hover { color: var(--c-primary); text-decoration: underline; }
+.breadcrumb .sep { color: var(--c-text-muted); }
+.breadcrumb .current { color: var(--c-text); font-weight: 600; }
+
+/* Client Header Card */
+.client-header { background: var(--bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card); padding: 24px; margin-bottom: 20px; }
+.client-header-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+.client-name { font-size: 24px; font-weight: 700; color: var(--c-text); }
+.client-industry { font-size: 14px; color: var(--c-text-secondary); margin-top: 4px; }
+.client-status { margin-top: 8px; }
+.header-actions { display: flex; gap: 8px; }
+.btn-edit { padding: 8px 16px; border-radius: var(--radius-btn); border: 1px solid var(--c-border); background: #fff; color: var(--c-text); font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
+.btn-edit:hover { border-color: var(--c-primary); color: var(--c-primary); }
+.btn-danger { padding: 8px 16px; border-radius: var(--radius-btn); border: 1px solid var(--c-danger); background: #fff; color: var(--c-danger); font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
+.btn-danger:hover { background: #fef2f2; }
+
+.client-info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.info-item label { display: block; font-size: 11px; font-weight: 600; color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.info-item .value { font-size: 14px; color: var(--c-text); font-weight: 500; }
+.info-item .value a { color: var(--c-primary); text-decoration: none; }
+.info-item .value a:hover { text-decoration: underline; }
+
+.client-notes { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--c-border-light); }
+.client-notes label { display: block; font-size: 11px; font-weight: 600; color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.client-notes p { font-size: 13px; color: var(--c-text-secondary); line-height: 1.5; }
+
+/* KPI Cards */
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
+.kpi-card { background: var(--bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card); padding: 20px; }
+.kpi-card .kpi-label { font-size: 11px; font-weight: 600; color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.kpi-card .kpi-value { font-size: 28px; font-weight: 700; color: var(--c-text); }
+.kpi-card .kpi-sub { font-size: 12px; color: var(--c-text-secondary); margin-top: 4px; }
+.kpi-card.financial { position: relative; }
+.kpi-card.financial .restricted-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.9); border-radius: var(--radius-card); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--c-text-muted); font-weight: 500; }
+
+/* Section Header */
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.section-header h3 { font-size: 16px; font-weight: 600; color: var(--c-text); }
+
+/* Table Card */
+.table-card { background: var(--bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card); overflow: hidden; }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table thead th { background: linear-gradient(135deg, #2B3990, #4A5BB5); color: #fff; padding: 12px 16px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; text-align: left; white-space: nowrap; }
+.data-table tbody tr { border-bottom: 1px solid var(--c-border-light); transition: background 0.15s; }
+.data-table tbody tr:nth-child(even) { background: var(--bg-stripe); }
+.data-table tbody tr:hover { background: var(--bg-hover); cursor: pointer; }
+.data-table tbody td { padding: 12px 16px; font-size: 13px; color: var(--c-text); }
+.data-table .link { color: var(--c-primary); font-weight: 600; text-decoration: none; }
+.data-table .link:hover { text-decoration: underline; }
+
+/* Badges */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+.badge-active { background: #dcfce7; color: #15803d; }
+.badge-inactive { background: #fee2e2; color: #b91c1c; }
+.badge-completed { background: #dbeafe; color: #1d4ed8; }
+.badge-on-hold { background: #fef3c7; color: #b45309; }
+.badge-cancelled { background: #fee2e2; color: #dc2626; }
+.badge-fp { background: #ede9fe; color: #7c3aed; }
+.badge-tm { background: #dbeafe; color: #2563eb; }
+.badge-onb { background: #fef3c7; color: #d97706; }
+.badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+.badge-active::before { background: #22c55e; }
+.badge-completed::before { background: #3b82f6; }
+.badge-on-hold::before { background: #f59e0b; }
+.badge-fp::before, .badge-tm::before, .badge-onb::before { display: none; }
+
+/* Empty State */
+.empty-state { display: none; padding: 40px 20px; text-align: center; }
+.empty-state svg { width: 48px; height: 48px; color: var(--c-text-muted); margin-bottom: 12px; }
+.empty-state h3 { font-size: 15px; font-weight: 600; color: var(--c-text); margin-bottom: 6px; }
+.empty-state p { font-size: 13px; color: var(--c-text-secondary); }
+
+.empty-toggle { position: fixed; bottom: 20px; right: 20px; padding: 8px 14px; border-radius: 20px; border: 1px solid var(--c-border); background: #fff; color: var(--c-text-secondary); font-size: 11px; cursor: pointer; z-index: 50; box-shadow: var(--shadow-card); }
+.empty-toggle:hover { background: var(--bg-hover); }
+
+.btn-primary { background: linear-gradient(135deg, #FF4B2B, #FF6B4A); color: #fff; border: none; padding: 10px 20px; border-radius: var(--radius-btn); font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(255,75,43,0.25); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255,75,43,0.35); }
+</style>
+</head>
+<body>
+
+<!-- Role Switcher -->
+<div class="role-switcher">
+  <span>Role:</span>
+  <button class="role-btn active" onclick="switchRole('CEO')">CEO</button>
+  <button class="role-btn" onclick="switchRole('CTO')">CTO</button>
+  <button class="role-btn" onclick="switchRole('DM')">DM</button>
+  <button class="role-btn" onclick="switchRole('PM')">PM</button>
+  <button class="role-btn" onclick="switchRole('Finance')">Finance</button>
+  <button class="role-btn" onclick="switchRole('HR')">HR</button>
+  <button class="role-btn" onclick="switchRole('Engineer')">Engineer</button>
+</div>
+
+<!-- App Header -->
+<header class="app-header">
+  <div class="app-logo">
+    <svg viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="6" fill="#2B3990"/><path d="M8 14l4 4 8-8" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <h1>Resource Intelligence Platform</h1>
+  </div>
+  <div class="app-user">
+    <div>
+      <div class="user-name" id="currentUserName">Vivek Sharma</div>
+      <div class="user-role" id="currentUserRole">CEO</div>
+    </div>
+    <div class="avatar" id="currentUserAvatar">VS</div>
+  </div>
+</header>
+
+<!-- Layout -->
+<div class="app-layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <ul class="sidebar-nav">
+      <li><a href="#">
+        <svg viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="10" y="1" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="10" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="10" y="10" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/></svg>
+        Dashboard
+      </a></li>
+      <li><a href="client-list.html" class="active">
+        <svg viewBox="0 0 18 18" fill="none"><path d="M15 15.75H3a1.5 1.5 0 01-1.5-1.5V3.75A1.5 1.5 0 013 2.25h12a1.5 1.5 0 011.5 1.5v10.5a1.5 1.5 0 01-1.5 1.5z" stroke="currentColor" stroke-width="1.5"/><path d="M6 6.75h6M6 9.75h6M6 12.75h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Clients
+      </a></li>
+      <li><a href="#">
+        <svg viewBox="0 0 18 18" fill="none"><path d="M2.25 3.75h13.5v10.5a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5V3.75z" stroke="currentColor" stroke-width="1.5"/><path d="M6.75 2.25v3M11.25 2.25v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M6 9h1.5M10.5 9H12M6 12h1.5M10.5 12H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Projects
+      </a></li>
+      <li><a href="#">
+        <svg viewBox="0 0 18 18" fill="none"><circle cx="9" cy="6" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 15.75c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Resources
+      </a></li>
+      <li><a href="#">
+        <svg viewBox="0 0 18 18" fill="none"><path d="M9 2.25v13.5M2.25 9h13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Allocations
+      </a></li>
+      <li><a href="#">
+        <svg viewBox="0 0 18 18" fill="none"><path d="M2.25 14.25l4.5-4.5 3 3 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Utilization
+      </a></li>
+      <li><a href="#">
+        <svg viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.75" stroke="currentColor" stroke-width="1.5"/><path d="M9 5.25v3.75l2.25 2.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Worklogs
+      </a></li>
+      <li><a href="#">
+        <svg viewBox="0 0 18 18" fill="none"><path d="M14.25 9.75v4.5a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-4.5" stroke="currentColor" stroke-width="1.5"/><path d="M12 6.75L9 3.75l-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 3.75v8.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Audit Log
+      </a></li>
+    </ul>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+      <a href="client-list.html">Clients</a>
+      <span class="sep">/</span>
+      <span class="current">Nexus Healthcare</span>
+    </div>
+
+    <!-- Client Header Card -->
+    <div class="client-header">
+      <div class="client-header-top">
+        <div>
+          <div class="client-name">Nexus Healthcare</div>
+          <div class="client-industry">Healthcare</div>
+          <div class="client-status" style="margin-top:8px;">
+            <span class="badge badge-active">Active</span>
+          </div>
+        </div>
+        <div class="header-actions" id="headerActions">
+          <button class="btn-edit" onclick="window.location.href='client-form.html'">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M10 1.5l2.5 2.5L4.5 12H2v-2.5L10 1.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Edit
+          </button>
+          <button class="btn-danger" id="deactivateBtn">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 5l4 4M9 5l-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Deactivate
+          </button>
+        </div>
+      </div>
+
+      <div class="client-info-grid">
+        <div class="info-item">
+          <label>Contact Name</label>
+          <div class="value">Dr. Ananya Iyer</div>
+        </div>
+        <div class="info-item">
+          <label>Contact Email</label>
+          <div class="value"><a href="mailto:ananya.iyer@nexushealth.in">ananya.iyer@nexushealth.in</a></div>
+        </div>
+        <div class="info-item">
+          <label>Contact Phone</label>
+          <div class="value">+91 98765 43210</div>
+        </div>
+        <div class="info-item">
+          <label>Engagement Start Date</label>
+          <div class="value">15 Jan 2024</div>
+        </div>
+      </div>
+
+      <div class="client-notes">
+        <label>Notes</label>
+        <p>Key healthcare provider in South India. Engaged for digital transformation of patient management systems. Board-level sponsorship from COO. Quarterly review cadence established.</p>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-label">Active Projects</div>
+        <div class="kpi-value">3</div>
+        <div class="kpi-sub">1 completed this year</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Active Resources</div>
+        <div class="kpi-value">12</div>
+        <div class="kpi-sub">Across all active projects</div>
+      </div>
+      <div class="kpi-card financial" id="kpiRevenue">
+        <div class="kpi-label">Total Billing (INR)</div>
+        <div class="kpi-value">&#8377;48.5L</div>
+        <div class="kpi-sub">Year to date</div>
+        <div class="restricted-overlay" id="revenueOverlay" style="display:none;">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right:6px;"><rect x="2" y="7" width="12" height="7" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.5"/></svg>
+          Financial data restricted
+        </div>
+      </div>
+      <div class="kpi-card financial" id="kpiCost">
+        <div class="kpi-label">Total Cost (INR)</div>
+        <div class="kpi-value">&#8377;32.1L</div>
+        <div class="kpi-sub">Year to date</div>
+        <div class="restricted-overlay" id="costOverlay" style="display:none;">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right:6px;"><rect x="2" y="7" width="12" height="7" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.5"/></svg>
+          Financial data restricted
+        </div>
+      </div>
+      <div class="kpi-card financial" id="kpiMargin">
+        <div class="kpi-label">Aggregate Margin</div>
+        <div class="kpi-value">33.8%</div>
+        <div class="kpi-sub">Above 30% target</div>
+        <div class="restricted-overlay" id="marginOverlay" style="display:none;">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right:6px;"><rect x="2" y="7" width="12" height="7" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.5"/></svg>
+          Financial data restricted
+        </div>
+      </div>
+    </div>
+
+    <!-- Projects Section -->
+    <div class="section-header">
+      <h3>Projects</h3>
+    </div>
+
+    <div class="table-card" id="projectsTable">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Project Name</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Delivery Manager</th>
+            <th>Project Manager</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr onclick="window.location.href='../../03-project-management/mockups/project-detail.html'">
+            <td><a class="link" href="../../03-project-management/mockups/project-detail.html">Nexus Patient Portal</a></td>
+            <td><span class="badge badge-fp">Fixed Price</span></td>
+            <td><span class="badge badge-active">Active</span></td>
+            <td>Rajesh Kumar</td>
+            <td>Neha Gupta</td>
+          </tr>
+          <tr>
+            <td><a class="link" href="#">Nexus EMR Integration</a></td>
+            <td><span class="badge badge-tm">T&M</span></td>
+            <td><span class="badge badge-active">Active</span></td>
+            <td>Rajesh Kumar</td>
+            <td>Priya Patel</td>
+          </tr>
+          <tr>
+            <td><a class="link" href="#">Nexus Analytics Dashboard</a></td>
+            <td><span class="badge badge-tm">T&M</span></td>
+            <td><span class="badge badge-active">Active</span></td>
+            <td>Arjun Mehta</td>
+            <td>Neha Gupta</td>
+          </tr>
+          <tr>
+            <td><a class="link" href="#">Nexus Mobile App</a></td>
+            <td><span class="badge badge-fp">Fixed Price</span></td>
+            <td><span class="badge badge-completed">Completed</span></td>
+            <td>Rajesh Kumar</td>
+            <td>Priya Patel</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State for Projects -->
+    <div class="empty-state" id="emptyState" style="background: var(--bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card);">
+      <svg viewBox="0 0 48 48" fill="none"><rect x="6" y="10" width="36" height="28" rx="3" stroke="currentColor" stroke-width="2"/><path d="M16 22h16M16 28h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <h3>No projects yet</h3>
+      <p>Add a project for this client.</p>
+    </div>
+  </main>
+</div>
+
+<!-- Empty State Toggle -->
+<button class="empty-toggle" onclick="toggleEmptyState()">Toggle Empty State</button>
+
+<script>
+const roleConfig = {
+  CEO:      { canView: true, canEdit: true, canDeactivate: true, canSeeFinancials: true, userName: 'Vivek Sharma', avatar: 'VS' },
+  CTO:      { canView: true, canEdit: true, canDeactivate: true, canSeeFinancials: true, userName: 'Arjun Mehta', avatar: 'AM' },
+  DM:       { canView: true, canEdit: false, canDeactivate: false, canSeeFinancials: false, userName: 'Rajesh Kumar', avatar: 'RK' },
+  PM:       { canView: true, canEdit: false, canDeactivate: false, canSeeFinancials: false, userName: 'Neha Gupta', avatar: 'NG' },
+  Finance:  { canView: true, canEdit: false, canDeactivate: false, canSeeFinancials: true, userName: 'Kavita Nair', avatar: 'KN' },
+  HR:       { canView: true, canEdit: false, canDeactivate: false, canSeeFinancials: false, userName: 'Sneha Reddy', avatar: 'SR' },
+  Engineer: { canView: false, canEdit: false, canDeactivate: false, canSeeFinancials: false, userName: 'Amit Joshi', avatar: 'AJ' }
+};
+
+let currentRole = 'CEO';
+let emptyStateVisible = false;
+
+function switchRole(role) {
+  currentRole = role;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const config = roleConfig[role];
+  document.getElementById('currentUserName').textContent = config.userName;
+  document.getElementById('currentUserRole').textContent = role;
+  document.getElementById('currentUserAvatar').textContent = config.avatar;
+
+  // Header actions
+  document.getElementById('headerActions').style.display = config.canEdit ? 'flex' : 'none';
+
+  // Financial KPI overlays
+  const showFinancials = config.canSeeFinancials;
+  document.getElementById('revenueOverlay').style.display = showFinancials ? 'none' : 'flex';
+  document.getElementById('costOverlay').style.display = showFinancials ? 'none' : 'flex';
+  document.getElementById('marginOverlay').style.display = showFinancials ? 'none' : 'flex';
+
+  // Engineer access denied - redirect concept
+  if (role === 'Engineer') {
+    document.querySelector('.main-content').innerHTML = `
+      <div style="padding:60px 20px;text-align:center;">
+        <svg viewBox="0 0 64 64" width="64" height="64" fill="none"><circle cx="32" cy="32" r="28" stroke="#ef4444" stroke-width="3"/><path d="M20 20l24 24M44 20L20 44" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/></svg>
+        <h3 style="font-size:18px;font-weight:600;margin:16px 0 8px;">Access Denied</h3>
+        <p style="font-size:14px;color:#6b7280;">You do not have permission to view client data.</p>
+      </div>`;
+  }
+}
+
+function toggleEmptyState() {
+  emptyStateVisible = !emptyStateVisible;
+  document.getElementById('projectsTable').style.display = emptyStateVisible ? 'none' : 'block';
+  document.getElementById('emptyState').style.display = emptyStateVisible ? 'block' : 'none';
+}
+</script>
+</body>
+</html>

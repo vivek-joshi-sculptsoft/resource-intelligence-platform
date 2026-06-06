@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Role Management — Resource Intelligence Platform</title>
+<style>
+  :root {
+    --bg-page: #F0F1FA;
+    --bg-card: #ffffff;
+    --bg-sidebar: #F5F6FC;
+    --bg-header: #ffffff;
+    --bg-hover: #F0F1FA;
+    --c-primary: #2B3990;
+    --c-primary-dark: #1B2B65;
+    --c-primary-light: #4A5BB5;
+    --c-accent: #FF4B2B;
+    --c-accent-hover: #E63E1F;
+    --c-accent-soft: #FFF0EC;
+    --c-text: #1e1b4b;
+    --c-text-secondary: #6b7280;
+    --c-text-muted: #7C85C0;
+    --c-border: #D6DAF0;
+    --c-border-light: #E8EAF6;
+    --c-danger: #ef4444;
+    --c-success: #22c55e;
+    --shadow-card: 0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04);
+    --radius-card: 12px;
+    --radius-input: 8px;
+    --radius-btn: 8px;
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-family);
+    background: var(--bg-page);
+    color: var(--c-text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Role Switcher Bar ── */
+  .role-switcher {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--c-primary-dark);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    height: 44px;
+    gap: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  }
+  .role-switcher-label {
+    color: rgba(255,255,255,0.5);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-right: 12px;
+    white-space: nowrap;
+  }
+  .role-switcher button {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.65);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+  .role-switcher button:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+  .role-switcher button.active {
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* ── App Header ── */
+  .app-header {
+    background: var(--bg-header);
+    border-bottom: 2px solid var(--c-primary);
+    padding: 0 28px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .app-header-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--c-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .app-header-title .logo-icon {
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, var(--c-primary), var(--c-primary-light));
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 800;
+    font-size: 14px;
+  }
+  .app-header-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--c-text);
+    font-weight: 500;
+  }
+  .app-header-user .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--c-primary), var(--c-accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .app-header-user .role-tag {
+    font-size: 11px;
+    background: var(--c-accent-soft);
+    color: var(--c-accent);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  /* ── Layout ── */
+  .app-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* ── Left Sidebar ── */
+  .sidebar {
+    width: 220px;
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--c-border-light);
+    padding: 20px 0;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar-section {
+    padding: 0 16px;
+    margin-bottom: 8px;
+  }
+  .sidebar-section-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--c-text-muted);
+    padding: 8px 12px 6px;
+  }
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--radius-btn);
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--c-text-secondary);
+    cursor: pointer;
+    transition: all 0.12s ease;
+    text-decoration: none;
+    margin-bottom: 2px;
+  }
+  .sidebar-item:hover {
+    background: var(--bg-hover);
+    color: var(--c-text);
+  }
+  .sidebar-item.active {
+    background: var(--c-primary);
+    color: #fff;
+    font-weight: 600;
+  }
+  .sidebar-item .icon {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .sidebar-divider {
+    height: 1px;
+    background: var(--c-border-light);
+    margin: 12px 16px;
+  }
+
+  /* ── Main Content ── */
+  .main-content {
+    flex: 1;
+    padding: 24px 32px;
+    overflow-y: auto;
+    min-width: 0;
+  }
+  .breadcrumb {
+    font-size: 13px;
+    color: var(--c-text-muted);
+    margin-bottom: 6px;
+  }
+  .breadcrumb a {
+    color: var(--c-primary-light);
+    text-decoration: none;
+  }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb span { color: var(--c-text-muted); }
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--c-text);
+    margin-bottom: 20px;
+  }
+
+  /* ── Split Layout ── */
+  .split-layout {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+
+  /* ── Role List Panel ── */
+  .role-list-panel {
+    width: 280px;
+    flex-shrink: 0;
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--c-border-light);
+    overflow: hidden;
+  }
+  .role-list-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--c-border-light);
+  }
+  .role-list-header h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--c-text);
+  }
+  .role-list {
+    padding: 8px;
+  }
+  .role-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-radius: var(--radius-btn);
+    cursor: pointer;
+    transition: all 0.12s ease;
+    margin-bottom: 2px;
+  }
+  .role-list-item:hover {
+    background: var(--bg-hover);
+  }
+  .role-list-item.selected {
+    background: rgba(43, 57, 144, 0.08);
+    border: 1.5px solid var(--c-primary);
+  }
+  .role-list-item:not(.selected) {
+    border: 1.5px solid transparent;
+  }
+  .role-list-item .role-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .role-list-item .role-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--c-text);
+  }
+  .role-list-item.selected .role-name {
+    color: var(--c-primary);
+  }
+  .role-list-item .role-code {
+    font-size: 11.5px;
+    color: var(--c-text-secondary);
+    font-weight: 400;
+  }
+  .role-list-item .level-badge {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--c-text-muted);
+    background: var(--bg-page);
+    padding: 3px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--c-border-light);
+  }
+  .role-list-item.selected .level-badge {
+    background: var(--c-primary);
+    color: #fff;
+    border-color: var(--c-primary);
+  }
+
+  /* ── Permission Matrix Panel ── */
+  .permission-panel {
+    flex: 1;
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--c-border-light);
+    overflow: hidden;
+    min-width: 0;
+  }
+  .permission-header {
+    padding: 16px 24px 14px;
+    border-bottom: 1px solid var(--c-border-light);
+  }
+  .permission-header h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--c-text);
+    margin-bottom: 4px;
+  }
+  .permission-header .subtitle {
+    font-size: 13px;
+    color: var(--c-text-secondary);
+    font-weight: 400;
+  }
+  .info-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    margin: 16px 24px 0;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: var(--radius-btn);
+    font-size: 13px;
+    color: #1e40af;
+  }
+  .info-banner .info-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #bfdbfe;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    flex-shrink: 0;
+    color: #1e40af;
+  }
+
+  /* ── Permission Table ── */
+  .permission-table-wrap {
+    padding: 16px 24px 24px;
+    overflow-x: auto;
+  }
+  .permission-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13.5px;
+    border: 1px solid var(--c-border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .permission-table thead th {
+    background: linear-gradient(135deg, var(--c-primary), var(--c-primary-light));
+    color: #fff;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 12px 16px;
+    text-align: left;
+    white-space: nowrap;
+    border: none;
+  }
+  .permission-table thead th:first-child {
+    padding-left: 20px;
+  }
+  .permission-table tbody tr {
+    transition: background 0.1s ease;
+  }
+  .permission-table tbody tr:hover {
+    background: var(--bg-hover);
+  }
+  .permission-table tbody td {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--c-border-light);
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  .permission-table tbody td:first-child {
+    padding-left: 20px;
+    font-weight: 500;
+    color: var(--c-text);
+  }
+  .permission-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .badge-edit {
+    background: #d1fae5;
+    color: #065f46;
+  }
+  .badge-view {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+  .badge-none {
+    background: #f1f5f9;
+    color: #64748b;
+  }
+  .badge-all {
+    background: #ede9fe;
+    color: #5b21b6;
+  }
+  .badge-own {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  .badge-self {
+    background: #f1f5f9;
+    color: #64748b;
+  }
+  .check-yes {
+    color: var(--c-success);
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .check-no {
+    color: #cbd5e1;
+    font-size: 16px;
+    font-weight: 400;
+  }
+
+  /* ── Empty State ── */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 64px 32px;
+    text-align: center;
+  }
+  .empty-state .empty-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--bg-page);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 16px;
+    color: var(--c-text-muted);
+  }
+  .empty-state p {
+    font-size: 14px;
+    color: var(--c-text-secondary);
+  }
+
+  /* ── Access Denied ── */
+  .access-denied-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(30, 27, 75, 0.55);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .access-denied-card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 48px 56px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    max-width: 420px;
+  }
+  .access-denied-card .lock-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #fef2f2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 28px;
+  }
+  .access-denied-card h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--c-text);
+    margin-bottom: 8px;
+  }
+  .access-denied-card p {
+    font-size: 14px;
+    color: var(--c-text-secondary);
+    line-height: 1.5;
+  }
+
+  /* ── Transitions ── */
+  .fade-in {
+    animation: fadeIn 0.2s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Scrollbar ── */
+  .main-content::-webkit-scrollbar {
+    width: 6px;
+  }
+  .main-content::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .main-content::-webkit-scrollbar-thumb {
+    background: var(--c-border);
+    border-radius: 3px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Role Switcher Bar -->
+<div class="role-switcher">
+  <span class="role-switcher-label">Viewing as:</span>
+  <button class="active" data-viewer="CEO" onclick="switchViewer(this)">CEO</button>
+  <button data-viewer="CTO" onclick="switchViewer(this)">CTO</button>
+  <button data-viewer="DM" onclick="switchViewer(this)">DM</button>
+  <button data-viewer="PM" onclick="switchViewer(this)">PM</button>
+  <button data-viewer="FINANCE" onclick="switchViewer(this)">Finance</button>
+  <button data-viewer="HR" onclick="switchViewer(this)">HR</button>
+  <button data-viewer="ENGINEER" onclick="switchViewer(this)">Engineer</button>
+</div>
+
+<!-- Access Denied Overlay (hidden by default) -->
+<div class="access-denied-overlay" id="accessDenied" style="display:none;">
+  <div class="access-denied-card fade-in">
+    <div class="lock-icon">&#128274;</div>
+    <h2>Access Denied</h2>
+    <p>Role Management is restricted to <strong>CEO</strong> and <strong>CTO</strong> roles only. Contact your administrator for access.</p>
+  </div>
+</div>
+
+<!-- App Header -->
+<header class="app-header">
+  <div class="app-header-title">
+    <div class="logo-icon">RI</div>
+    Resource Intelligence Platform
+  </div>
+  <div class="app-header-user">
+    <span>Vivek Sharma</span>
+    <span class="role-tag" id="headerRoleTag">CEO</span>
+    <div class="avatar">VS</div>
+  </div>
+</header>
+
+<!-- App Body -->
+<div class="app-body">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Main</div>
+      <a class="sidebar-item" href="#">
+        <span class="icon">&#9632;</span> Dashboard
+      </a>
+      <a class="sidebar-item" href="#">
+        <span class="icon">&#128101;</span> Clients
+      </a>
+      <a class="sidebar-item" href="#">
+        <span class="icon">&#128203;</span> Projects
+      </a>
+      <a class="sidebar-item" href="#">
+        <span class="icon">&#128100;</span> Resources
+      </a>
+      <a class="sidebar-item" href="#">
+        <span class="icon">&#128197;</span> Allocations
+      </a>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Settings</div>
+      <a class="sidebar-item active" href="#">
+        <span class="icon">&#128272;</span> Roles
+      </a>
+      <a class="sidebar-item" href="#">
+        <span class="icon">&#128100;</span> Users
+      </a>
+      <a class="sidebar-item" href="#">
+        <span class="icon">&#9881;</span> System Config
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content" id="mainContent">
+    <div class="breadcrumb">
+      <a href="#">Settings</a> <span>&nbsp;&rsaquo;&nbsp;</span> <span>Roles</span>
+    </div>
+    <h1 class="page-title">Role Management</h1>
+
+    <div class="split-layout">
+      <!-- Left Panel — Role List -->
+      <div class="role-list-panel">
+        <div class="role-list-header">
+          <h3>Roles (7)</h3>
+        </div>
+        <div class="role-list" id="roleList">
+          <!-- JS populates -->
+        </div>
+      </div>
+
+      <!-- Right Panel — Permission Matrix -->
+      <div class="permission-panel" id="permissionPanel">
+        <div class="empty-state" id="emptyState" style="display:none;">
+          <div class="empty-icon">&#128272;</div>
+          <p>Select a role to view its permissions.</p>
+        </div>
+
+        <div id="permissionContent">
+          <div class="permission-header">
+            <h3 id="permTitle">Permissions &mdash; CEO</h3>
+            <div class="subtitle" id="permSubtitle">Permission Level: 100 &nbsp;|&nbsp; Scope: ALL</div>
+          </div>
+          <div class="info-banner">
+            <span class="info-icon">i</span>
+            Editing permissions will be available in Phase 3.
+          </div>
+          <div class="permission-table-wrap">
+            <table class="permission-table">
+              <thead>
+                <tr>
+                  <th style="width:35%">Data Type</th>
+                  <th style="width:22%">Access Level</th>
+                  <th style="width:25%">Scope</th>
+                  <th style="width:18%">Configurable</th>
+                </tr>
+              </thead>
+              <tbody id="permTableBody">
+                <!-- JS populates -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ── Data ──
+const DATA_TYPES = [
+  'Client Profiles',
+  'Project Details',
+  'Resource Profiles',
+  'Allocation',
+  'Billability',
+  'Billing Rates',
+  'CTC / Loaded Cost',
+  'Project Margin',
+  'Non-Human Costs',
+  'Shadow Assignments',
+  'Resource Availability',
+  'Bench Data',
+  'Invoicing',
+  'Worklogs',
+  'Alerts'
+];
+
+const ROLES = [
+  { name: 'CEO',              code: 'CEO',      level: 100 },
+  { name: 'CTO',              code: 'CTO',      level: 90 },
+  { name: 'Delivery Manager',  code: 'DM',       level: 70 },
+  { name: 'Project Manager',   code: 'PM',       level: 60 },
+  { name: 'Finance',           code: 'FINANCE',  level: 70 },
+  { name: 'HR',                code: 'HR',       level: 50 },
+  { name: 'Engineer',          code: 'ENGINEER', level: 10 }
+];
+
+// Permission data: [access_level, scope, is_configurable]
+// access_level: 'EDIT' | 'VIEW' | 'NONE'
+// scope: 'ALL' | 'OWN_PORTFOLIO' | 'SELF_ONLY' | null
+// is_configurable: true | false
+const PERMISSIONS = {
+  CEO: [
+    ['EDIT','ALL',false],['EDIT','ALL',false],['EDIT','ALL',false],['EDIT','ALL',false],
+    ['EDIT','ALL',false],['EDIT','ALL',false],['EDIT','ALL',false],['VIEW','ALL',false],
+    ['EDIT','ALL',false],['EDIT','ALL',false],['VIEW','ALL',false],['VIEW','ALL',false],
+    ['EDIT','ALL',false],['VIEW','ALL',false],['EDIT','ALL',false]
+  ],
+  CTO: [
+    ['EDIT','ALL',false],['EDIT','ALL',false],['EDIT','ALL',false],['EDIT','ALL',false],
+    ['EDIT','ALL',false],['VIEW','ALL',false],['VIEW','ALL',false],['VIEW','ALL',false],
+    ['VIEW','ALL',false],['EDIT','ALL',false],['VIEW','ALL',false],['VIEW','ALL',false],
+    ['NONE',null,false],['VIEW','ALL',false],['EDIT','ALL',false]
+  ],
+  DM: [
+    ['VIEW','OWN_PORTFOLIO',false],['EDIT','OWN_PORTFOLIO',false],['VIEW','ALL',false],
+    ['EDIT','OWN_PORTFOLIO',false],['EDIT','OWN_PORTFOLIO',false],['VIEW','OWN_PORTFOLIO',false],
+    ['NONE',null,false],['VIEW','OWN_PORTFOLIO',false],['VIEW','OWN_PORTFOLIO',false],
+    ['EDIT','OWN_PORTFOLIO',false],['VIEW','ALL',false],['VIEW','ALL',false],
+    ['VIEW','OWN_PORTFOLIO',false],['VIEW','OWN_PORTFOLIO',false],['VIEW','OWN_PORTFOLIO',false]
+  ],
+  PM: [
+    ['VIEW','OWN_PORTFOLIO',false],['EDIT','OWN_PORTFOLIO',false],['VIEW','ALL',false],
+    ['EDIT','OWN_PORTFOLIO',false],['EDIT','OWN_PORTFOLIO',false],['NONE',null,false],
+    ['NONE',null,false],['NONE',null,false],['VIEW','OWN_PORTFOLIO',false],
+    ['EDIT','OWN_PORTFOLIO',false],['VIEW','ALL',false],['VIEW','ALL',false],
+    ['NONE',null,false],['VIEW','OWN_PORTFOLIO',false],['VIEW','OWN_PORTFOLIO',false]
+  ],
+  FINANCE: [
+    ['VIEW','ALL',false],['VIEW','ALL',false],['VIEW','ALL',false],
+    ['VIEW','ALL',false],['VIEW','ALL',false],['EDIT','ALL',false],
+    ['EDIT','ALL',false],['VIEW','ALL',false],['EDIT','ALL',false],
+    ['NONE',null,false],['VIEW','ALL',false],['VIEW','ALL',false],
+    ['EDIT','ALL',false],['VIEW','ALL',false],['VIEW','ALL',false]
+  ],
+  HR: [
+    ['NONE',null,false],['NONE',null,false],['EDIT','ALL',true],
+    ['VIEW','ALL',false],['NONE',null,false],['NONE',null,false],
+    ['VIEW','ALL',false],['NONE',null,false],['NONE',null,false],
+    ['NONE',null,false],['VIEW','ALL',false],['VIEW','ALL',false],
+    ['NONE',null,false],['NONE',null,false],['VIEW','ALL',false]
+  ],
+  ENGINEER: [
+    ['NONE',null,false],['VIEW','SELF_ONLY',false],['VIEW','SELF_ONLY',true],
+    ['VIEW','SELF_ONLY',false],['NONE',null,false],['NONE',null,false],
+    ['NONE',null,false],['NONE',null,false],['NONE',null,false],
+    ['NONE',null,false],['VIEW','ALL',false],['NONE',null,false],
+    ['NONE',null,false],['EDIT','SELF_ONLY',false],['VIEW','SELF_ONLY',false]
+  ]
+};
+
+// Default scope label for roles (derived from highest-frequency scope)
+function primaryScope(code) {
+  var perms = PERMISSIONS[code];
+  var scopeCount = {};
+  perms.forEach(function(p) {
+    if (p[1]) { scopeCount[p[1]] = (scopeCount[p[1]] || 0) + 1; }
+  });
+  var best = 'ALL';
+  var bestN = 0;
+  for (var s in scopeCount) {
+    if (scopeCount[s] > bestN) { bestN = scopeCount[s]; best = s; }
+  }
+  return best;
+}
+
+// ── State ──
+var selectedRoleCode = 'CEO';
+var currentViewer = 'CEO';
+
+// ── Render Role List ──
+function renderRoleList() {
+  var list = document.getElementById('roleList');
+  list.innerHTML = '';
+  ROLES.forEach(function(role) {
+    var item = document.createElement('div');
+    item.className = 'role-list-item' + (role.code === selectedRoleCode ? ' selected' : '');
+    item.onclick = function() { selectRole(role.code); };
+    item.innerHTML =
+      '<div class="role-info">' +
+        '<span class="role-name">' + role.name + '</span>' +
+        '<span class="role-code">' + role.code + '</span>' +
+      '</div>' +
+      '<span class="level-badge">' + role.level + '</span>';
+    list.appendChild(item);
+  });
+}
+
+// ── Render Permission Matrix ──
+function renderPermissions(code) {
+  var role = ROLES.find(function(r) { return r.code === code; });
+  if (!role) return;
+  var perms = PERMISSIONS[code];
+  if (!perms) return;
+
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('permissionContent').style.display = '';
+
+  document.getElementById('permTitle').innerHTML = 'Permissions &mdash; ' + role.name;
+  document.getElementById('permSubtitle').innerHTML =
+    'Permission Level: ' + role.level + ' &nbsp;|&nbsp; Scope: ' + primaryScope(code);
+
+  var tbody = document.getElementById('permTableBody');
+  tbody.innerHTML = '';
+
+  perms.forEach(function(perm, i) {
+    var access = perm[0];
+    var scope = perm[1];
+    var configurable = perm[2];
+
+    var accessBadge = '';
+    if (access === 'EDIT') accessBadge = '<span class="badge badge-edit">EDIT</span>';
+    else if (access === 'VIEW') accessBadge = '<span class="badge badge-view">VIEW</span>';
+    else accessBadge = '<span class="badge badge-none">NONE</span>';
+
+    var scopeBadge = '';
+    if (!scope) {
+      scopeBadge = '<span style="color: #cbd5e1;">&mdash;</span>';
+    } else if (scope === 'ALL') {
+      scopeBadge = '<span class="badge badge-all">ALL</span>';
+    } else if (scope === 'OWN_PORTFOLIO') {
+      scopeBadge = '<span class="badge badge-own">OWN_PORTFOLIO</span>';
+    } else {
+      scopeBadge = '<span class="badge badge-self">SELF_ONLY</span>';
+    }
+
+    var configIcon = configurable
+      ? '<span class="check-yes">&#10003;</span>'
+      : '<span class="check-no">&mdash;</span>';
+
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td>' + DATA_TYPES[i] + '</td>' +
+      '<td>' + accessBadge + '</td>' +
+      '<td>' + scopeBadge + '</td>' +
+      '<td>' + configIcon + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  // Animate
+  var wrap = document.querySelector('.permission-table-wrap');
+  wrap.classList.remove('fade-in');
+  void wrap.offsetWidth; // reflow
+  wrap.classList.add('fade-in');
+}
+
+// ── Select Role ──
+function selectRole(code) {
+  selectedRoleCode = code;
+  renderRoleList();
+  renderPermissions(code);
+}
+
+// ── Switch Viewer ──
+function switchViewer(btn) {
+  // Update button states
+  var buttons = document.querySelectorAll('.role-switcher button');
+  buttons.forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+
+  currentViewer = btn.getAttribute('data-viewer');
+  document.getElementById('headerRoleTag').textContent = currentViewer;
+
+  var overlay = document.getElementById('accessDenied');
+  if (currentViewer === 'CEO' || currentViewer === 'CTO') {
+    overlay.style.display = 'none';
+  } else {
+    overlay.style.display = 'flex';
+  }
+}
+
+// ── Init ──
+renderRoleList();
+renderPermissions('CEO');
+</script>
+
+</body>
+</html>

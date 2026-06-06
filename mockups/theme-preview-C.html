@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theme C: Modern Vibrant — SculptSoft Edition</title>
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 14px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #1e1b4b;
+    background: #F0F1FA;
+    line-height: 1.5;
+  }
+
+  /* ===== THEME BANNER ===== */
+  .theme-banner {
+    background: linear-gradient(135deg, #1B2B65, #2B3990, #4A5BB5);
+    color: #fff;
+    text-align: center;
+    padding: 32px 24px;
+  }
+  .theme-banner h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.3px; }
+  .theme-banner p { font-size: 14px; color: rgba(255,255,255,0.8); margin-top: 6px; max-width: 640px; margin-left: auto; margin-right: auto; }
+
+  /* ===== SECTION DIVIDER ===== */
+  .section-divider {
+    text-align: center;
+    padding: 40px 24px 16px;
+  }
+  .section-divider span {
+    display: inline-block;
+    background: #2B3990;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 6px 20px;
+    border-radius: 9999px;
+  }
+
+  /* ===== SECTION 1 — LOGIN ===== */
+  .login-section {
+    background: linear-gradient(135deg, #1B2B65, #2B3990, #4A5BB5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 24px;
+  }
+  .login-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(43,57,144,0.2);
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 420px;
+  }
+  .login-logo {
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .login-logo svg { margin-bottom: 12px; }
+  .login-card h2 {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 700;
+    color: #2B3990;
+    margin-bottom: 4px;
+  }
+  .login-branding {
+    text-align: center;
+    font-size: 12px;
+    color: #7C85C0;
+    margin-bottom: 32px;
+  }
+  .form-group { margin-bottom: 20px; }
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e1b4b;
+    margin-bottom: 6px;
+  }
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #D6DAF0;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #1e1b4b;
+    background: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+  .form-group input::placeholder { color: #7C85C0; }
+  .form-group input:focus,
+  .form-group select:focus {
+    border-color: #2B3990;
+    box-shadow: 0 0 0 3px rgba(43,57,144,0.12);
+  }
+  .btn-signin {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #FF4B2B, #FF6B4A);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-signin:hover { opacity: 0.9; }
+  .forgot-link {
+    display: block;
+    text-align: center;
+    margin-top: 16px;
+    font-size: 13px;
+    color: #2B3990;
+    text-decoration: none;
+  }
+  .forgot-link:hover { text-decoration: underline; }
+
+  /* ===== SECTION 2 — DASHBOARD ===== */
+  .dashboard-section { background: #F0F1FA; }
+
+  /* Header */
+  .dash-header {
+    background: #fff;
+    border-bottom: 1px solid #E8EAF6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    height: 56px;
+  }
+  .dash-header-left { display: flex; align-items: center; gap: 10px; }
+  .dash-header-left svg { flex-shrink: 0; }
+  .dash-header-left span { font-size: 16px; font-weight: 700; color: #2B3990; }
+  .dash-header-right { display: flex; align-items: center; gap: 10px; }
+  .dash-avatar {
+    width: 32px; height: 32px;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #2B3990, #4A5BB5);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600;
+  }
+  .dash-header-right span { font-size: 14px; color: #1e1b4b; font-weight: 500; }
+
+  /* Layout */
+  .dash-layout { display: flex; min-height: 560px; }
+
+  /* Sidebar */
+  .dash-sidebar {
+    width: 224px;
+    flex-shrink: 0;
+    background: #F5F6FC;
+    border-right: 1px solid #E8EAF6;
+    padding: 16px 0;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6b7280;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: background 0.15s, color 0.15s;
+  }
+  .nav-item:hover { background: #E8EAF6; color: #2B3990; }
+  .nav-item.active {
+    background: #E8EAF6;
+    color: #2B3990;
+    font-weight: 600;
+    border-left-color: #FF4B2B;
+  }
+  .nav-item svg { flex-shrink: 0; }
+
+  /* Content */
+  .dash-content { flex: 1; padding: 24px; }
+
+  /* KPI Cards */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .kpi-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(43,57,144,0.08);
+  }
+  .kpi-label { font-size: 12px; color: #7C85C0; font-weight: 500; margin-bottom: 8px; }
+  .kpi-value-row { display: flex; align-items: baseline; gap: 8px; }
+  .kpi-value { font-size: 28px; font-weight: 700; color: #2B3990; }
+  .kpi-trend { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 2px; }
+  .kpi-trend.up-green { color: #22c55e; }
+  .kpi-trend.up-red { color: #ef4444; }
+
+  /* Table */
+  .table-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(43,57,144,0.08);
+    overflow: hidden;
+  }
+  .table-card-header {
+    padding: 16px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .table-card-header h3 { font-size: 15px; font-weight: 600; color: #1e1b4b; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    background: linear-gradient(135deg, #2B3990, #4A5BB5);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: left;
+    padding: 12px 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  tbody tr { border-bottom: 1px solid #E8EAF6; }
+  tbody tr:nth-child(even) { background: #F5F6FC; }
+  tbody tr:hover { background: #F0F1FA; }
+  tbody td { padding: 12px 16px; font-size: 13px; color: #1e1b4b; }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .badge-active { background: #d1fae5; color: #065f46; }
+  .badge-bench { background: #fef3c7; color: #92400e; }
+
+  .table-footer {
+    padding: 12px 20px;
+    font-size: 13px;
+    color: #7C85C0;
+    border-top: 1px solid #E8EAF6;
+  }
+
+  /* ===== SECTION 3 — FORM ===== */
+  .form-section {
+    background: #F0F1FA;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 24px 80px;
+  }
+  .form-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(43,57,144,0.08);
+    width: 100%;
+    max-width: 560px;
+    padding: 32px;
+  }
+  .form-card h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e1b4b;
+    margin-bottom: 24px;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-group.error input {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
+  }
+  .error-message {
+    font-size: 12px;
+    color: #ef4444;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .required-star { color: #ef4444; }
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid #E8EAF6;
+  }
+  .btn-cancel {
+    padding: 10px 20px;
+    border: 1px solid #D6DAF0;
+    border-radius: 8px;
+    background: #fff;
+    color: #1e1b4b;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-cancel:hover { background: #F0F1FA; }
+  .btn-save {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #FF4B2B, #FF6B4A);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-save:hover { opacity: 0.9; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 900px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .dash-sidebar { width: 180px; }
+  }
+  @media (max-width: 640px) {
+    .kpi-grid { grid-template-columns: 1fr; }
+    .dash-sidebar { display: none; }
+    .form-row { grid-template-columns: 1fr; }
+    .login-card { padding: 32px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== THEME BANNER ==================== -->
+<div class="theme-banner">
+  <h1>Theme C: Modern Vibrant &mdash; SculptSoft Edition</h1>
+  <p>SculptSoft brand colors: deep blue primary, orange-red accents, gradients, rounded shapes, elevated cards.</p>
+</div>
+
+<!-- ==================== PREVIEW 1: LOGIN ==================== -->
+<div class="section-divider"><span>Preview 1: Login</span></div>
+
+<section class="login-section">
+  <div class="login-card">
+    <div class="login-logo">
+      <!-- Analytics / chart icon -->
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="12" fill="url(#iconGrad)"/>
+        <rect x="10" y="28" width="6" height="10" rx="1.5" fill="#fff" opacity="0.7"/>
+        <rect x="19" y="20" width="6" height="18" rx="1.5" fill="#fff" opacity="0.85"/>
+        <rect x="28" y="14" width="6" height="24" rx="1.5" fill="#fff"/>
+        <path d="M12 24L20 18L28 22L38 10" stroke="#FF4B2B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="38" cy="10" r="2.5" fill="#FF4B2B"/>
+        <defs>
+          <linearGradient id="iconGrad" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#1B2B65"/>
+            <stop offset="1" stop-color="#4A5BB5"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <h2>Resource Intelligence Platform</h2>
+    <div class="login-branding">by SculptSoft</div>
+
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" placeholder="you@sculptsoft.com" />
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" placeholder="Enter your password" />
+    </div>
+    <button class="btn-signin">Sign In</button>
+    <a href="#" class="forgot-link">Forgot password?</a>
+  </div>
+</section>
+
+<!-- ==================== PREVIEW 2: DASHBOARD ==================== -->
+<div class="section-divider"><span>Preview 2: Dashboard</span></div>
+
+<section class="dashboard-section">
+  <!-- Header -->
+  <div class="dash-header">
+    <div class="dash-header-left">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <rect width="24" height="24" rx="6" fill="url(#hGrad)"/>
+        <rect x="5" y="14" width="3" height="5" rx="0.8" fill="#fff" opacity="0.7"/>
+        <rect x="10" y="10" width="3" height="9" rx="0.8" fill="#fff" opacity="0.85"/>
+        <rect x="15" y="6" width="3" height="13" rx="0.8" fill="#fff"/>
+        <defs>
+          <linearGradient id="hGrad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#1B2B65"/>
+            <stop offset="1" stop-color="#4A5BB5"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <span>Resource Intelligence Platform</span>
+    </div>
+    <div class="dash-header-right">
+      <span>Vivek Sharma</span>
+      <div class="dash-avatar">VS</div>
+    </div>
+  </div>
+
+  <div class="dash-layout">
+    <!-- Sidebar -->
+    <nav class="dash-sidebar">
+      <!-- Dashboard (active) -->
+      <div class="nav-item active">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="10" y="1" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="1" y="10" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="10" y="10" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/></svg>
+        Dashboard
+      </div>
+      <!-- Clients -->
+      <div class="nav-item">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15 15.75v-1.5A3 3 0 0012 11.25H6A3 3 0 003 14.25v1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="9" cy="5.25" r="3" stroke="currentColor" stroke-width="1.6"/></svg>
+        Clients
+      </div>
+      <!-- Projects -->
+      <div class="nav-item">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2.25 5.25l6.75-3 6.75 3v7.5l-6.75 3-6.75-3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M2.25 5.25L9 8.25l6.75-3M9 8.25v7.5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        Projects
+      </div>
+      <!-- Resources -->
+      <div class="nav-item">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="6.75" cy="5.25" r="2.5" stroke="currentColor" stroke-width="1.6"/><path d="M1.5 15.75v-1a4.5 4.5 0 014.5-4.5h1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12.75" cy="7.5" r="2" stroke="currentColor" stroke-width="1.6"/><path d="M10.5 15.75v-.75a3.5 3.5 0 013.5-3.5h0a3.5 3.5 0 013.5 3.5v.75" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Resources
+      </div>
+      <!-- Allocations -->
+      <div class="nav-item">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="3" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M2 7h14M6 7v8M12 7v8" stroke="currentColor" stroke-width="1.6"/></svg>
+        Allocations
+      </div>
+      <!-- Dashboards -->
+      <div class="nav-item">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M2 7h14" stroke="currentColor" stroke-width="1.6"/><path d="M5.5 10.5v3M9 9v4.5M12.5 11v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Dashboards
+      </div>
+      <!-- Worklogs -->
+      <div class="nav-item">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.6"/><path d="M9 5.5V9l2.5 1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Worklogs
+      </div>
+      <!-- Settings -->
+      <div class="nav-item">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="2" stroke="currentColor" stroke-width="1.6"/><path d="M14.5 9a5.5 5.5 0 01-.32 1.87l1.32.76-.75 1.3-1.32-.76a5.5 5.5 0 01-1.62 1.01V14.5h-1.5v-1.32a5.5 5.5 0 01-1.62-1.01l-1.32.76-.75-1.3 1.32-.76A5.5 5.5 0 017.5 9c0-.65.11-1.28.32-1.87l-1.32-.76.75-1.3 1.32.76A5.5 5.5 0 0110.19 4.82V3.5h1.5v1.32a5.5 5.5 0 011.62 1.01l1.32-.76.75 1.3-1.32.76c.21.59.32 1.22.32 1.87z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+        Settings
+      </div>
+    </nav>
+
+    <!-- Content -->
+    <div class="dash-content">
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Billable Utilization</div>
+          <div class="kpi-value-row">
+            <div class="kpi-value">74%</div>
+            <div class="kpi-trend up-green">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 11V3m0 0L3.5 6.5M7 3l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              +3%
+            </div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">On Bench</div>
+          <div class="kpi-value-row">
+            <div class="kpi-value">4</div>
+            <div class="kpi-trend up-red">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 11V3m0 0L3.5 6.5M7 3l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              +1
+            </div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Active Projects</div>
+          <div class="kpi-value-row">
+            <div class="kpi-value">12</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Monthly Revenue</div>
+          <div class="kpi-value-row">
+            <div class="kpi-value" style="font-size: 26px;">&#8377;42.8L</div>
+            <div class="kpi-trend up-green">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 11V3m0 0L3.5 6.5M7 3l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              +8%
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-card">
+        <div class="table-card-header">
+          <h3>Recent Assignments</h3>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Resource</th>
+              <th>Project</th>
+              <th>Allocation</th>
+              <th>Role</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Vivek Sharma</td>
+              <td>Project Phoenix</td>
+              <td>60%</td>
+              <td>Tech Lead</td>
+              <td><span class="badge badge-active">Active</span></td>
+            </tr>
+            <tr>
+              <td>Priya Patel</td>
+              <td>Atlas Migration</td>
+              <td>80%</td>
+              <td>Senior Dev</td>
+              <td><span class="badge badge-active">Active</span></td>
+            </tr>
+            <tr>
+              <td>Arjun Mehta</td>
+              <td>Meridian API</td>
+              <td>40%</td>
+              <td>Full Stack</td>
+              <td><span class="badge badge-active">Active</span></td>
+            </tr>
+            <tr>
+              <td>Neha Gupta</td>
+              <td>Nexus Portal</td>
+              <td>100%</td>
+              <td>QA Lead</td>
+              <td><span class="badge badge-active">Active</span></td>
+            </tr>
+            <tr>
+              <td>Rajesh Kumar</td>
+              <td>&mdash;</td>
+              <td>0%</td>
+              <td>DevOps</td>
+              <td><span class="badge badge-bench">Bench</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="table-footer">Showing 1&ndash;5 of 24 assignments</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PREVIEW 3: DATA ENTRY FORM ==================== -->
+<div class="section-divider"><span>Preview 3: Data Entry Form</span></div>
+
+<section class="form-section">
+  <div class="form-card">
+    <h3>Add New User</h3>
+
+    <!-- Name -->
+    <div class="form-group" style="margin-bottom: 20px;">
+      <label>Name <span class="required-star">*</span></label>
+      <input type="text" placeholder="Full name" />
+    </div>
+
+    <!-- Email — error state -->
+    <div class="form-group error" style="margin-bottom: 20px;">
+      <label>Email <span class="required-star">*</span></label>
+      <input type="email" value="priya.patel@sculptsoft.com" />
+      <div class="error-message">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#ef4444" stroke-width="1.4"/><path d="M7 4v3.5M7 9.5v.01" stroke="#ef4444" stroke-width="1.4" stroke-linecap="round"/></svg>
+        A user with this email already exists
+      </div>
+    </div>
+
+    <!-- Password + Role — 2 columns -->
+    <div class="form-row" style="margin-bottom: 20px;">
+      <div class="form-group">
+        <label>Password <span class="required-star">*</span></label>
+        <input type="password" placeholder="Min 8 characters" />
+      </div>
+      <div class="form-group">
+        <label>Role <span class="required-star">*</span></label>
+        <select>
+          <option value="" disabled>Select role...</option>
+          <option>CEO</option>
+          <option>CTO</option>
+          <option>DM</option>
+          <option selected>PM</option>
+          <option>Finance</option>
+          <option>HR</option>
+          <option>Engineer</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Link to Resource -->
+    <div class="form-group" style="margin-bottom: 0;">
+      <label>Link to Resource</label>
+      <select>
+        <option value="" selected>Select resource...</option>
+        <option>Vivek Sharma</option>
+        <option>Priya Patel</option>
+        <option>Arjun Mehta</option>
+        <option>Neha Gupta</option>
+        <option>Rajesh Kumar</option>
+      </select>
+    </div>
+
+    <!-- Actions -->
+    <div class="form-actions">
+      <button class="btn-cancel">Cancel</button>
+      <button class="btn-save">Save User</button>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Audit Log Viewer — Resource Intelligence Platform</title>
+<style>
+  :root {
+    --bg-page: #F0F1FA; --bg-card: #ffffff; --bg-sidebar: #F5F6FC;
+    --bg-header: #ffffff; --bg-hover: #F0F1FA; --bg-stripe: #F5F6FC;
+    --c-primary: #2B3990; --c-primary-dark: #1B2B65; --c-primary-light: #4A5BB5;
+    --c-accent: #FF4B2B; --c-accent-hover: #E63E1F; --c-accent-soft: #FFF0EC;
+    --c-text: #1e1b4b; --c-text-secondary: #6b7280; --c-text-muted: #7C85C0;
+    --c-border: #D6DAF0; --c-border-light: #E8EAF6;
+    --c-danger: #ef4444; --c-success: #22c55e; --c-warning: #f59e0b;
+    --shadow-card: 0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04);
+    --radius-card: 12px; --radius-input: 8px; --radius-btn: 8px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--font); background: var(--bg-page); color: var(--c-text); min-height: 100vh; }
+
+  /* ── Role Switcher Bar ── */
+  .role-switcher-bar {
+    background: var(--c-primary-dark); color: #fff; display: flex; align-items: center;
+    padding: 0 24px; height: 40px; font-size: 13px; gap: 8px; position: sticky; top: 0; z-index: 200;
+  }
+  .role-switcher-bar span { opacity: 0.7; margin-right: 4px; }
+  .role-switcher-bar button {
+    background: transparent; border: 1px solid rgba(255,255,255,0.25); color: #fff;
+    padding: 3px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; transition: 0.15s;
+  }
+  .role-switcher-bar button:hover { background: rgba(255,255,255,0.12); }
+  .role-switcher-bar button.active { background: var(--c-accent); border-color: var(--c-accent); font-weight: 600; }
+
+  /* ── App Header ── */
+  .app-header {
+    background: var(--bg-header); border-bottom: 1px solid var(--c-border-light);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; height: 56px; position: sticky; top: 40px; z-index: 150;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .app-header .logo { font-size: 18px; font-weight: 700; color: var(--c-primary); display: flex; align-items: center; gap: 10px; }
+  .app-header .logo .icon { width: 32px; height: 32px; background: var(--c-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 14px; }
+  .app-header .header-right { display: flex; align-items: center; gap: 16px; }
+  .app-header .avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--c-primary-light); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; }
+  .notification-bell { position: relative; cursor: pointer; font-size: 20px; color: var(--c-text-secondary); }
+
+  /* ── Layout ── */
+  .layout { display: flex; min-height: calc(100vh - 96px); }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 240px; background: var(--bg-sidebar); border-right: 1px solid var(--c-border-light);
+    padding: 16px 0; flex-shrink: 0; position: sticky; top: 96px; height: calc(100vh - 96px); overflow-y: auto;
+  }
+  .sidebar .nav-section { padding: 0 16px; margin-bottom: 20px; }
+  .sidebar .nav-section-title { font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--c-text-muted); margin-bottom: 8px; font-weight: 700; }
+  .sidebar .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 9px 16px; border-radius: var(--radius-btn);
+    font-size: 14px; color: var(--c-text-secondary); cursor: pointer; transition: 0.15s; margin-bottom: 2px;
+  }
+  .sidebar .nav-item:hover { background: var(--bg-hover); color: var(--c-text); }
+  .sidebar .nav-item.active { background: var(--c-primary); color: #fff; font-weight: 600; }
+  .sidebar .nav-item .icon { width: 20px; text-align: center; font-size: 16px; }
+
+  /* ── Main Content ── */
+  .main { flex: 1; padding: 28px 32px; max-width: calc(100% - 240px); }
+
+  /* ── Page Header ── */
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+  .page-header h1 { font-size: 24px; font-weight: 700; color: var(--c-primary-dark); }
+  .page-header .subtitle { font-size: 14px; color: var(--c-text-secondary); margin-top: 4px; }
+
+  /* ── Toggle ── */
+  .empty-toggle {
+    display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--c-text-secondary);
+    cursor: pointer; user-select: none;
+  }
+  .empty-toggle input { accent-color: var(--c-primary); width: 16px; height: 16px; }
+
+  /* ── Filter Bar ── */
+  .filter-bar {
+    background: var(--bg-card); border: 1px solid var(--c-border-light); border-radius: var(--radius-card);
+    padding: 16px 20px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;
+    margin-bottom: 20px; box-shadow: var(--shadow-card);
+  }
+  .filter-group { display: flex; flex-direction: column; gap: 4px; }
+  .filter-group label { font-size: 12px; font-weight: 600; color: var(--c-text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+  .filter-group select, .filter-group input {
+    padding: 8px 12px; border: 1px solid var(--c-border); border-radius: var(--radius-input);
+    font-size: 13px; color: var(--c-text); background: #fff; min-width: 160px; outline: none;
+    transition: border 0.15s;
+  }
+  .filter-group select:focus, .filter-group input:focus { border-color: var(--c-primary); }
+  .filter-bar .btn-filter {
+    padding: 8px 20px; background: var(--c-primary); color: #fff; border: none;
+    border-radius: var(--radius-btn); font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.15s;
+  }
+  .filter-bar .btn-filter:hover { background: var(--c-primary-dark); }
+  .filter-bar .btn-clear {
+    padding: 8px 16px; background: transparent; color: var(--c-text-secondary); border: 1px solid var(--c-border);
+    border-radius: var(--radius-btn); font-size: 13px; cursor: pointer; transition: 0.15s;
+  }
+  .filter-bar .btn-clear:hover { background: var(--bg-hover); color: var(--c-text); }
+
+  /* ── Card / Table Container ── */
+  .card {
+    background: var(--bg-card); border: 1px solid var(--c-border-light); border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card); overflow: hidden;
+  }
+
+  /* ── Table ── */
+  .table-wrapper { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    background: var(--bg-stripe); text-align: left; padding: 12px 14px;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px;
+    color: var(--c-text-muted); font-weight: 700; border-bottom: 1px solid var(--c-border-light);
+    white-space: nowrap; cursor: pointer; user-select: none;
+  }
+  thead th:hover { color: var(--c-primary); }
+  thead th .sort-icon { font-size: 10px; margin-left: 4px; opacity: 0.4; }
+  tbody tr { border-bottom: 1px solid var(--c-border-light); transition: background 0.1s; }
+  tbody tr:hover { background: var(--bg-hover); }
+  tbody tr:nth-child(even) { background: var(--bg-stripe); }
+  tbody tr:nth-child(even):hover { background: var(--bg-hover); }
+  tbody td { padding: 11px 14px; vertical-align: middle; }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.3px;
+  }
+  .badge-create { background: #dcfce7; color: #166534; }
+  .badge-update { background: #dbeafe; color: #1e40af; }
+  .badge-delete { background: #fee2e2; color: #991b1b; }
+  .badge-entity {
+    background: var(--bg-stripe); color: var(--c-primary); border: 1px solid var(--c-border);
+    font-weight: 600; font-size: 10px; padding: 2px 8px; border-radius: 4px;
+  }
+
+  /* ── Code Values ── */
+  .code-val {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 12px;
+    background: #f3f4f6; padding: 2px 7px; border-radius: 4px; color: var(--c-text);
+    display: inline-block; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .code-val.old { background: #fee2e2; color: #991b1b; }
+  .code-val.new { background: #dcfce7; color: #166534; }
+  .code-val.na { background: transparent; color: var(--c-text-muted); font-style: italic; font-family: var(--font); }
+
+  /* ── Entity Link ── */
+  .entity-link { color: var(--c-primary); text-decoration: none; font-weight: 600; }
+  .entity-link:hover { text-decoration: underline; color: var(--c-primary-dark); }
+
+  /* ── Pagination ── */
+  .pagination-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-top: 1px solid var(--c-border-light); font-size: 13px;
+  }
+  .pagination-bar .info { color: var(--c-text-secondary); }
+  .pagination-bar .info strong { color: var(--c-text); }
+  .pagination-btns { display: flex; gap: 4px; }
+  .pagination-btns button {
+    width: 34px; height: 34px; border: 1px solid var(--c-border); border-radius: var(--radius-btn);
+    background: #fff; color: var(--c-text-secondary); cursor: pointer; font-size: 13px; font-weight: 600;
+    transition: 0.15s; display: flex; align-items: center; justify-content: center;
+  }
+  .pagination-btns button:hover { background: var(--bg-hover); border-color: var(--c-primary-light); color: var(--c-primary); }
+  .pagination-btns button.active { background: var(--c-primary); color: #fff; border-color: var(--c-primary); }
+  .pagination-btns button:disabled { opacity: 0.4; cursor: default; }
+
+  /* ── Access Denied ── */
+  .access-denied {
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    padding: 80px 40px; text-align: center;
+  }
+  .access-denied .shield-icon { font-size: 64px; margin-bottom: 20px; opacity: 0.6; }
+  .access-denied h2 { font-size: 22px; color: var(--c-danger); margin-bottom: 8px; }
+  .access-denied p { color: var(--c-text-secondary); font-size: 14px; max-width: 400px; line-height: 1.6; }
+
+  /* ── Empty State ── */
+  .empty-state {
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    padding: 60px 40px; text-align: center;
+  }
+  .empty-state .empty-icon { font-size: 56px; margin-bottom: 16px; opacity: 0.5; }
+  .empty-state h3 { font-size: 18px; color: var(--c-text); margin-bottom: 6px; }
+  .empty-state p { color: var(--c-text-secondary); font-size: 14px; }
+
+  /* ── Utility ── */
+  .hidden { display: none !important; }
+  .field-name { font-weight: 600; color: var(--c-text); }
+  .who-col { white-space: nowrap; }
+  .timestamp-col { white-space: nowrap; color: var(--c-text-secondary); font-size: 12px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════ Role Switcher Bar ═══════ -->
+<div class="role-switcher-bar">
+  <span>View as:</span>
+  <button class="active" data-role="CEO" onclick="switchRole(this)">CEO</button>
+  <button data-role="CTO" onclick="switchRole(this)">CTO</button>
+  <button data-role="DM" onclick="switchRole(this)">DM</button>
+  <button data-role="PM" onclick="switchRole(this)">PM</button>
+  <button data-role="FINANCE" onclick="switchRole(this)">FINANCE</button>
+  <button data-role="HR" onclick="switchRole(this)">HR</button>
+  <button data-role="ENGINEER" onclick="switchRole(this)">ENGINEER</button>
+</div>
+
+<!-- ═══════ App Header ═══════ -->
+<div class="app-header">
+  <div class="logo">
+    <div class="icon">RI</div>
+    Resource Intelligence Platform
+  </div>
+  <div class="header-right">
+    <div class="notification-bell" title="Notifications">&#128276;</div>
+    <div class="avatar" title="Vivek Sharma">VS</div>
+  </div>
+</div>
+
+<!-- ═══════ Layout ═══════ -->
+<div class="layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="nav-section">
+      <div class="nav-section-title">Main</div>
+      <div class="nav-item"><span class="icon">&#9632;</span> Dashboard</div>
+      <div class="nav-item"><span class="icon">&#128101;</span> Clients</div>
+      <div class="nav-item"><span class="icon">&#128196;</span> Projects</div>
+      <div class="nav-item"><span class="icon">&#128100;</span> Resources</div>
+      <div class="nav-item"><span class="icon">&#128197;</span> Allocations</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Operations</div>
+      <div class="nav-item"><span class="icon">&#128200;</span> Utilization</div>
+      <div class="nav-item"><span class="icon">&#128176;</span> Financials</div>
+      <div class="nav-item"><span class="icon">&#128203;</span> Invoicing</div>
+      <div class="nav-item"><span class="icon">&#9200;</span> Worklogs</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">System</div>
+      <div class="nav-item"><span class="icon">&#128276;</span> Alerts</div>
+      <div class="nav-item active"><span class="icon">&#128218;</span> Audit Log</div>
+      <div class="nav-item"><span class="icon">&#9881;</span> Settings</div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <h1>Audit Log Viewer</h1>
+        <div class="subtitle">Complete history of all system changes</div>
+      </div>
+      <label class="empty-toggle">
+        <input type="checkbox" id="emptyToggle" onchange="toggleEmpty()" />
+        Show Empty State
+      </label>
+    </div>
+
+    <!-- Access Denied (shown for unauthorized roles) -->
+    <div class="card access-denied" id="accessDenied">
+      <div class="shield-icon">&#128274;</div>
+      <h2>Access Denied</h2>
+      <p>The Audit Log Viewer is restricted to CEO and CTO roles. Contact your administrator if you believe you should have access.</p>
+    </div>
+
+    <!-- Authorized Content Wrapper -->
+    <div id="authorizedContent">
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label>Entity Type</label>
+          <select>
+            <option>All Entity Types</option>
+            <option>User</option>
+            <option>Client</option>
+            <option>Project</option>
+            <option>Resource</option>
+            <option>Assignment</option>
+            <option>Milestone</option>
+            <option>Invoice</option>
+            <option>NonHumanCost</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Action</label>
+          <select>
+            <option>All Actions</option>
+            <option>CREATE</option>
+            <option>UPDATE</option>
+            <option>DELETE</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Date From</label>
+          <input type="date" value="2026-05-01" />
+        </div>
+        <div class="filter-group">
+          <label>Date To</label>
+          <input type="date" value="2026-06-06" />
+        </div>
+        <div class="filter-group">
+          <label>Changed By</label>
+          <select>
+            <option>All Users</option>
+            <option>Vivek Sharma</option>
+            <option>Arjun Mehta</option>
+            <option>Neha Gupta</option>
+            <option>Priya Patel</option>
+            <option>Kavita Nair</option>
+            <option>Rajesh Kumar</option>
+            <option>Sanjay Verma</option>
+          </select>
+        </div>
+        <button class="btn-filter">Apply Filters</button>
+        <button class="btn-clear">Clear</button>
+      </div>
+
+      <!-- Empty State -->
+      <div class="card empty-state" id="emptyState">
+        <div class="empty-icon">&#128218;</div>
+        <h3>No audit log entries match your filters</h3>
+        <p>Try adjusting the entity type, action, date range, or user filters to see results.</p>
+      </div>
+
+      <!-- Audit Table -->
+      <div class="card" id="auditTable">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Timestamp <span class="sort-icon">&#9660;</span></th>
+                <th>Entity Type</th>
+                <th>Entity</th>
+                <th>Action</th>
+                <th>Field</th>
+                <th>Old Value</th>
+                <th>New Value</th>
+                <th>Changed By</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Row 1 -->
+              <tr>
+                <td class="timestamp-col">Jun 6, 2026 09:14</td>
+                <td><span class="badge-entity">Client</span></td>
+                <td><a href="#" class="entity-link">Nexus Healthcare</a></td>
+                <td><span class="badge badge-create">CREATE</span></td>
+                <td class="code-val na">--</td>
+                <td><span class="code-val na">--</span></td>
+                <td><span class="code-val na">--</span></td>
+                <td class="who-col">Vivek Sharma</td>
+              </tr>
+              <!-- Row 2 -->
+              <tr>
+                <td class="timestamp-col">Jun 5, 2026 17:42</td>
+                <td><span class="badge-entity">Project</span></td>
+                <td><a href="#" class="entity-link">Project Phoenix</a></td>
+                <td><span class="badge badge-update">UPDATE</span></td>
+                <td class="field-name">status</td>
+                <td><span class="code-val old">ACTIVE</span></td>
+                <td><span class="code-val new">ON_HOLD</span></td>
+                <td class="who-col">Arjun Mehta</td>
+              </tr>
+              <!-- Row 3 -->
+              <tr>
+                <td class="timestamp-col">Jun 5, 2026 15:30</td>
+                <td><span class="badge-entity">Assignment</span></td>
+                <td><a href="#" class="entity-link">ASG-00147</a></td>
+                <td><span class="badge badge-update">UPDATE</span></td>
+                <td class="field-name">allocation_pct</td>
+                <td><span class="code-val old">60</span></td>
+                <td><span class="code-val new">80</span></td>
+                <td class="who-col">Neha Gupta</td>
+              </tr>
+              <!-- Row 4 -->
+              <tr>
+                <td class="timestamp-col">Jun 5, 2026 14:10</td>
+                <td><span class="badge-entity">Resource</span></td>
+                <td><a href="#" class="entity-link">Kavita Nair</a></td>
+                <td><span class="badge badge-update">UPDATE</span></td>
+                <td class="field-name">is_active</td>
+                <td><span class="code-val old">true</span></td>
+                <td><span class="code-val new">false</span></td>
+                <td class="who-col">Priya Patel</td>
+              </tr>
+              <!-- Row 5 -->
+              <tr>
+                <td class="timestamp-col">Jun 5, 2026 11:22</td>
+                <td><span class="badge-entity">Project</span></td>
+                <td><a href="#" class="entity-link">Orion Analytics</a></td>
+                <td><span class="badge badge-create">CREATE</span></td>
+                <td class="code-val na">--</td>
+                <td><span class="code-val na">--</span></td>
+                <td><span class="code-val na">--</span></td>
+                <td class="who-col">Arjun Mehta</td>
+              </tr>
+              <!-- Row 6 -->
+              <tr>
+                <td class="timestamp-col">Jun 4, 2026 16:55</td>
+                <td><span class="badge-entity">Invoice</span></td>
+                <td><a href="#" class="entity-link">INV-2026-0089</a></td>
+                <td><span class="badge badge-update">UPDATE</span></td>
+                <td class="field-name">status</td>
+                <td><span class="code-val old">DRAFT</span></td>
+                <td><span class="code-val new">SENT</span></td>
+                <td class="who-col">Sanjay Verma</td>
+              </tr>
+              <!-- Row 7 -->
+              <tr>
+                <td class="timestamp-col">Jun 4, 2026 14:08</td>
+                <td><span class="badge-entity">Milestone</span></td>
+                <td><a href="#" class="entity-link">MS-Phoenix-003</a></td>
+                <td><span class="badge badge-update">UPDATE</span></td>
+                <td class="field-name">actual_delivery_date</td>
+                <td><span class="code-val na">null</span></td>
+                <td><span class="code-val new">2026-06-04</span></td>
+                <td class="who-col">Neha Gupta</td>
+              </tr>
+              <!-- Row 8 -->
+              <tr>
+                <td class="timestamp-col">Jun 4, 2026 10:30</td>
+                <td><span class="badge-entity">NonHumanCost</span></td>
+                <td><a href="#" class="entity-link">AWS Infrastructure - Phoenix</a></td>
+                <td><span class="badge badge-create">CREATE</span></td>
+                <td class="code-val na">--</td>
+                <td><span class="code-val na">--</span></td>
+                <td><span class="code-val na">--</span></td>
+                <td class="who-col">Rajesh Kumar</td>
+              </tr>
+              <!-- Row 9 -->
+              <tr>
+                <td class="timestamp-col">Jun 3, 2026 17:18</td>
+                <td><span class="badge-entity">Assignment</span></td>
+                <td><a href="#" class="entity-link">ASG-00152</a></td>
+                <td><span class="badge badge-delete">DELETE</span></td>
+                <td class="code-val na">--</td>
+                <td><span class="code-val na">--</span></td>
+                <td><span class="code-val na">--</span></td>
+                <td class="who-col">Arjun Mehta</td>
+              </tr>
+              <!-- Row 10 -->
+              <tr>
+                <td class="timestamp-col">Jun 3, 2026 14:45</td>
+                <td><span class="badge-entity">Project</span></td>
+                <td><a href="#" class="entity-link">Project Phoenix</a></td>
+                <td><span class="badge badge-update">UPDATE</span></td>
+                <td class="field-name">contract_value</td>
+                <td><span class="code-val old">2500000</span></td>
+                <td><span class="code-val new">2800000</span></td>
+                <td class="who-col">Vivek Sharma</td>
+              </tr>
+              <!-- Row 11 -->
+              <tr>
+                <td class="timestamp-col">Jun 3, 2026 10:15</td>
+                <td><span class="badge-entity">Project</span></td>
+                <td><a href="#" class="entity-link">Project Phoenix</a></td>
+                <td><span class="badge badge-update">UPDATE</span></td>
+                <td class="field-name">delivery_manager_id</td>
+                <td><span class="code-val old">usr_arjun_m</span></td>
+                <td><span class="code-val new">usr_neha_g</span></td>
+                <td class="who-col">Neha Gupta</td>
+              </tr>
+              <!-- Row 12 -->
+              <tr>
+                <td class="timestamp-col">Jun 2, 2026 16:30</td>
+                <td><span class="badge-entity">Resource</span></td>
+                <td><a href="#" class="entity-link">Amit Desai</a></td>
+                <td><span class="badge badge-update">UPDATE</span></td>
+                <td class="field-name">designation</td>
+                <td><span class="code-val old">Senior Engineer</span></td>
+                <td><span class="code-val new">Tech Lead</span></td>
+                <td class="who-col">Priya Patel</td>
+              </tr>
+              <!-- Row 13 -->
+              <tr>
+                <td class="timestamp-col">Jun 2, 2026 11:05</td>
+                <td><span class="badge-entity">User</span></td>
+                <td><a href="#" class="entity-link">Meera Joshi</a></td>
+                <td><span class="badge badge-create">CREATE</span></td>
+                <td class="code-val na">--</td>
+                <td><span class="code-val na">--</span></td>
+                <td><span class="code-val na">--</span></td>
+                <td class="who-col">Vivek Sharma</td>
+              </tr>
+              <!-- Row 14 -->
+              <tr>
+                <td class="timestamp-col">Jun 1, 2026 09:50</td>
+                <td><span class="badge-entity">Assignment</span></td>
+                <td><a href="#" class="entity-link">ASG-00145</a></td>
+                <td><span class="badge badge-update">UPDATE</span></td>
+                <td class="field-name">end_date</td>
+                <td><span class="code-val old">2026-06-30</span></td>
+                <td><span class="code-val new">2026-08-15</span></td>
+                <td class="who-col">Arjun Mehta</td>
+              </tr>
+              <!-- Row 15 -->
+              <tr>
+                <td class="timestamp-col">May 31, 2026 15:20</td>
+                <td><span class="badge-entity">Client</span></td>
+                <td><a href="#" class="entity-link">TechVista Solutions</a></td>
+                <td><span class="badge badge-update">UPDATE</span></td>
+                <td class="field-name">billing_currency</td>
+                <td><span class="code-val old">INR</span></td>
+                <td><span class="code-val new">USD</span></td>
+                <td class="who-col">Sanjay Verma</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- Pagination -->
+        <div class="pagination-bar">
+          <div class="info">Showing <strong>1-15</strong> of <strong>2,847</strong> entries</div>
+          <div class="pagination-btns">
+            <button disabled>&laquo;</button>
+            <button disabled>&lsaquo;</button>
+            <button class="active">1</button>
+            <button>2</button>
+            <button>3</button>
+            <button>4</button>
+            <button>...</button>
+            <button>190</button>
+            <button>&rsaquo;</button>
+            <button>&raquo;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const authorizedRoles = ['CEO', 'CTO'];
+  let currentRole = 'CEO';
+
+  function switchRole(btn) {
+    document.querySelectorAll('.role-switcher-bar button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentRole = btn.dataset.role;
+    updateAccess();
+  }
+
+  function updateAccess() {
+    const denied = document.getElementById('accessDenied');
+    const content = document.getElementById('authorizedContent');
+    if (authorizedRoles.includes(currentRole)) {
+      denied.style.display = 'none';
+      content.style.display = 'block';
+    } else {
+      denied.style.display = 'flex';
+      content.style.display = 'none';
+    }
+  }
+
+  function toggleEmpty() {
+    const checked = document.getElementById('emptyToggle').checked;
+    const table = document.getElementById('auditTable');
+    const empty = document.getElementById('emptyState');
+    if (checked) {
+      table.style.display = 'none';
+      empty.style.display = 'flex';
+    } else {
+      table.style.display = 'block';
+      empty.style.display = 'none';
+    }
+  }
+</script>
+
+</body>
+</html>

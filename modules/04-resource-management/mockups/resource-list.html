@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resource List — Resource Intelligence Platform</title>
+<style>
+:root {
+  --bg-page: #F0F1FA; --bg-card: #ffffff; --bg-sidebar: #F5F6FC;
+  --bg-header: #ffffff; --bg-hover: #F0F1FA; --bg-stripe: #F5F6FC;
+  --c-primary: #2B3990; --c-primary-dark: #1B2B65; --c-primary-light: #4A5BB5;
+  --c-accent: #FF4B2B; --c-accent-hover: #E63E1F; --c-accent-soft: #FFF0EC;
+  --c-text: #1e1b4b; --c-text-secondary: #6b7280; --c-text-muted: #7C85C0;
+  --c-border: #D6DAF0; --c-border-light: #E8EAF6;
+  --c-danger: #ef4444; --c-success: #22c55e; --c-warning: #f59e0b;
+  --shadow-card: 0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --radius-card: 12px; --radius-input: 8px; --radius-btn: 8px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg-page); color: var(--c-text); }
+
+/* Role Switcher */
+.role-switcher { position: sticky; top: 0; z-index: 1000; background: var(--c-primary-dark); padding: 8px 24px; display: flex; align-items: center; gap: 8px; }
+.role-switcher label { color: #fff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-right: 8px; }
+.role-btn { padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.25); background: transparent; color: #fff; font-size: 12px; cursor: pointer; transition: all 0.2s; font-weight: 500; }
+.role-btn:hover { background: rgba(255,255,255,0.1); }
+.role-btn.active { background: var(--c-accent); border-color: var(--c-accent); color: #fff; }
+
+/* Toggle buttons */
+.toggle-bar { background: var(--c-primary-dark); padding: 4px 24px 8px; display: flex; gap: 8px; }
+.toggle-btn { padding: 4px 12px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.25); background: transparent; color: rgba(255,255,255,0.7); font-size: 11px; cursor: pointer; transition: all 0.2s; }
+.toggle-btn:hover { background: rgba(255,255,255,0.1); }
+.toggle-btn.active { background: rgba(255,255,255,0.15); color: #fff; }
+
+/* App Header */
+.app-header { background: var(--bg-header); border-bottom: 1px solid var(--c-border-light); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.app-logo { font-weight: 700; font-size: 18px; color: var(--c-primary); display: flex; align-items: center; gap: 10px; }
+.app-logo .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--c-primary), var(--c-accent)); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 14px; }
+.header-right { display: flex; align-items: center; gap: 16px; }
+.header-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--c-primary-light); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+
+/* Layout */
+.app-layout { display: flex; min-height: calc(100vh - 56px - 40px - 34px); }
+
+/* Sidebar */
+.sidebar { width: 220px; background: var(--bg-sidebar); border-right: 1px solid var(--c-border-light); padding: 16px 0; flex-shrink: 0; }
+.nav-section { padding: 0 16px; margin-bottom: 24px; }
+.nav-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--c-text-muted); margin-bottom: 8px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; border-radius: var(--radius-btn); color: var(--c-text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; text-decoration: none; margin: 1px 0; }
+.nav-item:hover { background: var(--bg-hover); color: var(--c-text); }
+.nav-item.active { background: var(--c-primary); color: #fff; }
+.nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+/* Main Content */
+.main-content { flex: 1; padding: 24px 32px; overflow-x: auto; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.page-title { font-size: 22px; font-weight: 700; color: var(--c-text); }
+.page-subtitle { font-size: 13px; color: var(--c-text-secondary); margin-top: 2px; }
+.btn-primary { padding: 9px 20px; background: var(--c-accent); color: #fff; border: none; border-radius: var(--radius-btn); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary:hover { background: var(--c-accent-hover); }
+.btn-secondary { padding: 7px 16px; background: #fff; color: var(--c-primary); border: 1px solid var(--c-border); border-radius: var(--radius-btn); font-size: 13px; font-weight: 500; cursor: pointer; }
+.btn-secondary:hover { background: var(--bg-hover); }
+
+/* Filter Bar */
+.filter-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+.search-input { padding: 8px 14px 8px 36px; border: 1px solid var(--c-border); border-radius: var(--radius-input); font-size: 13px; width: 260px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%237C85C0' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242.156a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E") 12px center no-repeat; }
+.search-input:focus { outline: none; border-color: var(--c-primary-light); box-shadow: 0 0 0 3px rgba(43,57,144,0.1); }
+.filter-select { padding: 8px 32px 8px 12px; border: 1px solid var(--c-border); border-radius: var(--radius-input); font-size: 13px; background: #fff; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; cursor: pointer; }
+.filter-select:focus { outline: none; border-color: var(--c-primary-light); }
+
+/* Stats Bar */
+.stats-bar { display: flex; gap: 16px; margin-bottom: 20px; }
+.stat-card { background: var(--bg-card); border-radius: var(--radius-card); padding: 16px 20px; box-shadow: var(--shadow-card); flex: 1; border: 1px solid var(--c-border-light); }
+.stat-value { font-size: 24px; font-weight: 700; color: var(--c-primary); }
+.stat-label { font-size: 12px; color: var(--c-text-secondary); margin-top: 2px; }
+
+/* Table */
+.table-card { background: var(--bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card); overflow: hidden; border: 1px solid var(--c-border-light); }
+table { width: 100%; border-collapse: collapse; }
+thead th { background: linear-gradient(135deg, var(--c-primary), var(--c-primary-light)); color: #fff; padding: 12px 16px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; text-align: left; white-space: nowrap; cursor: pointer; }
+thead th:hover { background: linear-gradient(135deg, var(--c-primary-dark), var(--c-primary)); }
+tbody tr { border-bottom: 1px solid var(--c-border-light); transition: background 0.1s; }
+tbody tr:nth-child(even) { background: var(--bg-stripe); }
+tbody tr:hover { background: var(--bg-hover); }
+td { padding: 12px 16px; font-size: 13px; vertical-align: middle; }
+.resource-name { font-weight: 600; color: var(--c-primary); cursor: pointer; }
+.resource-name:hover { text-decoration: underline; }
+
+/* Badges */
+.badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+.badge-active { background: #dcfce7; color: #15803d; }
+.badge-inactive { background: #fee2e2; color: #991b1b; }
+.badge-bench { background: #fef3c7; color: #92400e; }
+.badge-partial { background: #dbeafe; color: #1e40af; }
+.badge-full { background: #dcfce7; color: #15803d; }
+.badge-over { background: #fee2e2; color: #991b1b; }
+
+/* Tag pills */
+.tag-pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; background: var(--c-accent-soft); color: var(--c-accent); margin: 1px 2px; }
+
+/* Allocation bar */
+.alloc-bar-wrapper { display: flex; align-items: center; gap: 8px; }
+.alloc-bar { width: 60px; height: 6px; border-radius: 3px; background: #e5e7eb; overflow: hidden; }
+.alloc-bar-fill { height: 100%; border-radius: 3px; }
+.alloc-bar-fill.green { background: var(--c-success); }
+.alloc-bar-fill.yellow { background: var(--c-warning); }
+.alloc-bar-fill.red { background: var(--c-danger); }
+
+/* Empty State */
+.empty-state { padding: 60px 20px; text-align: center; }
+.empty-state-icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state-title { font-size: 16px; font-weight: 600; color: var(--c-text); margin-bottom: 6px; }
+.empty-state-text { font-size: 13px; color: var(--c-text-secondary); }
+
+/* Pagination */
+.pagination { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-top: 1px solid var(--c-border-light); }
+.pagination-info { font-size: 12px; color: var(--c-text-secondary); }
+.pagination-btns { display: flex; gap: 4px; }
+.page-btn { padding: 5px 12px; border: 1px solid var(--c-border); border-radius: 6px; background: #fff; font-size: 12px; cursor: pointer; color: var(--c-text-secondary); }
+.page-btn.active { background: var(--c-primary); color: #fff; border-color: var(--c-primary); }
+.page-btn:hover:not(.active) { background: var(--bg-hover); }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- Role Switcher Bar -->
+<div class="role-switcher">
+  <label>View as:</label>
+  <button class="role-btn active" data-role="CEO" onclick="switchRole('CEO')">CEO</button>
+  <button class="role-btn" data-role="CTO" onclick="switchRole('CTO')">CTO</button>
+  <button class="role-btn" data-role="DM" onclick="switchRole('DM')">DM</button>
+  <button class="role-btn" data-role="PM" onclick="switchRole('PM')">PM</button>
+  <button class="role-btn" data-role="FINANCE" onclick="switchRole('FINANCE')">Finance</button>
+  <button class="role-btn" data-role="HR" onclick="switchRole('HR')">HR</button>
+  <button class="role-btn" data-role="ENGINEER" onclick="switchRole('ENGINEER')">Engineer</button>
+</div>
+
+<!-- Toggle Bar -->
+<div class="toggle-bar">
+  <button class="toggle-btn" onclick="toggleEmptyState(this)">Toggle Empty State</button>
+</div>
+
+<!-- App Header -->
+<div class="app-header">
+  <div class="app-logo">
+    <div class="logo-icon">RI</div>
+    Resource Intelligence Platform
+  </div>
+  <div class="header-right">
+    <span style="font-size:13px;color:var(--c-text-secondary)" id="roleDisplay">CEO</span>
+    <div class="header-avatar">VS</div>
+  </div>
+</div>
+
+<!-- Layout -->
+<div class="app-layout">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="nav-section">
+      <div class="nav-section-title">Main</div>
+      <a class="nav-item" href="#"><span class="nav-icon">&#9632;</span> Dashboard</a>
+      <a class="nav-item" href="#"><span class="nav-icon">&#9679;</span> Clients</a>
+      <a class="nav-item" href="#"><span class="nav-icon">&#9670;</span> Projects</a>
+      <a class="nav-item active" href="#"><span class="nav-icon">&#9733;</span> Resources</a>
+      <a class="nav-item" href="#"><span class="nav-icon">&#9830;</span> Allocations</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Finance</div>
+      <a class="nav-item" href="#"><span class="nav-icon">&#8377;</span> Invoicing</a>
+      <a class="nav-item" href="#"><span class="nav-icon">&#9835;</span> Costs</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Reports</div>
+      <a class="nav-item" href="#"><span class="nav-icon">&#9776;</span> Utilization</a>
+      <a class="nav-item" href="#"><span class="nav-icon">&#9888;</span> Alerts</a>
+      <a class="nav-item" href="#"><span class="nav-icon">&#8634;</span> Audit Log</a>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <div class="page-title">Resources</div>
+        <div class="page-subtitle">Manage team members, skills, and availability</div>
+      </div>
+      <button class="btn-primary" id="addResourceBtn" onclick="alert('Navigate to /resources/new')">
+        + Add Resource
+      </button>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar" id="statsBar">
+      <div class="stat-card">
+        <div class="stat-value">32</div>
+        <div class="stat-label">Total Active Resources</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">3</div>
+        <div class="stat-label">On Bench</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">12</div>
+        <div class="stat-label">Partially Allocated</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">2</div>
+        <div class="stat-label" style="color:var(--c-danger)">Over-Allocated</div>
+      </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <input class="search-input" type="text" placeholder="Search by name or employee ID...">
+      <select class="filter-select">
+        <option>All Designations</option>
+        <option>Senior Software Engineer</option>
+        <option>Software Engineer</option>
+        <option>Tech Lead</option>
+        <option>QA Engineer</option>
+        <option>Project Manager</option>
+        <option>UI/UX Designer</option>
+        <option>DevOps Engineer</option>
+        <option>Business Analyst</option>
+      </select>
+      <select class="filter-select">
+        <option>All Departments</option>
+        <option>Engineering</option>
+        <option>QA</option>
+        <option>Design</option>
+        <option>DevOps</option>
+        <option>Management</option>
+      </select>
+      <select class="filter-select">
+        <option>All Availability</option>
+        <option>Bench (0%)</option>
+        <option>Partial (&lt;100%)</option>
+        <option>Fully Allocated (100%)</option>
+        <option>Over-Allocated (&gt;100%)</option>
+      </select>
+      <select class="filter-select">
+        <option>Active</option>
+        <option>Inactive</option>
+        <option>All</option>
+      </select>
+    </div>
+
+    <!-- Data View -->
+    <div id="dataView">
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Employee ID</th>
+              <th>Designation</th>
+              <th>Expertise</th>
+              <th>Tags</th>
+              <th>Total Allocation</th>
+              <th>Availability</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr onclick="alert('Navigate to /resources/r1')">
+              <td><span class="resource-name">Vivek Sharma</span></td>
+              <td>SS-001</td>
+              <td>Tech Lead</td>
+              <td>React, Node.js</td>
+              <td><span class="tag-pill">Full-Stack</span><span class="tag-pill">Team Lead</span></td>
+              <td>
+                <div class="alloc-bar-wrapper">
+                  <span style="font-weight:600">80%</span>
+                  <div class="alloc-bar"><div class="alloc-bar-fill yellow" style="width:80%"></div></div>
+                </div>
+              </td>
+              <td><span class="badge badge-partial">Partial</span></td>
+              <td><span class="badge badge-active">Active</span></td>
+            </tr>
+            <tr onclick="alert('Navigate to /resources/r2')">
+              <td><span class="resource-name">Priya Patel</span></td>
+              <td>SS-002</td>
+              <td>Senior Software Engineer</td>
+              <td>Python, FastAPI</td>
+              <td><span class="tag-pill">Backend</span><span class="tag-pill">ML</span></td>
+              <td>
+                <div class="alloc-bar-wrapper">
+                  <span style="font-weight:600">100%</span>
+                  <div class="alloc-bar"><div class="alloc-bar-fill green" style="width:100%"></div></div>
+                </div>
+              </td>
+              <td><span class="badge badge-full">Full</span></td>
+              <td><span class="badge badge-active">Active</span></td>
+            </tr>
+            <tr onclick="alert('Navigate to /resources/r3')" style="background: #fff5f5;">
+              <td><span class="resource-name" style="color:var(--c-danger)">Arjun Mehta</span></td>
+              <td>SS-003</td>
+              <td>Senior Software Engineer</td>
+              <td>React, TypeScript</td>
+              <td><span class="tag-pill">Frontend</span><span class="tag-pill">Mentor</span></td>
+              <td>
+                <div class="alloc-bar-wrapper">
+                  <span style="font-weight:700;color:var(--c-danger)">120%</span>
+                  <div class="alloc-bar"><div class="alloc-bar-fill red" style="width:100%"></div></div>
+                </div>
+              </td>
+              <td><span class="badge badge-over">Over-Allocated</span></td>
+              <td><span class="badge badge-active">Active</span></td>
+            </tr>
+            <tr onclick="alert('Navigate to /resources/r4')">
+              <td><span class="resource-name">Neha Gupta</span></td>
+              <td>SS-004</td>
+              <td>QA Engineer</td>
+              <td>Selenium, Cypress</td>
+              <td><span class="tag-pill">QA</span><span class="tag-pill">Automation</span></td>
+              <td>
+                <div class="alloc-bar-wrapper">
+                  <span style="font-weight:600">50%</span>
+                  <div class="alloc-bar"><div class="alloc-bar-fill yellow" style="width:50%"></div></div>
+                </div>
+              </td>
+              <td><span class="badge badge-partial">Partial</span></td>
+              <td><span class="badge badge-active">Active</span></td>
+            </tr>
+            <tr onclick="alert('Navigate to /resources/r5')">
+              <td><span class="resource-name">Rajesh Kumar</span></td>
+              <td>SS-005</td>
+              <td>DevOps Engineer</td>
+              <td>AWS, Docker, K8s</td>
+              <td><span class="tag-pill">DevOps</span><span class="tag-pill">Cloud</span></td>
+              <td>
+                <div class="alloc-bar-wrapper">
+                  <span style="font-weight:600">100%</span>
+                  <div class="alloc-bar"><div class="alloc-bar-fill green" style="width:100%"></div></div>
+                </div>
+              </td>
+              <td><span class="badge badge-full">Full</span></td>
+              <td><span class="badge badge-active">Active</span></td>
+            </tr>
+            <tr onclick="alert('Navigate to /resources/r6')" style="background: #fefce8;">
+              <td><span class="resource-name">Sneha Reddy</span></td>
+              <td>SS-006</td>
+              <td>Software Engineer</td>
+              <td>Vue.js, Node.js</td>
+              <td><span class="tag-pill">Frontend</span></td>
+              <td>
+                <div class="alloc-bar-wrapper">
+                  <span style="font-weight:600;color:var(--c-warning)">0%</span>
+                  <div class="alloc-bar"><div class="alloc-bar-fill" style="width:0%"></div></div>
+                </div>
+              </td>
+              <td><span class="badge badge-bench">Bench</span></td>
+              <td><span class="badge badge-active">Active</span></td>
+            </tr>
+            <tr onclick="alert('Navigate to /resources/r7')">
+              <td><span class="resource-name">Amit Joshi</span></td>
+              <td>SS-007</td>
+              <td>UI/UX Designer</td>
+              <td>Figma, Adobe XD</td>
+              <td><span class="tag-pill">Design</span><span class="tag-pill">Prototyping</span></td>
+              <td>
+                <div class="alloc-bar-wrapper">
+                  <span style="font-weight:600">60%</span>
+                  <div class="alloc-bar"><div class="alloc-bar-fill yellow" style="width:60%"></div></div>
+                </div>
+              </td>
+              <td><span class="badge badge-partial">Partial</span></td>
+              <td><span class="badge badge-active">Active</span></td>
+            </tr>
+            <tr onclick="alert('Navigate to /resources/r8')">
+              <td><span class="resource-name">Kavita Nair</span></td>
+              <td>SS-008</td>
+              <td>Business Analyst</td>
+              <td>JIRA, Confluence</td>
+              <td><span class="tag-pill">BA</span><span class="tag-pill">Agile</span></td>
+              <td>
+                <div class="alloc-bar-wrapper">
+                  <span style="font-weight:600">100%</span>
+                  <div class="alloc-bar"><div class="alloc-bar-fill green" style="width:100%"></div></div>
+                </div>
+              </td>
+              <td><span class="badge badge-full">Full</span></td>
+              <td><span class="badge badge-active">Active</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pagination">
+          <div class="pagination-info">Showing 1-8 of 32 resources</div>
+          <div class="pagination-btns">
+            <button class="page-btn">&laquo;</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">4</button>
+            <button class="page-btn">&raquo;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyView" class="hidden">
+      <div class="table-card">
+        <div class="empty-state">
+          <div class="empty-state-icon">&#128100;</div>
+          <div class="empty-state-title">No resources found</div>
+          <div class="empty-state-text">Try adjusting filters or add a new resource to get started.</div>
+          <button class="btn-primary" style="margin-top:16px" id="emptyAddBtn">+ Add Resource</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Engineer self-only notice -->
+    <div id="engineerNotice" class="hidden" style="background:var(--c-accent-soft);border:1px solid #fecaca;border-radius:var(--radius-card);padding:16px 20px;margin-bottom:16px;">
+      <strong style="color:var(--c-accent)">Limited View:</strong>
+      <span style="font-size:13px;color:var(--c-text-secondary)"> As an Engineer, you can only view your own resource record.</span>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentRole = 'CEO';
+let showEmpty = false;
+
+const roleAccess = {
+  CEO:      { canAdd: true, seeAll: true, scope: 'ALL' },
+  CTO:      { canAdd: true, seeAll: true, scope: 'ALL' },
+  DM:       { canAdd: false, seeAll: true, scope: 'OWN_PORTFOLIO' },
+  PM:       { canAdd: false, seeAll: true, scope: 'OWN_PORTFOLIO' },
+  FINANCE:  { canAdd: false, seeAll: true, scope: 'ALL' },
+  HR:       { canAdd: true, seeAll: true, scope: 'ALL' },
+  ENGINEER: { canAdd: false, seeAll: false, scope: 'SELF_ONLY' }
+};
+
+function switchRole(role) {
+  currentRole = role;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.toggle('active', b.dataset.role === role));
+  document.getElementById('roleDisplay').textContent = role;
+  applyRoleAccess();
+}
+
+function toggleEmptyState(btn) {
+  showEmpty = !showEmpty;
+  btn.classList.toggle('active', showEmpty);
+  applyRoleAccess();
+}
+
+function applyRoleAccess() {
+  const access = roleAccess[currentRole];
+
+  // Add Resource button
+  document.getElementById('addResourceBtn').classList.toggle('hidden', !access.canAdd);
+  document.getElementById('emptyAddBtn').classList.toggle('hidden', !access.canAdd);
+
+  // Engineer notice
+  document.getElementById('engineerNotice').classList.toggle('hidden', currentRole !== 'ENGINEER');
+
+  // Data vs Empty
+  if (currentRole === 'ENGINEER') {
+    // Engineer sees only self — show single row
+    document.getElementById('dataView').classList.toggle('hidden', showEmpty);
+    document.getElementById('emptyView').classList.toggle('hidden', !showEmpty);
+    document.getElementById('statsBar').classList.add('hidden');
+
+    // Show only one row for engineer
+    const rows = document.querySelectorAll('tbody tr');
+    rows.forEach((row, i) => {
+      row.classList.toggle('hidden', i !== 0);
+    });
+    document.querySelector('.pagination-info').textContent = 'Showing 1-1 of 1 resources';
+  } else {
+    document.getElementById('dataView').classList.toggle('hidden', showEmpty);
+    document.getElementById('emptyView').classList.toggle('hidden', !showEmpty);
+    document.getElementById('statsBar').classList.toggle('hidden', showEmpty);
+
+    // Show all rows
+    const rows = document.querySelectorAll('tbody tr');
+    rows.forEach(row => row.classList.remove('hidden'));
+    document.querySelector('.pagination-info').textContent = 'Showing 1-8 of 32 resources';
+  }
+}
+
+applyRoleAccess();
+</script>
+</body>
+</html>

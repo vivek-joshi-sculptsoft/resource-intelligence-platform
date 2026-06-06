@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Change History Panel — Resource Intelligence Platform</title>
+<style>
+  :root {
+    --bg-page: #F0F1FA; --bg-card: #ffffff; --bg-sidebar: #F5F6FC;
+    --bg-header: #ffffff; --bg-hover: #F0F1FA; --bg-stripe: #F5F6FC;
+    --c-primary: #2B3990; --c-primary-dark: #1B2B65; --c-primary-light: #4A5BB5;
+    --c-accent: #FF4B2B; --c-accent-hover: #E63E1F; --c-accent-soft: #FFF0EC;
+    --c-text: #1e1b4b; --c-text-secondary: #6b7280; --c-text-muted: #7C85C0;
+    --c-border: #D6DAF0; --c-border-light: #E8EAF6;
+    --c-danger: #ef4444; --c-success: #22c55e; --c-warning: #f59e0b;
+    --shadow-card: 0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04);
+    --radius-card: 12px; --radius-input: 8px; --radius-btn: 8px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--font); background: var(--bg-page); color: var(--c-text); min-height: 100vh; }
+
+  /* ── Role Switcher Bar ── */
+  .role-switcher-bar {
+    background: var(--c-primary-dark); color: #fff; display: flex; align-items: center;
+    padding: 0 24px; height: 40px; font-size: 13px; gap: 8px; position: sticky; top: 0; z-index: 200;
+  }
+  .role-switcher-bar span { opacity: 0.7; margin-right: 4px; }
+  .role-switcher-bar button {
+    background: transparent; border: 1px solid rgba(255,255,255,0.25); color: #fff;
+    padding: 3px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; transition: 0.15s;
+  }
+  .role-switcher-bar button:hover { background: rgba(255,255,255,0.12); }
+  .role-switcher-bar button.active { background: var(--c-accent); border-color: var(--c-accent); font-weight: 600; }
+
+  /* ── App Header ── */
+  .app-header {
+    background: var(--bg-header); border-bottom: 1px solid var(--c-border-light);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; height: 56px; position: sticky; top: 40px; z-index: 150;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .app-header .logo { font-size: 18px; font-weight: 700; color: var(--c-primary); display: flex; align-items: center; gap: 10px; }
+  .app-header .logo .icon { width: 32px; height: 32px; background: var(--c-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 14px; }
+  .app-header .header-right { display: flex; align-items: center; gap: 16px; }
+  .app-header .avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--c-primary-light); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; }
+  .notification-bell { position: relative; cursor: pointer; font-size: 20px; color: var(--c-text-secondary); }
+
+  /* ── Layout ── */
+  .layout { display: flex; min-height: calc(100vh - 96px); }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 240px; background: var(--bg-sidebar); border-right: 1px solid var(--c-border-light);
+    padding: 16px 0; flex-shrink: 0; position: sticky; top: 96px; height: calc(100vh - 96px); overflow-y: auto;
+  }
+  .sidebar .nav-section { padding: 0 16px; margin-bottom: 20px; }
+  .sidebar .nav-section-title { font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--c-text-muted); margin-bottom: 8px; font-weight: 700; }
+  .sidebar .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 9px 16px; border-radius: var(--radius-btn);
+    font-size: 14px; color: var(--c-text-secondary); cursor: pointer; transition: 0.15s; margin-bottom: 2px;
+  }
+  .sidebar .nav-item:hover { background: var(--bg-hover); color: var(--c-text); }
+  .sidebar .nav-item.active { background: var(--c-primary); color: #fff; font-weight: 600; }
+  .sidebar .nav-item .icon { width: 20px; text-align: center; font-size: 16px; }
+
+  /* ── Main Content ── */
+  .main { flex: 1; padding: 28px 32px; max-width: calc(100% - 240px); }
+
+  /* ── Breadcrumb ── */
+  .breadcrumb { font-size: 13px; color: var(--c-text-secondary); margin-bottom: 20px; }
+  .breadcrumb a { color: var(--c-primary); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb .sep { margin: 0 6px; opacity: 0.5; }
+
+  /* ── Project Detail Header (simulated context) ── */
+  .entity-detail-header {
+    background: var(--bg-card); border: 1px solid var(--c-border-light); border-radius: var(--radius-card);
+    padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow-card);
+  }
+  .entity-detail-header .entity-title-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .entity-detail-header h1 { font-size: 22px; font-weight: 700; color: var(--c-primary-dark); }
+  .entity-detail-header .status-badge {
+    display: inline-block; padding: 4px 12px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.3px;
+  }
+  .status-on-hold { background: #fef3c7; color: #92400e; }
+  .entity-detail-header .entity-meta { font-size: 13px; color: var(--c-text-secondary); display: flex; gap: 24px; }
+  .entity-detail-header .entity-meta .meta-item { display: flex; align-items: center; gap: 5px; }
+  .entity-detail-header .entity-meta .meta-label { font-weight: 600; }
+
+  /* ── Tabs (simulated) ── */
+  .tab-bar {
+    display: flex; gap: 0; border-bottom: 2px solid var(--c-border-light); margin-bottom: 24px;
+  }
+  .tab-bar .tab {
+    padding: 10px 20px; font-size: 14px; color: var(--c-text-secondary); cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -2px; transition: 0.15s;
+  }
+  .tab-bar .tab:hover { color: var(--c-text); }
+  .tab-bar .tab.active { color: var(--c-primary); border-bottom-color: var(--c-primary); font-weight: 600; }
+
+  /* ── Empty Toggle ── */
+  .empty-toggle {
+    display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--c-text-secondary);
+    cursor: pointer; user-select: none; margin-bottom: 20px;
+  }
+  .empty-toggle input { accent-color: var(--c-primary); width: 16px; height: 16px; }
+
+  /* ── Change History Panel ── */
+  .change-history-panel {
+    background: var(--bg-card); border: 1px solid var(--c-border-light); border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card); overflow: hidden;
+  }
+  .panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 24px; border-bottom: 1px solid var(--c-border-light);
+  }
+  .panel-header h2 { font-size: 16px; font-weight: 700; color: var(--c-primary-dark); }
+  .panel-header .entry-count {
+    font-size: 12px; color: var(--c-text-muted); background: var(--bg-stripe);
+    padding: 3px 10px; border-radius: 12px; font-weight: 600;
+  }
+
+  /* ── Timeline ── */
+  .timeline { padding: 20px 24px 8px 24px; position: relative; }
+  .timeline::before {
+    content: ''; position: absolute; left: 42px; top: 20px; bottom: 8px;
+    width: 2px; background: var(--c-border);
+  }
+  .timeline-entry {
+    display: flex; gap: 16px; position: relative; margin-bottom: 24px; padding-left: 0;
+  }
+  .timeline-entry:last-child { margin-bottom: 8px; }
+
+  .timeline-dot-wrapper {
+    width: 20px; flex-shrink: 0; display: flex; justify-content: center; padding-top: 3px;
+    position: relative; z-index: 2;
+  }
+  .timeline-dot {
+    width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--c-primary-light);
+    background: #fff;
+  }
+  .timeline-dot.create { border-color: var(--c-success); background: #dcfce7; }
+  .timeline-dot.update { border-color: var(--c-primary-light); background: #dbeafe; }
+  .timeline-dot.delete { border-color: var(--c-danger); background: #fee2e2; }
+
+  .timeline-content { flex: 1; }
+  .timeline-timestamp {
+    font-size: 12px; color: var(--c-text-muted); margin-bottom: 4px; font-weight: 500;
+  }
+  .timeline-description { font-size: 14px; color: var(--c-text); line-height: 1.6; }
+  .timeline-description .who { font-weight: 700; color: var(--c-primary-dark); }
+  .timeline-description .field-name { font-weight: 600; color: var(--c-text); }
+  .timeline-change {
+    margin-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .change-val {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 12px;
+    padding: 3px 8px; border-radius: 4px; display: inline-block;
+  }
+  .change-val.old { background: #fee2e2; color: #991b1b; text-decoration: line-through; }
+  .change-val.new { background: #dcfce7; color: #166534; }
+  .change-arrow { color: var(--c-text-muted); font-size: 16px; }
+
+  .action-badge-sm {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.5px; vertical-align: middle;
+  }
+  .action-badge-sm.create { background: #dcfce7; color: #166534; }
+  .action-badge-sm.update { background: #dbeafe; color: #1e40af; }
+
+  /* ── View All Link ── */
+  .panel-footer {
+    padding: 14px 24px; border-top: 1px solid var(--c-border-light);
+    text-align: center;
+  }
+  .panel-footer a {
+    color: var(--c-primary); text-decoration: none; font-size: 13px; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .panel-footer a:hover { text-decoration: underline; color: var(--c-primary-dark); }
+  .panel-footer a .arrow { font-size: 16px; }
+
+  /* ── Empty State ── */
+  .empty-state {
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    padding: 48px 40px; text-align: center;
+  }
+  .empty-state .empty-icon { font-size: 44px; margin-bottom: 12px; opacity: 0.5; }
+  .empty-state h3 { font-size: 16px; color: var(--c-text); margin-bottom: 4px; }
+  .empty-state p { color: var(--c-text-secondary); font-size: 13px; }
+
+  /* ── Access Denied ── */
+  .access-denied {
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    padding: 48px 40px; text-align: center;
+  }
+  .access-denied .shield-icon { font-size: 44px; margin-bottom: 12px; opacity: 0.6; }
+  .access-denied h3 { font-size: 16px; color: var(--c-danger); margin-bottom: 4px; }
+  .access-denied p { color: var(--c-text-secondary); font-size: 13px; max-width: 360px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════ Role Switcher Bar ═══════ -->
+<div class="role-switcher-bar">
+  <span>View as:</span>
+  <button class="active" data-role="CEO" onclick="switchRole(this)">CEO</button>
+  <button data-role="CTO" onclick="switchRole(this)">CTO</button>
+  <button data-role="DM" onclick="switchRole(this)">DM</button>
+  <button data-role="PM" onclick="switchRole(this)">PM</button>
+  <button data-role="FINANCE" onclick="switchRole(this)">FINANCE</button>
+  <button data-role="HR" onclick="switchRole(this)">HR</button>
+  <button data-role="ENGINEER" onclick="switchRole(this)">ENGINEER</button>
+</div>
+
+<!-- ═══════ App Header ═══════ -->
+<div class="app-header">
+  <div class="logo">
+    <div class="icon">RI</div>
+    Resource Intelligence Platform
+  </div>
+  <div class="header-right">
+    <div class="notification-bell" title="Notifications">&#128276;</div>
+    <div class="avatar" title="Arjun Mehta">AM</div>
+  </div>
+</div>
+
+<!-- ═══════ Layout ═══════ -->
+<div class="layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="nav-section">
+      <div class="nav-section-title">Main</div>
+      <div class="nav-item"><span class="icon">&#9632;</span> Dashboard</div>
+      <div class="nav-item"><span class="icon">&#128101;</span> Clients</div>
+      <div class="nav-item active"><span class="icon">&#128196;</span> Projects</div>
+      <div class="nav-item"><span class="icon">&#128100;</span> Resources</div>
+      <div class="nav-item"><span class="icon">&#128197;</span> Allocations</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Operations</div>
+      <div class="nav-item"><span class="icon">&#128200;</span> Utilization</div>
+      <div class="nav-item"><span class="icon">&#128176;</span> Financials</div>
+      <div class="nav-item"><span class="icon">&#128203;</span> Invoicing</div>
+      <div class="nav-item"><span class="icon">&#9200;</span> Worklogs</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">System</div>
+      <div class="nav-item"><span class="icon">&#128276;</span> Alerts</div>
+      <div class="nav-item"><span class="icon">&#128218;</span> Audit Log</div>
+      <div class="nav-item"><span class="icon">&#9881;</span> Settings</div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+      <a href="#">Projects</a>
+      <span class="sep">/</span>
+      <a href="#">Project Phoenix</a>
+      <span class="sep">/</span>
+      Change History
+    </div>
+
+    <!-- Simulated Entity Detail Header -->
+    <div class="entity-detail-header">
+      <div class="entity-title-row">
+        <h1>Project Phoenix</h1>
+        <span class="status-badge status-on-hold">ON_HOLD</span>
+      </div>
+      <div class="entity-meta">
+        <div class="meta-item"><span class="meta-label">Client:</span> Nexus Healthcare</div>
+        <div class="meta-item"><span class="meta-label">DM:</span> Neha Gupta</div>
+        <div class="meta-item"><span class="meta-label">Contract:</span> &#8377;28,00,000</div>
+        <div class="meta-item"><span class="meta-label">Type:</span> Fixed Price</div>
+      </div>
+    </div>
+
+    <!-- Tabs (simulated context) -->
+    <div class="tab-bar">
+      <div class="tab">Overview</div>
+      <div class="tab">Assignments</div>
+      <div class="tab">Milestones</div>
+      <div class="tab">Financials</div>
+      <div class="tab active">Change History</div>
+    </div>
+
+    <!-- Empty State Toggle -->
+    <label class="empty-toggle">
+      <input type="checkbox" id="emptyToggle" onchange="toggleEmpty()" />
+      Show Empty State
+    </label>
+
+    <!-- Change History Panel -->
+    <div class="change-history-panel" id="historyPanel">
+      <div class="panel-header">
+        <h2>Change History &mdash; Project Phoenix</h2>
+        <span class="entry-count">47 changes</span>
+      </div>
+
+      <!-- Timeline -->
+      <div class="timeline" id="timelineContent">
+        <!-- Entry 1 -->
+        <div class="timeline-entry">
+          <div class="timeline-dot-wrapper"><div class="timeline-dot update"></div></div>
+          <div class="timeline-content">
+            <div class="timeline-timestamp">Jun 5, 2026 &middot; 14:30</div>
+            <div class="timeline-description">
+              <span class="who">Arjun Mehta</span> changed <span class="field-name">status</span>
+            </div>
+            <div class="timeline-change">
+              <span class="change-val old">ACTIVE</span>
+              <span class="change-arrow">&rarr;</span>
+              <span class="change-val new">ON_HOLD</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Entry 2 -->
+        <div class="timeline-entry">
+          <div class="timeline-dot-wrapper"><div class="timeline-dot update"></div></div>
+          <div class="timeline-content">
+            <div class="timeline-timestamp">Jun 3, 2026 &middot; 14:45</div>
+            <div class="timeline-description">
+              <span class="who">Vivek Sharma</span> changed <span class="field-name">contract_value</span>
+            </div>
+            <div class="timeline-change">
+              <span class="change-val old">&#8377;25,00,000</span>
+              <span class="change-arrow">&rarr;</span>
+              <span class="change-val new">&#8377;28,00,000</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Entry 3 -->
+        <div class="timeline-entry">
+          <div class="timeline-dot-wrapper"><div class="timeline-dot update"></div></div>
+          <div class="timeline-content">
+            <div class="timeline-timestamp">Jun 3, 2026 &middot; 10:15</div>
+            <div class="timeline-description">
+              <span class="who">Neha Gupta</span> updated <span class="field-name">delivery_manager_id</span>
+            </div>
+            <div class="timeline-change">
+              <span class="change-val old">Arjun Mehta</span>
+              <span class="change-arrow">&rarr;</span>
+              <span class="change-val new">Neha Gupta</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Entry 4 -->
+        <div class="timeline-entry">
+          <div class="timeline-dot-wrapper"><div class="timeline-dot update"></div></div>
+          <div class="timeline-content">
+            <div class="timeline-timestamp">May 28, 2026 &middot; 09:00</div>
+            <div class="timeline-description">
+              <span class="who">Vivek Sharma</span> changed <span class="field-name">contract_value</span>
+            </div>
+            <div class="timeline-change">
+              <span class="change-val old">&#8377;22,00,000</span>
+              <span class="change-arrow">&rarr;</span>
+              <span class="change-val new">&#8377;25,00,000</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Entry 5 -->
+        <div class="timeline-entry">
+          <div class="timeline-dot-wrapper"><div class="timeline-dot update"></div></div>
+          <div class="timeline-content">
+            <div class="timeline-timestamp">May 22, 2026 &middot; 16:10</div>
+            <div class="timeline-description">
+              <span class="who">Arjun Mehta</span> changed <span class="field-name">contract_end_date</span>
+            </div>
+            <div class="timeline-change">
+              <span class="change-val old">2026-09-30</span>
+              <span class="change-arrow">&rarr;</span>
+              <span class="change-val new">2026-12-31</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Entry 6 -->
+        <div class="timeline-entry">
+          <div class="timeline-dot-wrapper"><div class="timeline-dot create"></div></div>
+          <div class="timeline-content">
+            <div class="timeline-timestamp">May 15, 2026 &middot; 11:45</div>
+            <div class="timeline-description">
+              <span class="who">Priya Patel</span> created this project
+              <span class="action-badge-sm create">CREATE</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State (hidden by default) -->
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">&#128218;</div>
+        <h3>No changes recorded yet</h3>
+        <p>Changes to this project will appear here as they are made.</p>
+      </div>
+
+      <!-- Access Denied (hidden by default) -->
+      <div class="access-denied" id="accessDenied">
+        <div class="shield-icon">&#128274;</div>
+        <h3>Change History Unavailable</h3>
+        <p>Change history is only available to CEO, CTO, DM, and PM roles.</p>
+      </div>
+
+      <!-- Footer -->
+      <div class="panel-footer" id="panelFooter">
+        <a href="#">View All in Audit Log <span class="arrow">&rarr;</span></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const authorizedRoles = ['CEO', 'CTO', 'DM', 'PM'];
+  let currentRole = 'CEO';
+
+  function switchRole(btn) {
+    document.querySelectorAll('.role-switcher-bar button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentRole = btn.dataset.role;
+    updateAccess();
+  }
+
+  function updateAccess() {
+    const timeline = document.getElementById('timelineContent');
+    const denied = document.getElementById('accessDenied');
+    const footer = document.getElementById('panelFooter');
+    const emptyState = document.getElementById('emptyState');
+    const emptyToggle = document.getElementById('emptyToggle');
+
+    if (authorizedRoles.includes(currentRole)) {
+      denied.style.display = 'none';
+      footer.style.display = 'block';
+      if (!emptyToggle.checked) {
+        timeline.style.display = 'block';
+        emptyState.style.display = 'none';
+      }
+    } else {
+      timeline.style.display = 'none';
+      emptyState.style.display = 'none';
+      denied.style.display = 'flex';
+      footer.style.display = 'none';
+    }
+  }
+
+  function toggleEmpty() {
+    const checked = document.getElementById('emptyToggle').checked;
+    const timeline = document.getElementById('timelineContent');
+    const emptyState = document.getElementById('emptyState');
+    const denied = document.getElementById('accessDenied');
+
+    if (!authorizedRoles.includes(currentRole)) return;
+
+    if (checked) {
+      timeline.style.display = 'none';
+      emptyState.style.display = 'flex';
+    } else {
+      timeline.style.display = 'block';
+      emptyState.style.display = 'none';
+    }
+  }
+</script>
+
+</body>
+</html>

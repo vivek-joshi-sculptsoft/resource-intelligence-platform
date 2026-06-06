@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Company Dashboard | SculptSoft RIP</title>
+<style>
+:root {
+  --bg-page: #F0F1FA; --bg-card: #ffffff; --bg-sidebar: #F5F6FC;
+  --bg-header: #ffffff; --bg-hover: #F0F1FA; --bg-stripe: #F5F6FC;
+  --c-primary: #2B3990; --c-primary-dark: #1B2B65; --c-primary-light: #4A5BB5;
+  --c-accent: #FF4B2B; --c-accent-hover: #E63E1F; --c-accent-soft: #FFF0EC;
+  --c-text: #1e1b4b; --c-text-secondary: #6b7280; --c-text-muted: #7C85C0;
+  --c-border: #D6DAF0; --c-border-light: #E8EAF6;
+  --c-danger: #ef4444; --c-success: #22c55e; --c-warning: #f59e0b;
+  --shadow-card: 0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --radius-card: 12px; --radius-input: 8px; --radius-btn: 8px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg-page); color: var(--c-text); min-height: 100vh; }
+
+/* Role Switcher Bar */
+.role-switcher { position: sticky; top: 0; z-index: 1000; background: var(--c-primary-dark); display: flex; align-items: center; padding: 0 24px; height: 40px; gap: 8px; }
+.role-switcher .label { color: rgba(255,255,255,0.6); font-size: 12px; font-weight: 500; margin-right: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.role-switcher button { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; transition: all 0.2s; font-family: var(--font); }
+.role-switcher button:hover { background: rgba(255,255,255,0.2); color: #fff; }
+.role-switcher button.active { background: var(--c-accent); color: #fff; border-color: var(--c-accent); font-weight: 600; }
+.role-switcher .toggle-empty { margin-left: auto; display: flex; align-items: center; gap: 6px; color: rgba(255,255,255,0.6); font-size: 12px; }
+.role-switcher .toggle-empty input { accent-color: var(--c-accent); }
+
+/* App Header */
+.app-header { background: var(--bg-header); border-bottom: 1px solid var(--c-border-light); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.app-header .logo { font-size: 18px; font-weight: 700; color: var(--c-primary); }
+.app-header .logo span { color: var(--c-accent); }
+.app-header .user-info { display: flex; align-items: center; gap: 10px; }
+.app-header .avatar { width: 32px; height: 32px; background: var(--c-primary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+.app-header .user-name { font-size: 13px; color: var(--c-text-secondary); }
+
+/* Layout */
+.app-layout { display: flex; min-height: calc(100vh - 96px); }
+.sidebar { width: 220px; background: var(--bg-sidebar); border-right: 1px solid var(--c-border-light); padding: 16px 0; flex-shrink: 0; }
+.sidebar a { display: flex; align-items: center; gap: 10px; padding: 10px 20px; color: var(--c-text-secondary); text-decoration: none; font-size: 14px; transition: all 0.15s; }
+.sidebar a:hover { background: var(--bg-hover); color: var(--c-text); }
+.sidebar a.active { background: var(--c-accent-soft); color: var(--c-accent); font-weight: 600; border-right: 3px solid var(--c-accent); }
+.sidebar .section-title { padding: 16px 20px 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-text-muted); font-weight: 600; }
+.main-content { flex: 1; padding: 24px 32px; overflow-x: auto; }
+
+/* Page Header */
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.page-header h1 { font-size: 22px; font-weight: 700; }
+.page-header .subtitle { font-size: 13px; color: var(--c-text-secondary); margin-top: 2px; }
+
+/* Time Filter */
+.time-filter { display: flex; gap: 4px; background: var(--bg-sidebar); border-radius: var(--radius-btn); padding: 3px; border: 1px solid var(--c-border-light); }
+.time-filter button { padding: 6px 14px; font-size: 12px; font-weight: 500; border: none; background: transparent; color: var(--c-text-secondary); border-radius: 6px; cursor: pointer; font-family: var(--font); transition: all 0.15s; }
+.time-filter button.active { background: var(--c-primary); color: #fff; font-weight: 600; }
+.time-filter button:hover:not(.active) { background: var(--bg-hover); }
+
+/* KPI Grid */
+.kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+.kpi-card { background: var(--bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card); border: 1px solid var(--c-border-light); padding: 20px 24px; position: relative; overflow: hidden; }
+.kpi-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.kpi-card.blue::after { background: linear-gradient(90deg, var(--c-primary), var(--c-primary-light)); }
+.kpi-card.green::after { background: linear-gradient(90deg, #16a34a, #22c55e); }
+.kpi-card.orange::after { background: linear-gradient(90deg, #ea580c, #f59e0b); }
+.kpi-card.red::after { background: linear-gradient(90deg, var(--c-accent), #FF7043); }
+.kpi-card.purple::after { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+.kpi-card.teal::after { background: linear-gradient(90deg, #0d9488, #2dd4bf); }
+.kpi-card .kpi-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-text-muted); margin-bottom: 8px; font-weight: 600; }
+.kpi-card .kpi-value { font-size: 32px; font-weight: 800; color: var(--c-text); line-height: 1; }
+.kpi-card .kpi-value.text-blue { color: var(--c-primary); }
+.kpi-card .kpi-value.text-green { color: #16a34a; }
+.kpi-card .kpi-value.text-orange { color: #ea580c; }
+.kpi-card .kpi-value.text-red { color: var(--c-accent); }
+.kpi-card .kpi-value.text-purple { color: #7c3aed; }
+.kpi-card .kpi-value.text-teal { color: #0d9488; }
+.kpi-card .kpi-sub { font-size: 12px; color: var(--c-text-secondary); margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+.kpi-card .kpi-sub .trend-up { color: var(--c-success); font-weight: 600; }
+.kpi-card .kpi-sub .trend-down { color: var(--c-danger); font-weight: 600; }
+.kpi-card .kpi-detail { font-size: 11px; color: var(--c-text-muted); margin-top: 4px; }
+
+/* Card */
+.card { background: var(--bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card); border: 1px solid var(--c-border-light); margin-bottom: 24px; }
+.card-header { padding: 16px 20px; border-bottom: 1px solid var(--c-border-light); display: flex; align-items: center; justify-content: space-between; }
+.card-header h3 { font-size: 15px; font-weight: 700; }
+.card-body { padding: 20px; }
+
+/* Two-column layout */
+.two-col { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; }
+
+/* Utilization Chart (CSS bars) */
+.chart-bar-group { margin-bottom: 16px; }
+.chart-bar-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+.chart-bar-label .name { font-weight: 600; color: var(--c-text); }
+.chart-bar-label .pct { font-weight: 700; color: var(--c-primary); }
+.chart-bar-track { height: 24px; background: var(--bg-stripe); border-radius: 6px; overflow: hidden; position: relative; }
+.chart-bar-fill { height: 100%; border-radius: 6px; transition: width 0.6s ease; }
+.chart-bar-fill.high { background: linear-gradient(90deg, var(--c-primary), var(--c-primary-light)); }
+.chart-bar-fill.medium { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.chart-bar-fill.low { background: linear-gradient(90deg, var(--c-danger), #f87171); }
+
+/* Table */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table thead th { background: linear-gradient(135deg, var(--c-primary) 0%, var(--c-primary-light) 100%); color: #fff; padding: 10px 14px; text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+.data-table tbody tr { border-bottom: 1px solid var(--c-border-light); }
+.data-table tbody tr:hover { background: var(--bg-hover); }
+.data-table tbody tr:nth-child(even) { background: var(--bg-stripe); }
+.data-table tbody tr:nth-child(even):hover { background: var(--bg-hover); }
+.data-table td { padding: 10px 14px; font-size: 13px; }
+.data-table .text-right { text-align: right; }
+
+/* Badges */
+.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+.badge-fp { background: #EEF0FF; color: var(--c-primary); }
+.badge-tm { background: #FEF3C7; color: #92400E; }
+.badge-onb { background: #F0FDF4; color: #166534; }
+.badge-active { background: #DCFCE7; color: #166534; }
+
+/* Upcoming Releases */
+.release-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--c-border-light); }
+.release-item:last-child { border-bottom: none; }
+.release-item .resource-name { font-weight: 600; font-size: 13px; }
+.release-item .project-name { font-size: 12px; color: var(--c-text-secondary); }
+.release-item .release-date { font-size: 12px; color: var(--c-text-muted); text-align: right; }
+.release-item .days-left { font-size: 12px; font-weight: 600; }
+.days-left.urgent { color: var(--c-danger); }
+.days-left.soon { color: var(--c-warning); }
+.days-left.normal { color: var(--c-text-secondary); }
+
+/* Access Denied */
+.access-denied { display: none; text-align: center; padding: 80px 20px; }
+.access-denied .icon { font-size: 48px; margin-bottom: 16px; }
+.access-denied h3 { font-size: 18px; color: var(--c-text); margin-bottom: 8px; }
+.access-denied p { font-size: 14px; color: var(--c-text-secondary); }
+
+/* Empty State */
+.empty-state { display: none; text-align: center; padding: 60px 20px; }
+.empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state h3 { font-size: 16px; color: var(--c-text); margin-bottom: 6px; }
+.empty-state p { font-size: 13px; color: var(--c-text-secondary); }
+
+/* Phase 2 badge */
+.phase2-tag { display: inline-flex; align-items: center; gap: 4px; background: #F3F4F6; color: #9CA3AF; border: 1px dashed #D1D5DB; border-radius: 6px; padding: 3px 8px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+</style>
+</head>
+<body>
+
+<!-- Role Switcher Bar -->
+<div class="role-switcher">
+  <span class="label">Viewing as:</span>
+  <button class="active" data-role="CEO">CEO</button>
+  <button data-role="CTO">CTO</button>
+  <button data-role="DM">DM</button>
+  <button data-role="PM">PM</button>
+  <button data-role="FINANCE">Finance</button>
+  <button data-role="HR">HR</button>
+  <button data-role="ENGINEER">Engineer</button>
+  <div class="toggle-empty">
+    <input type="checkbox" id="toggleEmpty">
+    <label for="toggleEmpty">Show Empty State</label>
+  </div>
+</div>
+
+<!-- App Header -->
+<header class="app-header">
+  <div class="logo">Sculpt<span>RIP</span></div>
+  <div class="user-info">
+    <span class="user-name" id="currentUser">Vivek Sharma (CEO)</span>
+    <div class="avatar" id="currentAvatar">VS</div>
+  </div>
+</header>
+
+<!-- Layout -->
+<div class="app-layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="section-title">Main</div>
+    <a href="#" class="active">&#9633; Dashboard</a>
+    <a href="#">&#9633; Clients</a>
+    <a href="#">&#9633; Projects</a>
+    <a href="#">&#9633; Resources</a>
+    <a href="#">&#9633; Allocations</a>
+    <div class="section-title">Analytics</div>
+    <a href="#">&#9633; Utilization</a>
+    <a href="#">&#9633; Availability</a>
+    <div class="section-title">Finance</div>
+    <a href="#">&#9633; Invoicing</a>
+    <div class="section-title">System</div>
+    <a href="#">&#9633; Audit Log</a>
+    <a href="#">&#9633; Settings</a>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content" id="mainContent">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <h1>Company Dashboard</h1>
+        <div class="subtitle">Real-time overview of resources, projects, and utilization</div>
+      </div>
+      <div class="time-filter">
+        <button class="active">This Month</button>
+        <button>Last 3 Mo</button>
+        <button>Last 6 Mo</button>
+        <button>YTD</button>
+      </div>
+    </div>
+
+    <!-- KPI Grid -->
+    <div class="kpi-grid" id="kpiGrid">
+      <div class="kpi-card blue">
+        <div class="kpi-label">Billable Utilization</div>
+        <div class="kpi-value text-blue">78.4%</div>
+        <div class="kpi-sub"><span class="trend-up">&#9650; 3.2%</span> vs last month</div>
+        <div class="kpi-detail">27 of 34 resources billable</div>
+      </div>
+      <div class="kpi-card orange">
+        <div class="kpi-label">Bench Count</div>
+        <div class="kpi-value text-orange">5</div>
+        <div class="kpi-sub"><span class="trend-down">&#9650; 2</span> from last month</div>
+        <div class="kpi-detail">Avg bench duration: 12 days</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-label">Active Projects</div>
+        <div class="kpi-value text-green">12</div>
+        <div class="kpi-sub">FP: 4 &middot; T&M: 7 &middot; Onboarding: 1</div>
+        <div class="kpi-detail">Across 8 clients</div>
+      </div>
+      <div class="kpi-card purple">
+        <div class="kpi-label">Active Resources</div>
+        <div class="kpi-value text-purple">34</div>
+        <div class="kpi-sub">29 allocated &middot; 5 on bench</div>
+        <div class="kpi-detail">2 joining next month</div>
+      </div>
+      <div class="kpi-card teal">
+        <div class="kpi-label">Total Monthly Revenue <span class="phase2-tag">Phase 2</span></div>
+        <div class="kpi-value text-teal" style="opacity:0.4;">&#8377;42.5L</div>
+        <div class="kpi-sub" style="opacity:0.4;">Projected from active assignments</div>
+      </div>
+      <div class="kpi-card red">
+        <div class="kpi-label">Company Margin <span class="phase2-tag">Phase 2</span></div>
+        <div class="kpi-value text-red" style="opacity:0.4;">32.1%</div>
+        <div class="kpi-sub" style="opacity:0.4;">After non-human costs</div>
+      </div>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="two-col">
+      <!-- Utilization by DM -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Utilization by Delivery Manager</h3>
+        </div>
+        <div class="card-body">
+          <div class="chart-bar-group">
+            <div class="chart-bar-label"><span class="name">Arjun Mehta</span><span class="pct">85%</span></div>
+            <div class="chart-bar-track"><div class="chart-bar-fill high" style="width:85%"></div></div>
+          </div>
+          <div class="chart-bar-group">
+            <div class="chart-bar-label"><span class="name">Deepika Nair</span><span class="pct">79%</span></div>
+            <div class="chart-bar-track"><div class="chart-bar-fill high" style="width:79%"></div></div>
+          </div>
+          <div class="chart-bar-group">
+            <div class="chart-bar-label"><span class="name">Suresh Iyer</span><span class="pct">72%</span></div>
+            <div class="chart-bar-track"><div class="chart-bar-fill high" style="width:72%"></div></div>
+          </div>
+          <div class="chart-bar-group">
+            <div class="chart-bar-label"><span class="name">Kavita Shah</span><span class="pct">65%</span></div>
+            <div class="chart-bar-track"><div class="chart-bar-fill medium" style="width:65%"></div></div>
+          </div>
+          <div class="chart-bar-group">
+            <div class="chart-bar-label"><span class="name">Rahul Deshmukh</span><span class="pct">52%</span></div>
+            <div class="chart-bar-track"><div class="chart-bar-fill low" style="width:52%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upcoming Releases -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Upcoming Releases (30 Days)</h3>
+          <span style="font-size:12px; color: var(--c-text-muted);">6 assignments ending</span>
+        </div>
+        <div class="card-body">
+          <div class="release-item">
+            <div>
+              <div class="resource-name">Rohit Joshi</div>
+              <div class="project-name">HDFC Mobile Banking Redesign</div>
+            </div>
+            <div>
+              <div class="release-date">10 Jun 2026</div>
+              <div class="days-left urgent">4 days left</div>
+            </div>
+          </div>
+          <div class="release-item">
+            <div>
+              <div class="resource-name">Anjali Verma</div>
+              <div class="project-name">TCS Partnership Portal</div>
+            </div>
+            <div>
+              <div class="release-date">15 Jun 2026</div>
+              <div class="days-left urgent">9 days left</div>
+            </div>
+          </div>
+          <div class="release-item">
+            <div>
+              <div class="resource-name">Karthik Raman</div>
+              <div class="project-name">Reliance Digital Transformation</div>
+            </div>
+            <div>
+              <div class="release-date">22 Jun 2026</div>
+              <div class="days-left soon">16 days left</div>
+            </div>
+          </div>
+          <div class="release-item">
+            <div>
+              <div class="resource-name">Meera Krishnan</div>
+              <div class="project-name">Wipro Cloud Migration</div>
+            </div>
+            <div>
+              <div class="release-date">28 Jun 2026</div>
+              <div class="days-left soon">22 days left</div>
+            </div>
+          </div>
+          <div class="release-item">
+            <div>
+              <div class="resource-name">Amit Trivedi</div>
+              <div class="project-name">Bajaj Finserv Analytics</div>
+            </div>
+            <div>
+              <div class="release-date">02 Jul 2026</div>
+              <div class="days-left normal">26 days left</div>
+            </div>
+          </div>
+          <div class="release-item">
+            <div>
+              <div class="resource-name">Sneha Patil</div>
+              <div class="project-name">HDFC Mobile Banking Redesign</div>
+            </div>
+            <div>
+              <div class="release-date">05 Jul 2026</div>
+              <div class="days-left normal">29 days left</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top 5 Projects Table -->
+    <div class="card">
+      <div class="card-header">
+        <h3>Top 5 Projects by Team Size</h3>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Client</th>
+            <th>Type</th>
+            <th>DM</th>
+            <th>PM</th>
+            <th class="text-right">Team Size</th>
+            <th class="text-right">Avg Utilization</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:600;">Reliance Digital Transformation</td>
+            <td>Reliance Industries</td>
+            <td><span class="badge badge-tm">T&M</span></td>
+            <td>Arjun Mehta</td>
+            <td>Priya Patel</td>
+            <td class="text-right">8</td>
+            <td class="text-right" style="font-weight:600; color: var(--c-primary);">92%</td>
+            <td><span class="badge badge-active">Active</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">HDFC Mobile Banking Redesign</td>
+            <td>HDFC Bank</td>
+            <td><span class="badge badge-fp">FP</span></td>
+            <td>Deepika Nair</td>
+            <td>Ravi Shankar</td>
+            <td class="text-right">6</td>
+            <td class="text-right" style="font-weight:600; color: var(--c-primary);">88%</td>
+            <td><span class="badge badge-active">Active</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">Wipro Cloud Migration</td>
+            <td>Wipro Ltd.</td>
+            <td><span class="badge badge-tm">T&M</span></td>
+            <td>Suresh Iyer</td>
+            <td>Priya Patel</td>
+            <td class="text-right">5</td>
+            <td class="text-right" style="font-weight:600; color: #f59e0b;">74%</td>
+            <td><span class="badge badge-active">Active</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">Bajaj Finserv Analytics</td>
+            <td>Bajaj Finserv</td>
+            <td><span class="badge badge-fp">FP</span></td>
+            <td>Arjun Mehta</td>
+            <td>Kavita Shah</td>
+            <td class="text-right">4</td>
+            <td class="text-right" style="font-weight:600; color: var(--c-primary);">81%</td>
+            <td><span class="badge badge-active">Active</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">TCS Partnership Portal</td>
+            <td>Tata Consultancy</td>
+            <td><span class="badge badge-tm">T&M</span></td>
+            <td>Kavita Shah</td>
+            <td>Rahul Deshmukh</td>
+            <td class="text-right">3</td>
+            <td class="text-right" style="font-weight:600; color: var(--c-danger);">62%</td>
+            <td><span class="badge badge-active">Active</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Access Denied -->
+    <div class="access-denied" id="accessDenied">
+      <div class="icon">&#128274;</div>
+      <h3>Access Restricted</h3>
+      <p>The Company Dashboard is available to CEO and CTO roles only. Please use the Availability view or My Assignments page.</p>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState">
+      <div class="icon">&#128202;</div>
+      <h3>No data to display</h3>
+      <p>Dashboard data will appear once projects and resources are set up.</p>
+    </div>
+  </main>
+</div>
+
+<script>
+// Role config
+const roleConfig = {
+  CEO:      { user: 'Vivek Sharma', avatar: 'VS', access: true },
+  CTO:      { user: 'Rajesh Kumar', avatar: 'RK', access: true },
+  DM:       { user: 'Arjun Mehta', avatar: 'AM', access: false },
+  PM:       { user: 'Priya Patel', avatar: 'PP', access: false },
+  FINANCE:  { user: 'Neha Gupta', avatar: 'NG', access: false },
+  HR:       { user: 'Sunita Reddy', avatar: 'SR', access: false },
+  ENGINEER: { user: 'Rohit Joshi', avatar: 'RJ', access: false }
+};
+
+const dataElements = ['kpiGrid'];
+
+function applyRole(role) {
+  const cfg = roleConfig[role];
+  document.getElementById('currentUser').textContent = cfg.user + ' (' + role + ')';
+  document.getElementById('currentAvatar').textContent = cfg.avatar;
+  document.getElementById('accessDenied').style.display = cfg.access ? 'none' : 'block';
+  // hide all data content
+  document.querySelectorAll('.kpi-grid, .two-col, .card').forEach(el => {
+    if (!el.closest('.access-denied') && !el.closest('.empty-state')) {
+      el.style.display = cfg.access ? '' : 'none';
+    }
+  });
+  document.querySelector('.page-header .time-filter').style.display = cfg.access ? 'flex' : 'none';
+}
+
+document.querySelectorAll('.role-switcher button[data-role]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.role-switcher button[data-role]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyRole(btn.dataset.role);
+  });
+});
+
+// Time filter toggle
+document.querySelectorAll('.time-filter button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.time-filter button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+// Empty State Toggle
+document.getElementById('toggleEmpty').addEventListener('change', function() {
+  const main = document.getElementById('mainContent');
+  const empty = document.getElementById('emptyState');
+  if (this.checked) {
+    main.querySelectorAll('.kpi-grid, .two-col, .card').forEach(el => el.style.display = 'none');
+    empty.style.display = 'block';
+  } else {
+    empty.style.display = 'none';
+    const role = document.querySelector('.role-switcher button.active').dataset.role;
+    applyRole(role);
+  }
+});
+</script>
+</body>
+</html>

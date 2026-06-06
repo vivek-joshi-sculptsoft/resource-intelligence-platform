@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add Client — Resource Intelligence Platform</title>
+<style>
+:root {
+  --bg-page: #F0F1FA; --bg-card: #ffffff; --bg-sidebar: #F5F6FC;
+  --bg-header: #ffffff; --bg-hover: #F0F1FA; --bg-stripe: #F5F6FC;
+  --c-primary: #2B3990; --c-primary-dark: #1B2B65; --c-primary-light: #4A5BB5;
+  --c-accent: #FF4B2B; --c-accent-hover: #E63E1F; --c-accent-soft: #FFF0EC;
+  --c-text: #1e1b4b; --c-text-secondary: #6b7280; --c-text-muted: #7C85C0;
+  --c-border: #D6DAF0; --c-border-light: #E8EAF6;
+  --c-danger: #ef4444; --c-success: #22c55e; --c-warning: #f59e0b;
+  --shadow-card: 0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --radius-card: 12px; --radius-input: 8px; --radius-btn: 8px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg-page); color: var(--c-text); min-height: 100vh; }
+
+/* Role Switcher */
+.role-switcher { position: sticky; top: 0; z-index: 100; background: var(--c-primary-dark); padding: 8px 24px; display: flex; align-items: center; gap: 8px; }
+.role-switcher span { color: #fff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-right: 8px; }
+.role-btn { padding: 6px 14px; border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; background: transparent; color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+.role-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.role-btn.active { background: #fff; color: var(--c-primary-dark); border-color: #fff; }
+
+/* App Header */
+.app-header { background: var(--bg-header); border-bottom: 1px solid var(--c-border-light); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.app-logo { display: flex; align-items: center; gap: 10px; }
+.app-logo svg { width: 28px; height: 28px; }
+.app-logo h1 { font-size: 16px; font-weight: 700; color: var(--c-primary); }
+.app-user { display: flex; align-items: center; gap: 10px; }
+.app-user .avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--c-primary), var(--c-primary-light)); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+.app-user .user-name { font-size: 13px; font-weight: 500; }
+.app-user .user-role { font-size: 11px; color: var(--c-text-secondary); }
+
+/* Layout */
+.app-layout { display: flex; min-height: calc(100vh - 56px - 40px); }
+
+/* Sidebar */
+.sidebar { width: 240px; background: var(--bg-sidebar); border-right: 1px solid var(--c-border-light); padding: 16px 0; flex-shrink: 0; }
+.sidebar-nav { list-style: none; }
+.sidebar-nav li a { display: flex; align-items: center; gap: 10px; padding: 10px 20px; color: var(--c-text-secondary); text-decoration: none; font-size: 13px; font-weight: 500; transition: all 0.15s; border-left: 3px solid transparent; }
+.sidebar-nav li a:hover { background: var(--bg-hover); color: var(--c-text); }
+.sidebar-nav li a.active { background: var(--c-accent-soft); color: var(--c-accent); border-left-color: var(--c-accent); font-weight: 600; }
+.sidebar-nav li a svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+/* Main */
+.main-content { flex: 1; padding: 24px; max-width: 800px; }
+
+/* Breadcrumb */
+.breadcrumb { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 13px; }
+.breadcrumb a { color: var(--c-text-muted); text-decoration: none; }
+.breadcrumb a:hover { color: var(--c-primary); text-decoration: underline; }
+.breadcrumb .sep { color: var(--c-text-muted); }
+.breadcrumb .current { color: var(--c-text); font-weight: 600; }
+
+/* Form Card */
+.form-card { background: var(--bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card); padding: 28px; }
+.form-card h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.form-card .form-subtitle { font-size: 13px; color: var(--c-text-secondary); margin-bottom: 24px; }
+
+.form-section { margin-bottom: 24px; }
+.form-section-title { font-size: 13px; font-weight: 700; color: var(--c-primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--c-border-light); }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.form-row.full { grid-template-columns: 1fr; }
+.form-group { display: flex; flex-direction: column; }
+.form-group label { font-size: 13px; font-weight: 600; color: var(--c-text); margin-bottom: 6px; }
+.form-group label .required { color: var(--c-danger); margin-left: 2px; }
+.form-group input, .form-group select, .form-group textarea { padding: 10px 14px; border: 1px solid var(--c-border); border-radius: var(--radius-input); font-size: 14px; font-family: var(--font); color: var(--c-text); background: #fff; transition: border-color 0.2s; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--c-primary-light); box-shadow: 0 0 0 3px rgba(43,57,144,0.08); }
+.form-group input::placeholder { color: var(--c-text-muted); }
+.form-group textarea { min-height: 100px; resize: vertical; }
+.form-group .hint { font-size: 11px; color: var(--c-text-muted); margin-top: 4px; }
+.form-group .error { font-size: 11px; color: var(--c-danger); margin-top: 4px; display: none; }
+.form-group.has-error input, .form-group.has-error select { border-color: var(--c-danger); }
+.form-group.has-error .error { display: block; }
+
+/* Form Actions */
+.form-actions { display: flex; gap: 12px; justify-content: flex-end; padding-top: 20px; border-top: 1px solid var(--c-border-light); margin-top: 8px; }
+.btn-primary { background: linear-gradient(135deg, #FF4B2B, #FF6B4A); color: #fff; border: none; padding: 10px 24px; border-radius: var(--radius-btn); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(255,75,43,0.25); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255,75,43,0.35); }
+.btn-secondary { padding: 10px 24px; border-radius: var(--radius-btn); border: 1px solid var(--c-border); background: #fff; color: var(--c-text); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+.btn-secondary:hover { background: var(--bg-hover); border-color: var(--c-primary-light); }
+
+/* Access Denied */
+.access-denied { display: none; padding: 60px 20px; text-align: center; }
+.access-denied svg { width: 64px; height: 64px; color: var(--c-danger); margin-bottom: 16px; }
+.access-denied h3 { font-size: 18px; font-weight: 600; color: var(--c-text); margin-bottom: 8px; }
+.access-denied p { font-size: 14px; color: var(--c-text-secondary); }
+
+/* Mode toggle */
+.mode-toggle { display: flex; gap: 0; margin-bottom: 20px; }
+.mode-toggle button { padding: 8px 18px; border: 1px solid var(--c-border); background: #fff; color: var(--c-text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+.mode-toggle button:first-child { border-radius: var(--radius-btn) 0 0 var(--radius-btn); }
+.mode-toggle button:last-child { border-radius: 0 var(--radius-btn) var(--radius-btn) 0; border-left: none; }
+.mode-toggle button.active { background: var(--c-primary); color: #fff; border-color: var(--c-primary); }
+</style>
+</head>
+<body>
+
+<!-- Role Switcher -->
+<div class="role-switcher">
+  <span>Role:</span>
+  <button class="role-btn active" onclick="switchRole('CEO')">CEO</button>
+  <button class="role-btn" onclick="switchRole('CTO')">CTO</button>
+  <button class="role-btn" onclick="switchRole('DM')">DM</button>
+  <button class="role-btn" onclick="switchRole('PM')">PM</button>
+  <button class="role-btn" onclick="switchRole('Finance')">Finance</button>
+  <button class="role-btn" onclick="switchRole('HR')">HR</button>
+  <button class="role-btn" onclick="switchRole('Engineer')">Engineer</button>
+</div>
+
+<!-- App Header -->
+<header class="app-header">
+  <div class="app-logo">
+    <svg viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="6" fill="#2B3990"/><path d="M8 14l4 4 8-8" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <h1>Resource Intelligence Platform</h1>
+  </div>
+  <div class="app-user">
+    <div>
+      <div class="user-name" id="currentUserName">Vivek Sharma</div>
+      <div class="user-role" id="currentUserRole">CEO</div>
+    </div>
+    <div class="avatar" id="currentUserAvatar">VS</div>
+  </div>
+</header>
+
+<!-- Layout -->
+<div class="app-layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <ul class="sidebar-nav">
+      <li><a href="#">
+        <svg viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="10" y="1" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="10" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="10" y="10" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/></svg>
+        Dashboard
+      </a></li>
+      <li><a href="client-list.html" class="active">
+        <svg viewBox="0 0 18 18" fill="none"><path d="M15 15.75H3a1.5 1.5 0 01-1.5-1.5V3.75A1.5 1.5 0 013 2.25h12a1.5 1.5 0 011.5 1.5v10.5a1.5 1.5 0 01-1.5 1.5z" stroke="currentColor" stroke-width="1.5"/><path d="M6 6.75h6M6 9.75h6M6 12.75h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Clients
+      </a></li>
+      <li><a href="#">
+        <svg viewBox="0 0 18 18" fill="none"><path d="M2.25 3.75h13.5v10.5a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5V3.75z" stroke="currentColor" stroke-width="1.5"/><path d="M6.75 2.25v3M11.25 2.25v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M6 9h1.5M10.5 9H12M6 12h1.5M10.5 12H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Projects
+      </a></li>
+      <li><a href="#">
+        <svg viewBox="0 0 18 18" fill="none"><circle cx="9" cy="6" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 15.75c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Resources
+      </a></li>
+      <li><a href="#">
+        <svg viewBox="0 0 18 18" fill="none"><path d="M9 2.25v13.5M2.25 9h13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Allocations
+      </a></li>
+      <li><a href="#">
+        <svg viewBox="0 0 18 18" fill="none"><path d="M2.25 14.25l4.5-4.5 3 3 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Utilization
+      </a></li>
+      <li><a href="#">
+        <svg viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.75" stroke="currentColor" stroke-width="1.5"/><path d="M9 5.25v3.75l2.25 2.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Worklogs
+      </a></li>
+      <li><a href="#">
+        <svg viewBox="0 0 18 18" fill="none"><path d="M14.25 9.75v4.5a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-4.5" stroke="currentColor" stroke-width="1.5"/><path d="M12 6.75L9 3.75l-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 3.75v8.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Audit Log
+      </a></li>
+    </ul>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Access Denied -->
+    <div class="access-denied" id="accessDenied">
+      <svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="3"/><path d="M20 20l24 24M44 20L20 44" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+      <h3>Access Denied</h3>
+      <p>Only CEO and CTO can create or edit client records.</p>
+    </div>
+
+    <div id="contentArea">
+      <!-- Breadcrumb -->
+      <div class="breadcrumb">
+        <a href="client-list.html">Clients</a>
+        <span class="sep">/</span>
+        <span class="current" id="breadcrumbTitle">Add New Client</span>
+      </div>
+
+      <!-- Mode Toggle -->
+      <div class="mode-toggle">
+        <button class="active" onclick="toggleMode('create')">Create Mode</button>
+        <button onclick="toggleMode('edit')">Edit Mode (Prefilled)</button>
+      </div>
+
+      <!-- Form -->
+      <div class="form-card">
+        <h2 id="formTitle">Add New Client</h2>
+        <p class="form-subtitle" id="formSubtitle">Fill in the details below to register a new client.</p>
+
+        <form id="clientForm" onsubmit="handleSubmit(event)">
+          <!-- Basic Information -->
+          <div class="form-section">
+            <div class="form-section-title">Basic Information</div>
+
+            <div class="form-row">
+              <div class="form-group" id="nameGroup">
+                <label>Client Name <span class="required">*</span></label>
+                <input type="text" id="clientName" placeholder="e.g., Nexus Healthcare" required>
+                <span class="error">Client name is required and must be unique.</span>
+              </div>
+              <div class="form-group">
+                <label>Industry</label>
+                <input type="text" id="clientIndustry" placeholder="e.g., Healthcare, FinTech">
+              </div>
+            </div>
+
+            <div class="form-row full">
+              <div class="form-group">
+                <label>Engagement Start Date</label>
+                <input type="date" id="engagementDate">
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Information -->
+          <div class="form-section">
+            <div class="form-section-title">Contact Information</div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Contact Name</label>
+                <input type="text" id="contactName" placeholder="Primary point of contact">
+              </div>
+              <div class="form-group">
+                <label>Contact Email</label>
+                <input type="email" id="contactEmail" placeholder="email@example.com">
+                <span class="error">Please enter a valid email address.</span>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Contact Phone</label>
+                <input type="tel" id="contactPhone" placeholder="+91 XXXXX XXXXX">
+                <span class="hint">Include country code</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Additional Details -->
+          <div class="form-section">
+            <div class="form-section-title">Additional Details</div>
+
+            <div class="form-row full">
+              <div class="form-group">
+                <label>Notes</label>
+                <textarea id="clientNotes" placeholder="Any relevant information about this client engagement..."></textarea>
+                <span class="hint">Internal notes about the client relationship, key contacts, engagement history, etc.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" onclick="window.location.href='client-list.html'">Cancel</button>
+            <button type="submit" class="btn-primary" id="submitBtn">Save Client</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const roleConfig = {
+  CEO:      { canAccess: true, userName: 'Vivek Sharma', avatar: 'VS' },
+  CTO:      { canAccess: true, userName: 'Arjun Mehta', avatar: 'AM' },
+  DM:       { canAccess: false, userName: 'Rajesh Kumar', avatar: 'RK' },
+  PM:       { canAccess: false, userName: 'Neha Gupta', avatar: 'NG' },
+  Finance:  { canAccess: false, userName: 'Kavita Nair', avatar: 'KN' },
+  HR:       { canAccess: false, userName: 'Sneha Reddy', avatar: 'SR' },
+  Engineer: { canAccess: false, userName: 'Amit Joshi', avatar: 'AJ' }
+};
+
+function switchRole(role) {
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const config = roleConfig[role];
+  document.getElementById('currentUserName').textContent = config.userName;
+  document.getElementById('currentUserRole').textContent = role;
+  document.getElementById('currentUserAvatar').textContent = config.avatar;
+
+  document.getElementById('accessDenied').style.display = config.canAccess ? 'none' : 'block';
+  document.getElementById('contentArea').style.display = config.canAccess ? 'block' : 'none';
+}
+
+function toggleMode(mode) {
+  document.querySelectorAll('.mode-toggle button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  if (mode === 'edit') {
+    document.getElementById('formTitle').textContent = 'Edit Client';
+    document.getElementById('formSubtitle').textContent = 'Update the client details below.';
+    document.getElementById('breadcrumbTitle').textContent = 'Edit Client';
+    document.getElementById('submitBtn').textContent = 'Update Client';
+    // Prefill
+    document.getElementById('clientName').value = 'Nexus Healthcare';
+    document.getElementById('clientIndustry').value = 'Healthcare';
+    document.getElementById('engagementDate').value = '2024-01-15';
+    document.getElementById('contactName').value = 'Dr. Ananya Iyer';
+    document.getElementById('contactEmail').value = 'ananya.iyer@nexushealth.in';
+    document.getElementById('contactPhone').value = '+91 98765 43210';
+    document.getElementById('clientNotes').value = 'Key healthcare provider in South India. Engaged for digital transformation of patient management systems. Board-level sponsorship from COO. Quarterly review cadence established.';
+  } else {
+    document.getElementById('formTitle').textContent = 'Add New Client';
+    document.getElementById('formSubtitle').textContent = 'Fill in the details below to register a new client.';
+    document.getElementById('breadcrumbTitle').textContent = 'Add New Client';
+    document.getElementById('submitBtn').textContent = 'Save Client';
+    document.getElementById('clientForm').reset();
+  }
+}
+
+function handleSubmit(e) {
+  e.preventDefault();
+  const name = document.getElementById('clientName').value.trim();
+  if (!name) {
+    document.getElementById('nameGroup').classList.add('has-error');
+    return;
+  }
+  document.getElementById('nameGroup').classList.remove('has-error');
+  // Mockup: show success
+  alert('Client saved successfully! (Mockup)');
+}
+
+document.getElementById('clientName').addEventListener('input', function() {
+  document.getElementById('nameGroup').classList.remove('has-error');
+});
+</script>
+</body>
+</html>

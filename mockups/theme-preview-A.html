@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theme A: Clean Minimal — Resource Intelligence Platform</title>
+<style>
+  :root {
+    --bg-page: #fafafa;
+    --bg-card: #ffffff;
+    --bg-sidebar: #ffffff;
+    --bg-header: #ffffff;
+    --bg-hover: #f5f5f5;
+    --bg-stripe: #fafafa;
+    --c-primary: #0f172a;
+    --c-accent: #0d9488;
+    --c-accent-soft: #f0fdfa;
+    --c-accent-hover: #0a7a70;
+    --c-text: #1e293b;
+    --c-text-secondary: #64748b;
+    --c-text-muted: #a1a1aa;
+    --c-border: #e5e5e5;
+    --c-border-light: #f0f0f0;
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.04);
+    --radius-card: 8px;
+    --radius-input: 6px;
+    --radius-btn: 6px;
+    --c-danger: #ef4444;
+    --c-success: #22c55e;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--c-text);
+    background: var(--bg-page);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ── Theme Banner ── */
+  .theme-banner {
+    background: var(--c-primary);
+    color: #ffffff;
+    padding: 24px 32px;
+    text-align: center;
+  }
+  .theme-banner h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    margin-bottom: 6px;
+  }
+  .theme-banner p {
+    font-size: 14px;
+    color: #94a3b8;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* ── Section Dividers ── */
+  .section-divider {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 48px 32px 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .section-divider::before,
+  .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--c-border);
+  }
+  .section-divider span {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--c-text-muted);
+    white-space: nowrap;
+  }
+
+  /* ── Preview Frame ── */
+  .preview-frame {
+    max-width: 1120px;
+    margin: 0 auto 32px;
+    padding: 0 32px;
+  }
+  .preview-window {
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  }
+
+  /* ═══════════════════════════════════
+     SECTION 1: LOGIN PAGE
+     ═══════════════════════════════════ */
+  .login-page {
+    background: var(--bg-page);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 520px;
+    padding: 48px 24px;
+  }
+  .login-card {
+    background: var(--bg-card);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+  }
+  .login-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    margin-bottom: 20px;
+  }
+  .login-icon svg {
+    width: 40px;
+    height: 40px;
+  }
+  .login-card h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--c-primary);
+    margin-bottom: 4px;
+    letter-spacing: -0.3px;
+  }
+  .login-card .login-subtitle {
+    font-size: 13px;
+    color: var(--c-text-secondary);
+    margin-bottom: 32px;
+  }
+  .login-card .form-group {
+    text-align: left;
+    margin-bottom: 20px;
+  }
+  .login-card .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--c-text);
+    margin-bottom: 6px;
+  }
+  .login-card input[type="text"],
+  .login-card input[type="email"],
+  .login-card input[type="password"] {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-input);
+    background: var(--bg-card);
+    color: var(--c-text);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .login-card input:focus {
+    border-color: var(--c-accent);
+    box-shadow: 0 0 0 3px rgba(13,148,136,0.1);
+  }
+  .login-card input::placeholder {
+    color: var(--c-text-muted);
+  }
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    color: #ffffff;
+    background: var(--c-accent);
+    border: none;
+    border-radius: var(--radius-btn);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-primary:hover {
+    background: var(--c-accent-hover);
+  }
+  .login-card .forgot-link {
+    display: block;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--c-accent);
+    text-decoration: none;
+  }
+  .login-card .forgot-link:hover {
+    text-decoration: underline;
+  }
+
+  /* ═══════════════════════════════════
+     SECTION 2: DASHBOARD
+     ═══════════════════════════════════ */
+  .dashboard-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 640px;
+    background: var(--bg-page);
+  }
+
+  /* Header */
+  .dash-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    padding: 0 24px;
+    background: var(--bg-header);
+    border-bottom: 1px solid var(--c-border);
+    flex-shrink: 0;
+  }
+  .dash-header .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--c-primary);
+    letter-spacing: -0.2px;
+  }
+  .dash-header .header-brand svg {
+    width: 22px;
+    height: 22px;
+  }
+  .dash-header .header-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--c-text);
+    font-weight: 500;
+  }
+  .header-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--c-accent);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* Body */
+  .dash-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Sidebar */
+  .dash-sidebar {
+    width: 220px;
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--c-border);
+    padding: 16px 0;
+    flex-shrink: 0;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--c-text-secondary);
+    text-decoration: none;
+    border-left: 3px solid transparent;
+    transition: all 0.12s;
+    cursor: default;
+  }
+  .nav-item:hover {
+    background: var(--bg-hover);
+    color: var(--c-text);
+  }
+  .nav-item.active {
+    color: var(--c-accent);
+    border-left-color: var(--c-accent);
+    background: var(--c-accent-soft);
+    font-weight: 600;
+  }
+  .nav-item svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+  .nav-item.active svg {
+    opacity: 1;
+  }
+
+  /* Main Content */
+  .dash-main {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+  }
+
+  /* KPI Cards */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .kpi-card {
+    background: var(--bg-card);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: 20px;
+  }
+  .kpi-card .kpi-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--c-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 8px;
+  }
+  .kpi-card .kpi-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--c-primary);
+    letter-spacing: -0.5px;
+  }
+  .kpi-card .kpi-value .kpi-unit {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--c-text-secondary);
+    margin-left: 2px;
+  }
+
+  /* Data Table */
+  .table-card {
+    background: var(--bg-card);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+  .table-card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--c-border-light);
+  }
+  .table-card-header h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--c-primary);
+  }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .data-table thead th {
+    text-align: left;
+    padding: 10px 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--c-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    background: var(--bg-stripe);
+    border-bottom: 1px solid var(--c-border);
+  }
+  .data-table tbody td {
+    padding: 12px 20px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--c-border-light);
+    color: var(--c-text);
+  }
+  .data-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .data-table tbody tr:hover {
+    background: var(--bg-hover);
+  }
+  .data-table .name-cell {
+    font-weight: 500;
+    color: var(--c-primary);
+  }
+  .data-table .muted-cell {
+    color: var(--c-text-muted);
+  }
+
+  /* Status Badges */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 100px;
+    letter-spacing: 0.3px;
+  }
+  .badge-active {
+    background: #ecfdf5;
+    color: #059669;
+  }
+  .badge-bench {
+    background: #fef3c7;
+    color: #b45309;
+  }
+
+  /* ═══════════════════════════════════
+     SECTION 3: DATA ENTRY FORM
+     ═══════════════════════════════════ */
+  .form-page {
+    background: var(--bg-page);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 48px 24px;
+    min-height: 580px;
+  }
+  .form-card {
+    background: var(--bg-card);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    width: 100%;
+    max-width: 560px;
+  }
+  .form-card-header {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--c-border-light);
+  }
+  .form-card-header h3 {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--c-primary);
+  }
+  .form-card-header p {
+    font-size: 13px;
+    color: var(--c-text-secondary);
+    margin-top: 4px;
+  }
+  .form-card-body {
+    padding: 24px 32px;
+  }
+  .form-group {
+    margin-bottom: 20px;
+  }
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--c-text);
+    margin-bottom: 6px;
+  }
+  .form-group label .required {
+    color: var(--c-danger);
+    margin-left: 2px;
+  }
+  .form-input {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-input);
+    background: var(--bg-card);
+    color: var(--c-text);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .form-input:focus {
+    border-color: var(--c-accent);
+    box-shadow: 0 0 0 3px rgba(13,148,136,0.1);
+  }
+  .form-input::placeholder {
+    color: var(--c-text-muted);
+  }
+  .form-input.error {
+    border-color: var(--c-danger);
+    box-shadow: 0 0 0 3px rgba(239,68,68,0.08);
+  }
+  .form-error {
+    font-size: 12px;
+    color: var(--c-danger);
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .form-error svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+  select.form-input {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%2364748b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+    cursor: pointer;
+  }
+  .form-card-footer {
+    padding: 16px 32px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    border-radius: var(--radius-btn);
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+  }
+  .btn-secondary {
+    background: var(--bg-card);
+    color: var(--c-text);
+    border: 1px solid var(--c-border);
+  }
+  .btn-secondary:hover {
+    background: var(--bg-hover);
+  }
+  .btn-accent {
+    background: var(--c-accent);
+    color: #ffffff;
+  }
+  .btn-accent:hover {
+    background: var(--c-accent-hover);
+  }
+
+  /* ── Footer ── */
+  .page-footer {
+    text-align: center;
+    padding: 40px 24px;
+    color: var(--c-text-muted);
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ╔══════════════════════════════════════╗
+     ║         THEME BANNER                ║
+     ╚══════════════════════════════════════╝ -->
+<div class="theme-banner">
+  <h1>Theme A: Clean Minimal</h1>
+  <p>Calm, spacious, understated. White backgrounds, teal accent, thin borders, lots of whitespace.</p>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗
+     ║     SECTION 1 — LOGIN PAGE          ║
+     ╚══════════════════════════════════════╝ -->
+<div class="section-divider"><span>Preview 1: Login</span></div>
+
+<div class="preview-frame">
+  <div class="preview-window">
+    <div class="login-page">
+      <div class="login-card">
+        <div class="login-icon">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="6" width="36" height="28" rx="4" stroke="#0d9488" stroke-width="2" fill="none"/>
+            <path d="M10 28L10 18" stroke="#0d9488" stroke-width="3" stroke-linecap="round"/>
+            <path d="M17 28L17 14" stroke="#0d9488" stroke-width="3" stroke-linecap="round"/>
+            <path d="M24 28L24 20" stroke="#0d9488" stroke-width="3" stroke-linecap="round"/>
+            <path d="M31 28L31 12" stroke="#0d9488" stroke-width="3" stroke-linecap="round"/>
+            <path d="M18 4L20 1L22 4" stroke="#0d9488" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="20" y1="1" x2="20" y2="6" stroke="#0d9488" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h2>Resource Intelligence Platform</h2>
+        <p class="login-subtitle">Sign in to your account</p>
+
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" placeholder="you@company.com">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" placeholder="Enter your password">
+        </div>
+
+        <button class="btn-primary">Sign In</button>
+        <a href="#" class="forgot-link">Forgot password?</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗
+     ║   SECTION 2 — DASHBOARD OVERVIEW    ║
+     ╚══════════════════════════════════════╝ -->
+<div class="section-divider"><span>Preview 2: Dashboard</span></div>
+
+<div class="preview-frame">
+  <div class="preview-window">
+    <div class="dashboard-layout">
+
+      <!-- Header -->
+      <div class="dash-header">
+        <div class="header-brand">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1" y="4" width="22" height="16" rx="3" stroke="#0d9488" stroke-width="1.5" fill="none"/>
+            <path d="M6 16V12" stroke="#0d9488" stroke-width="2" stroke-linecap="round"/>
+            <path d="M10 16V9" stroke="#0d9488" stroke-width="2" stroke-linecap="round"/>
+            <path d="M14 16V11" stroke="#0d9488" stroke-width="2" stroke-linecap="round"/>
+            <path d="M18 16V7" stroke="#0d9488" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Resource Intelligence Platform
+        </div>
+        <div class="header-user">
+          Vivek Sharma
+          <div class="header-avatar">VS</div>
+        </div>
+      </div>
+
+      <div class="dash-body">
+        <!-- Sidebar -->
+        <nav class="dash-sidebar">
+          <a class="nav-item active" href="#">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm9 0a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1V4zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm9 0a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-3z"/></svg>
+            Dashboard
+          </a>
+          <a class="nav-item" href="#">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/></svg>
+            Clients
+          </a>
+          <a class="nav-item" href="#">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 6a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2zm0 6a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z"/></svg>
+            Projects
+          </a>
+          <a class="nav-item" href="#">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 10a4 4 0 100-8 4 4 0 000 8zm-7 8a7 7 0 0114 0H3z"/></svg>
+            Resources
+          </a>
+          <a class="nav-item" href="#">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 2h10v10H5V5zm2 2v2h2V7H7zm4 0v2h2V7h-2zm-4 4v2h2v-2H7zm4 0v2h2v-2h-2z"/></svg>
+            Allocations
+          </a>
+          <a class="nav-item" href="#">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 10a8 8 0 1116 0 8 8 0 01-16 0zm8-6a6 6 0 100 12 6 6 0 000-12zm1 3a1 1 0 10-2 0v3a1 1 0 00.293.707l2 2a1 1 0 001.414-1.414L11 9.586V7z"/></svg>
+            Dashboards
+          </a>
+          <a class="nav-item" href="#">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 00-1 1v1H4a1 1 0 000 2h1v10a2 2 0 002 2h6a2 2 0 002-2V6h1a1 1 0 100-2h-4V3a1 1 0 00-1-1H9zm-1 4v10h1V6H8zm3 0v10h1V6h-1z"/></svg>
+            Worklogs
+          </a>
+          <a class="nav-item" href="#">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg>
+            Settings
+          </a>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="dash-main">
+          <!-- KPI Cards -->
+          <div class="kpi-row">
+            <div class="kpi-card">
+              <div class="kpi-label">Billable Utilization</div>
+              <div class="kpi-value">74<span class="kpi-unit">%</span></div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">On Bench</div>
+              <div class="kpi-value">4</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Active Projects</div>
+              <div class="kpi-value">12</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Monthly Revenue</div>
+              <div class="kpi-value">&#8377;42.8<span class="kpi-unit">L</span></div>
+            </div>
+          </div>
+
+          <!-- Recent Assignments Table -->
+          <div class="table-card">
+            <div class="table-card-header">
+              <h3>Recent Assignments</h3>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Project</th>
+                  <th>Allocation %</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="name-cell">Vivek Sharma</td>
+                  <td>Project Phoenix</td>
+                  <td>60%</td>
+                  <td>Tech Lead</td>
+                  <td><span class="badge badge-active">ACTIVE</span></td>
+                </tr>
+                <tr>
+                  <td class="name-cell">Priya Patel</td>
+                  <td>Atlas Migration</td>
+                  <td>80%</td>
+                  <td>Senior Dev</td>
+                  <td><span class="badge badge-active">ACTIVE</span></td>
+                </tr>
+                <tr>
+                  <td class="name-cell">Arjun Mehta</td>
+                  <td>Meridian API</td>
+                  <td>40%</td>
+                  <td>Full Stack</td>
+                  <td><span class="badge badge-active">ACTIVE</span></td>
+                </tr>
+                <tr>
+                  <td class="name-cell">Neha Gupta</td>
+                  <td>Nexus Portal</td>
+                  <td>100%</td>
+                  <td>QA Lead</td>
+                  <td><span class="badge badge-active">ACTIVE</span></td>
+                </tr>
+                <tr>
+                  <td class="name-cell">Rajesh Kumar</td>
+                  <td class="muted-cell">&mdash;</td>
+                  <td class="muted-cell">0%</td>
+                  <td>DevOps</td>
+                  <td><span class="badge badge-bench">BENCH</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗
+     ║   SECTION 3 — DATA ENTRY FORM      ║
+     ╚══════════════════════════════════════╝ -->
+<div class="section-divider"><span>Preview 3: Data Entry Form</span></div>
+
+<div class="preview-frame">
+  <div class="preview-window">
+    <div class="form-page">
+      <div class="form-card">
+        <div class="form-card-header">
+          <h3>Add New User</h3>
+          <p>Create a new user account and optionally link to a resource profile.</p>
+        </div>
+        <div class="form-card-body">
+
+          <!-- Name -->
+          <div class="form-group">
+            <label>Name <span class="required">*</span></label>
+            <input type="text" class="form-input" placeholder="Full name" value="Priya Patel">
+          </div>
+
+          <!-- Email (error state) -->
+          <div class="form-group">
+            <label>Email <span class="required">*</span></label>
+            <input type="email" class="form-input error" placeholder="user@company.com" value="priya.patel@company.com">
+            <div class="form-error">
+              <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zM7.25 5a.75.75 0 011.5 0v3a.75.75 0 01-1.5 0V5zM8 10.5a.75.75 0 100 1.5.75.75 0 000-1.5z"/></svg>
+              A user with this email already exists
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label>Password <span class="required">*</span></label>
+            <input type="password" class="form-input" placeholder="Minimum 8 characters">
+          </div>
+
+          <!-- Role -->
+          <div class="form-group">
+            <label>Role <span class="required">*</span></label>
+            <select class="form-input">
+              <option value="" disabled>Select a role</option>
+              <option>CEO</option>
+              <option>CTO</option>
+              <option>DM</option>
+              <option selected>PM</option>
+              <option>Finance</option>
+              <option>HR</option>
+              <option>Engineer</option>
+            </select>
+          </div>
+
+          <!-- Link to Resource -->
+          <div class="form-group">
+            <label>Link to Resource</label>
+            <select class="form-input">
+              <option value="" selected>None (optional)</option>
+              <option>Priya Patel — Senior Developer</option>
+              <option>Arjun Mehta — Full Stack Developer</option>
+              <option>Neha Gupta — QA Lead</option>
+            </select>
+          </div>
+
+        </div>
+        <div class="form-card-footer">
+          <button class="btn btn-secondary">Cancel</button>
+          <button class="btn btn-accent">Save User</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="page-footer">
+  Resource Intelligence Platform &mdash; Theme A: Clean Minimal
+</div>
+
+</body>
+</html>

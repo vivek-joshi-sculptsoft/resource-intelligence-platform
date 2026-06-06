@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add Project — Resource Intelligence Platform</title>
+<style>
+:root {
+  --bg-page: #F0F1FA; --bg-card: #ffffff; --bg-sidebar: #F5F6FC;
+  --bg-header: #ffffff; --bg-hover: #F0F1FA; --bg-stripe: #F5F6FC;
+  --c-primary: #2B3990; --c-primary-dark: #1B2B65; --c-primary-light: #4A5BB5;
+  --c-accent: #FF4B2B; --c-accent-hover: #E63E1F; --c-accent-soft: #FFF0EC;
+  --c-text: #1e1b4b; --c-text-secondary: #6b7280; --c-text-muted: #7C85C0;
+  --c-border: #D6DAF0; --c-border-light: #E8EAF6;
+  --c-danger: #ef4444; --c-success: #22c55e; --c-warning: #f59e0b;
+  --shadow-card: 0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --radius-card: 12px; --radius-input: 8px; --radius-btn: 8px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg-page); color: var(--c-text); min-height: 100vh; }
+
+/* Role Switcher */
+.role-switcher { position: sticky; top: 0; z-index: 100; background: var(--c-primary-dark); padding: 8px 24px; display: flex; align-items: center; gap: 8px; }
+.role-switcher span { color: #fff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-right: 8px; }
+.role-btn { padding: 6px 14px; border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; background: transparent; color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+.role-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.role-btn.active { background: #fff; color: var(--c-primary-dark); border-color: #fff; }
+
+/* App Header */
+.app-header { background: var(--bg-header); border-bottom: 1px solid var(--c-border-light); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.app-logo { display: flex; align-items: center; gap: 10px; }
+.app-logo svg { width: 28px; height: 28px; }
+.app-logo h1 { font-size: 16px; font-weight: 700; color: var(--c-primary); }
+.app-user { display: flex; align-items: center; gap: 10px; }
+.app-user .avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--c-primary), var(--c-primary-light)); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+.app-user .user-name { font-size: 13px; font-weight: 500; }
+.app-user .user-role { font-size: 11px; color: var(--c-text-secondary); }
+
+/* Layout */
+.app-layout { display: flex; min-height: calc(100vh - 56px - 40px); }
+
+/* Sidebar */
+.sidebar { width: 240px; background: var(--bg-sidebar); border-right: 1px solid var(--c-border-light); padding: 16px 0; flex-shrink: 0; }
+.sidebar-nav { list-style: none; }
+.sidebar-nav li a { display: flex; align-items: center; gap: 10px; padding: 10px 20px; color: var(--c-text-secondary); text-decoration: none; font-size: 13px; font-weight: 500; transition: all 0.15s; border-left: 3px solid transparent; }
+.sidebar-nav li a:hover { background: var(--bg-hover); color: var(--c-text); }
+.sidebar-nav li a.active { background: var(--c-accent-soft); color: var(--c-accent); border-left-color: var(--c-accent); font-weight: 600; }
+.sidebar-nav li a svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+/* Main */
+.main-content { flex: 1; padding: 24px; max-width: 800px; }
+
+/* Breadcrumb */
+.breadcrumb { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 13px; }
+.breadcrumb a { color: var(--c-text-muted); text-decoration: none; }
+.breadcrumb a:hover { color: var(--c-primary); text-decoration: underline; }
+.breadcrumb .sep { color: var(--c-text-muted); }
+.breadcrumb .current { color: var(--c-text); font-weight: 600; }
+
+/* Form Card */
+.form-card { background: var(--bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card); padding: 28px; }
+.form-card h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.form-card .form-subtitle { font-size: 13px; color: var(--c-text-secondary); margin-bottom: 24px; }
+
+.form-section { margin-bottom: 24px; }
+.form-section-title { font-size: 13px; font-weight: 700; color: var(--c-primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--c-border-light); }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.form-row.full { grid-template-columns: 1fr; }
+.form-row.thirds { grid-template-columns: 1fr 1fr 1fr; }
+.form-group { display: flex; flex-direction: column; }
+.form-group label { font-size: 13px; font-weight: 600; color: var(--c-text); margin-bottom: 6px; }
+.form-group label .required { color: var(--c-danger); margin-left: 2px; }
+.form-group input, .form-group select, .form-group textarea { padding: 10px 14px; border: 1px solid var(--c-border); border-radius: var(--radius-input); font-size: 14px; font-family: var(--font); color: var(--c-text); background: #fff; transition: border-color 0.2s; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--c-primary-light); box-shadow: 0 0 0 3px rgba(43,57,144,0.08); }
+.form-group textarea { min-height: 80px; resize: vertical; }
+.form-group .hint { font-size: 11px; color: var(--c-text-muted); margin-top: 4px; }
+.form-group .error { font-size: 11px; color: var(--c-danger); margin-top: 4px; display: none; }
+.form-group.has-error input, .form-group.has-error select { border-color: var(--c-danger); }
+.form-group.has-error .error { display: block; }
+
+/* Type Selector */
+.type-selector { display: flex; gap: 12px; margin-bottom: 16px; }
+.type-option { flex: 1; border: 2px solid var(--c-border); border-radius: var(--radius-card); padding: 16px; cursor: pointer; transition: all 0.2s; text-align: center; }
+.type-option:hover { border-color: var(--c-primary-light); background: #fafbff; }
+.type-option.selected { border-color: var(--c-primary); background: #f0f1ff; }
+.type-option .type-icon { width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.type-option .type-icon.fp { background: #ede9fe; color: #7c3aed; }
+.type-option .type-icon.tm { background: #dbeafe; color: #2563eb; }
+.type-option .type-icon.onb { background: #fef3c7; color: #d97706; }
+.type-option .type-name { font-size: 14px; font-weight: 600; color: var(--c-text); margin-bottom: 2px; }
+.type-option .type-desc { font-size: 11px; color: var(--c-text-secondary); }
+
+/* Toggle */
+.toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; inset: 0; background: var(--c-border); border-radius: 20px; cursor: pointer; transition: 0.3s; }
+.toggle-slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 2px; top: 2px; background: #fff; border-radius: 50%; transition: 0.3s; }
+.toggle-switch input:checked + .toggle-slider { background: var(--c-success); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+/* Conditional fields notice */
+.conditional-notice { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-input); padding: 10px 14px; font-size: 12px; color: #1d4ed8; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.conditional-notice svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* Form Actions */
+.form-actions { display: flex; gap: 12px; justify-content: flex-end; padding-top: 20px; border-top: 1px solid var(--c-border-light); margin-top: 8px; }
+.btn-primary { background: linear-gradient(135deg, #FF4B2B, #FF6B4A); color: #fff; border: none; padding: 10px 24px; border-radius: var(--radius-btn); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(255,75,43,0.25); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255,75,43,0.35); }
+.btn-secondary { padding: 10px 24px; border-radius: var(--radius-btn); border: 1px solid var(--c-border); background: #fff; color: var(--c-text); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+.btn-secondary:hover { background: var(--bg-hover); border-color: var(--c-primary-light); }
+
+/* Access Denied */
+.access-denied { display: none; padding: 60px 20px; text-align: center; }
+.access-denied svg { width: 64px; height: 64px; color: var(--c-danger); margin-bottom: 16px; }
+.access-denied h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+.access-denied p { font-size: 14px; color: var(--c-text-secondary); }
+
+/* Mode toggle */
+.mode-toggle { display: flex; gap: 0; margin-bottom: 20px; }
+.mode-toggle button { padding: 8px 18px; border: 1px solid var(--c-border); background: #fff; color: var(--c-text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+.mode-toggle button:first-child { border-radius: var(--radius-btn) 0 0 var(--radius-btn); }
+.mode-toggle button:last-child { border-radius: 0 var(--radius-btn) var(--radius-btn) 0; border-left: none; }
+.mode-toggle button.active { background: var(--c-primary); color: #fff; border-color: var(--c-primary); }
+
+/* DM restriction note */
+.restriction-note { background: #fef3c7; border: 1px solid #fde68a; border-radius: var(--radius-input); padding: 10px 14px; font-size: 12px; color: #92400e; margin-bottom: 16px; display: none; align-items: center; gap: 8px; }
+.restriction-note svg { width: 16px; height: 16px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<!-- Role Switcher -->
+<div class="role-switcher">
+  <span>Role:</span>
+  <button class="role-btn" onclick="switchRole('CEO')">CEO</button>
+  <button class="role-btn" onclick="switchRole('CTO')">CTO</button>
+  <button class="role-btn active" onclick="switchRole('DM')">DM</button>
+  <button class="role-btn" onclick="switchRole('PM')">PM</button>
+  <button class="role-btn" onclick="switchRole('Finance')">Finance</button>
+  <button class="role-btn" onclick="switchRole('HR')">HR</button>
+  <button class="role-btn" onclick="switchRole('Engineer')">Engineer</button>
+</div>
+
+<!-- App Header -->
+<header class="app-header">
+  <div class="app-logo">
+    <svg viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="6" fill="#2B3990"/><path d="M8 14l4 4 8-8" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <h1>Resource Intelligence Platform</h1>
+  </div>
+  <div class="app-user">
+    <div>
+      <div class="user-name" id="currentUserName">Rajesh Kumar</div>
+      <div class="user-role" id="currentUserRole">DM</div>
+    </div>
+    <div class="avatar" id="currentUserAvatar">RK</div>
+  </div>
+</header>
+
+<!-- Layout -->
+<div class="app-layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <ul class="sidebar-nav">
+      <li><a href="#">
+        <svg viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="10" y="1" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="10" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="10" y="10" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/></svg>
+        Dashboard
+      </a></li>
+      <li><a href="../../02-client-management/mockups/client-list.html">
+        <svg viewBox="0 0 18 18" fill="none"><path d="M15 15.75H3a1.5 1.5 0 01-1.5-1.5V3.75A1.5 1.5 0 013 2.25h12a1.5 1.5 0 011.5 1.5v10.5a1.5 1.5 0 01-1.5 1.5z" stroke="currentColor" stroke-width="1.5"/><path d="M6 6.75h6M6 9.75h6M6 12.75h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Clients
+      </a></li>
+      <li><a href="project-list.html" class="active">
+        <svg viewBox="0 0 18 18" fill="none"><path d="M2.25 3.75h13.5v10.5a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5V3.75z" stroke="currentColor" stroke-width="1.5"/><path d="M6.75 2.25v3M11.25 2.25v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M6 9h1.5M10.5 9H12M6 12h1.5M10.5 12H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Projects
+      </a></li>
+      <li><a href="#">
+        <svg viewBox="0 0 18 18" fill="none"><circle cx="9" cy="6" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 15.75c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Resources
+      </a></li>
+      <li><a href="#">
+        <svg viewBox="0 0 18 18" fill="none"><path d="M9 2.25v13.5M2.25 9h13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Allocations
+      </a></li>
+      <li><a href="#">
+        <svg viewBox="0 0 18 18" fill="none"><path d="M2.25 14.25l4.5-4.5 3 3 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Utilization
+      </a></li>
+      <li><a href="#">
+        <svg viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.75" stroke="currentColor" stroke-width="1.5"/><path d="M9 5.25v3.75l2.25 2.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Worklogs
+      </a></li>
+      <li><a href="#">
+        <svg viewBox="0 0 18 18" fill="none"><path d="M14.25 9.75v4.5a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-4.5" stroke="currentColor" stroke-width="1.5"/><path d="M12 6.75L9 3.75l-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 3.75v8.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Audit Log
+      </a></li>
+    </ul>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Access Denied -->
+    <div class="access-denied" id="accessDenied">
+      <svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="3"/><path d="M20 20l24 24M44 20L20 44" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+      <h3>Access Denied</h3>
+      <p id="accessDeniedMsg">Only CEO, CTO, and DM can create projects. PM can edit existing projects only.</p>
+    </div>
+
+    <div id="contentArea">
+      <!-- Breadcrumb -->
+      <div class="breadcrumb">
+        <a href="project-list.html">Projects</a>
+        <span class="sep">/</span>
+        <span class="current" id="breadcrumbTitle">Add New Project</span>
+      </div>
+
+      <!-- Mode Toggle -->
+      <div class="mode-toggle">
+        <button class="active" onclick="toggleMode('create')">Create Mode</button>
+        <button onclick="toggleMode('edit')">Edit Mode (Prefilled)</button>
+      </div>
+
+      <!-- DM Restriction Note -->
+      <div class="restriction-note" id="dmRestriction">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M8 1l7 13H1L8 1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6v3M8 11v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span>As a DM, you can only assign yourself as the Delivery Manager when creating a project.</span>
+      </div>
+
+      <!-- Form -->
+      <div class="form-card">
+        <h2 id="formTitle">Add New Project</h2>
+        <p class="form-subtitle" id="formSubtitle">Fill in the project details. Fields marked with * are required.</p>
+
+        <form id="projectForm" onsubmit="handleSubmit(event)">
+          <!-- Project Type -->
+          <div class="form-section">
+            <div class="form-section-title">Project Type <span style="color:var(--c-danger);">*</span></div>
+
+            <div class="type-selector">
+              <div class="type-option selected" onclick="selectType('fp')">
+                <div class="type-icon fp">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="type-name">Fixed Price</div>
+                <div class="type-desc">Fixed scope & budget</div>
+              </div>
+              <div class="type-option" onclick="selectType('tm')">
+                <div class="type-icon tm">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </div>
+                <div class="type-name">Time & Material</div>
+                <div class="type-desc">Billed by time spent</div>
+              </div>
+              <div class="type-option" onclick="selectType('onb')">
+                <div class="type-icon onb">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </div>
+                <div class="type-name">Client Onboarding</div>
+                <div class="type-desc">New client setup</div>
+              </div>
+            </div>
+
+            <div class="conditional-notice" id="fpNotice">
+              <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3M8 10v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <span id="typeNoticeText">Fixed Price projects require a contract value (set in Phase 2).</span>
+            </div>
+          </div>
+
+          <!-- Basic Information -->
+          <div class="form-section">
+            <div class="form-section-title">Basic Information</div>
+
+            <div class="form-row">
+              <div class="form-group" id="nameGroup">
+                <label>Project Name <span class="required">*</span></label>
+                <input type="text" id="projectName" placeholder="e.g., Project Phoenix" required>
+                <span class="error">Project name is required.</span>
+              </div>
+              <div class="form-group" id="clientGroup">
+                <label>Client <span class="required">*</span></label>
+                <select id="projectClient" required>
+                  <option value="">Select a client...</option>
+                  <option value="nexus">Nexus Healthcare</option>
+                  <option value="pinnacle">Pinnacle Finance</option>
+                  <option value="meridian">Meridian Logistics</option>
+                  <option value="atlas">Atlas Retail</option>
+                  <option value="vertex">Vertex Consulting</option>
+                </select>
+                <span class="error">Client is required.</span>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Billing Currency <span class="required">*</span></label>
+                <select id="billingCurrency">
+                  <option value="INR" selected>INR - Indian Rupee</option>
+                  <option value="USD">USD - US Dollar</option>
+                  <option value="EUR">EUR - Euro</option>
+                  <option value="GBP">GBP - British Pound</option>
+                  <option value="SGD">SGD - Singapore Dollar</option>
+                  <option value="AED">AED - UAE Dirham</option>
+                </select>
+                <span class="hint">ISO 4217 currency code</span>
+              </div>
+              <div class="form-group" id="contractValueGroup" style="display:none;">
+                <label>Contract Value</label>
+                <input type="number" id="contractValue" placeholder="e.g., 2500000" step="0.01">
+                <span class="hint">In billing currency. Available in Phase 2.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dates -->
+          <div class="form-section">
+            <div class="form-section-title">Dates</div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Start Date</label>
+                <input type="date" id="startDate">
+              </div>
+              <div class="form-group" id="contractEndGroup">
+                <label>Contract End Date <span class="required" id="endDateRequired" style="display:none;">*</span></label>
+                <input type="date" id="contractEndDate">
+                <span class="hint" id="endDateHint">Required for T&M and Onboarding projects.</span>
+                <span class="error">Contract end date is required for this project type.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Team -->
+          <div class="form-section">
+            <div class="form-section-title">Team</div>
+
+            <div class="form-row">
+              <div class="form-group" id="dmGroup">
+                <label>Delivery Manager <span class="required">*</span></label>
+                <select id="dmSelect" required>
+                  <option value="">Select DM...</option>
+                  <option value="rajesh">Rajesh Kumar</option>
+                  <option value="arjun">Arjun Mehta</option>
+                  <option value="vivek">Vivek Sharma</option>
+                </select>
+                <span class="error">Delivery Manager is required.</span>
+              </div>
+              <div class="form-group" id="pmGroup">
+                <label>Project Manager <span class="required">*</span></label>
+                <select id="pmSelect" required>
+                  <option value="">Select PM...</option>
+                  <option value="neha">Neha Gupta</option>
+                  <option value="priya">Priya Patel</option>
+                  <option value="rajesh">Rajesh Kumar</option>
+                </select>
+                <span class="error">Project Manager is required.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Settings -->
+          <div class="form-section">
+            <div class="form-section-title">Settings</div>
+
+            <div class="toggle-row">
+              <label class="toggle-switch">
+                <input type="checkbox" id="worklogEnabled">
+                <span class="toggle-slider"></span>
+              </label>
+              <span style="font-size:13px; font-weight:500;">Enable Worklogs</span>
+            </div>
+            <span class="hint" style="display:block; margin-left:46px; margin-top:2px;">Allow team members to log daily time entries for this project.</span>
+          </div>
+
+          <!-- Notes -->
+          <div class="form-section">
+            <div class="form-section-title">Additional Details</div>
+
+            <div class="form-row full">
+              <div class="form-group">
+                <label>Notes</label>
+                <textarea id="projectNotes" placeholder="Key information about this project..."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" onclick="window.location.href='project-list.html'">Cancel</button>
+            <button type="submit" class="btn-primary" id="submitBtn">Create Project</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const roleConfig = {
+  CEO:      { canCreate: true, canEdit: true, dmRestricted: false, userName: 'Vivek Sharma', avatar: 'VS' },
+  CTO:      { canCreate: true, canEdit: true, dmRestricted: false, userName: 'Arjun Mehta', avatar: 'AM' },
+  DM:       { canCreate: true, canEdit: true, dmRestricted: true, userName: 'Rajesh Kumar', avatar: 'RK' },
+  PM:       { canCreate: false, canEdit: true, dmRestricted: false, userName: 'Neha Gupta', avatar: 'NG' },
+  Finance:  { canCreate: false, canEdit: false, dmRestricted: false, userName: 'Kavita Nair', avatar: 'KN' },
+  HR:       { canCreate: false, canEdit: false, dmRestricted: false, userName: 'Sneha Reddy', avatar: 'SR' },
+  Engineer: { canCreate: false, canEdit: false, dmRestricted: false, userName: 'Amit Joshi', avatar: 'AJ' }
+};
+
+let currentRole = 'DM';
+let currentType = 'fp';
+let currentMode = 'create';
+
+function switchRole(role) {
+  currentRole = role;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const config = roleConfig[role];
+  document.getElementById('currentUserName').textContent = config.userName;
+  document.getElementById('currentUserRole').textContent = role;
+  document.getElementById('currentUserAvatar').textContent = config.avatar;
+
+  const canAccess = currentMode === 'create' ? config.canCreate : config.canEdit;
+  document.getElementById('accessDenied').style.display = canAccess ? 'none' : 'block';
+  document.getElementById('contentArea').style.display = canAccess ? 'block' : 'none';
+
+  if (!canAccess) {
+    if (role === 'PM' && currentMode === 'create') {
+      document.getElementById('accessDeniedMsg').textContent = 'PMs can edit existing projects but cannot create new ones.';
+    } else {
+      document.getElementById('accessDeniedMsg').textContent = 'You do not have permission to ' + (currentMode === 'create' ? 'create' : 'edit') + ' projects.';
+    }
+  }
+
+  // DM restriction
+  document.getElementById('dmRestriction').style.display = (config.dmRestricted && currentMode === 'create') ? 'flex' : 'none';
+
+  // Lock DM field for DM role
+  const dmSelect = document.getElementById('dmSelect');
+  if (config.dmRestricted && currentMode === 'create') {
+    dmSelect.value = 'rajesh';
+    dmSelect.disabled = true;
+  } else {
+    dmSelect.disabled = false;
+  }
+}
+
+function selectType(type) {
+  currentType = type;
+  document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+
+  // Conditional fields
+  const contractValueGroup = document.getElementById('contractValueGroup');
+  const endDateRequired = document.getElementById('endDateRequired');
+  const endDateHint = document.getElementById('endDateHint');
+  const notice = document.getElementById('fpNotice');
+  const noticeText = document.getElementById('typeNoticeText');
+
+  if (type === 'fp') {
+    contractValueGroup.style.display = 'flex';
+    endDateRequired.style.display = 'none';
+    endDateHint.textContent = 'Optional for Fixed Price projects.';
+    noticeText.textContent = 'Fixed Price projects require a contract value (set in Phase 2).';
+    notice.style.display = 'flex';
+  } else if (type === 'tm') {
+    contractValueGroup.style.display = 'none';
+    endDateRequired.style.display = 'inline';
+    endDateHint.textContent = 'Required for Time & Material projects.';
+    noticeText.textContent = 'Time & Material projects require a contract end date.';
+    notice.style.display = 'flex';
+  } else {
+    contractValueGroup.style.display = 'none';
+    endDateRequired.style.display = 'inline';
+    endDateHint.textContent = 'Required for Onboarding projects.';
+    noticeText.textContent = 'Client Onboarding projects require a contract end date.';
+    notice.style.display = 'flex';
+  }
+}
+
+function toggleMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-toggle button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  if (mode === 'edit') {
+    document.getElementById('formTitle').textContent = 'Edit Project';
+    document.getElementById('formSubtitle').textContent = 'Update the project details below.';
+    document.getElementById('breadcrumbTitle').textContent = 'Edit Project';
+    document.getElementById('submitBtn').textContent = 'Update Project';
+
+    // Prefill
+    document.getElementById('projectName').value = 'Project Phoenix';
+    document.getElementById('projectClient').value = 'pinnacle';
+    document.getElementById('billingCurrency').value = 'INR';
+    document.getElementById('startDate').value = '2025-02-01';
+    document.getElementById('dmSelect').value = 'rajesh';
+    document.getElementById('pmSelect').value = 'neha';
+    document.getElementById('worklogEnabled').checked = true;
+    document.getElementById('projectNotes').value = 'Complete re-platforming of Pinnacle\'s loan origination system. Phase 1 covers core application forms and credit scoring integration.';
+    selectType('fp');
+    // Re-select FP visually
+    document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
+    document.querySelectorAll('.type-option')[0].classList.add('selected');
+  } else {
+    document.getElementById('formTitle').textContent = 'Add New Project';
+    document.getElementById('formSubtitle').textContent = 'Fill in the project details. Fields marked with * are required.';
+    document.getElementById('breadcrumbTitle').textContent = 'Add New Project';
+    document.getElementById('submitBtn').textContent = 'Create Project';
+    document.getElementById('projectForm').reset();
+    selectType('fp');
+    document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
+    document.querySelectorAll('.type-option')[0].classList.add('selected');
+  }
+
+  // Re-evaluate role access
+  switchRole(currentRole);
+}
+
+function handleSubmit(e) {
+  e.preventDefault();
+  let valid = true;
+
+  const name = document.getElementById('projectName').value.trim();
+  const client = document.getElementById('projectClient').value;
+  const dm = document.getElementById('dmSelect').value;
+  const pm = document.getElementById('pmSelect').value;
+
+  if (!name) { document.getElementById('nameGroup').classList.add('has-error'); valid = false; }
+  else { document.getElementById('nameGroup').classList.remove('has-error'); }
+  if (!client) { document.getElementById('clientGroup').classList.add('has-error'); valid = false; }
+  else { document.getElementById('clientGroup').classList.remove('has-error'); }
+  if (!dm) { document.getElementById('dmGroup').classList.add('has-error'); valid = false; }
+  else { document.getElementById('dmGroup').classList.remove('has-error'); }
+  if (!pm) { document.getElementById('pmGroup').classList.add('has-error'); valid = false; }
+  else { document.getElementById('pmGroup').classList.remove('has-error'); }
+
+  // Contract end date for T&M / Onboarding
+  if ((currentType === 'tm' || currentType === 'onb') && !document.getElementById('contractEndDate').value) {
+    document.getElementById('contractEndGroup').classList.add('has-error');
+    valid = false;
+  } else {
+    document.getElementById('contractEndGroup').classList.remove('has-error');
+  }
+
+  if (valid) {
+    alert('Project saved successfully! (Mockup)');
+  }
+}
+
+// Clear errors on input
+document.querySelectorAll('input, select').forEach(el => {
+  el.addEventListener('input', function() {
+    this.closest('.form-group')?.classList.remove('has-error');
+  });
+  el.addEventListener('change', function() {
+    this.closest('.form-group')?.classList.remove('has-error');
+  });
+});
+
+// Initialize
+switchRole('DM');
+</script>
+</body>
+</html>

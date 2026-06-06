@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Financials - Project Phoenix | Resource Intelligence Platform</title>
+<style>
+:root {
+  --bg-page: #F0F1FA; --bg-card: #ffffff; --bg-sidebar: #F5F6FC;
+  --bg-header: #ffffff; --bg-hover: #F0F1FA; --bg-stripe: #F5F6FC;
+  --c-primary: #2B3990; --c-primary-dark: #1B2B65; --c-primary-light: #4A5BB5;
+  --c-accent: #FF4B2B; --c-accent-hover: #E63E1F; --c-accent-soft: #FFF0EC;
+  --c-text: #1e1b4b; --c-text-secondary: #6b7280; --c-text-muted: #7C85C0;
+  --c-border: #D6DAF0; --c-border-light: #E8EAF6;
+  --c-danger: #ef4444; --c-success: #22c55e; --c-warning: #f59e0b;
+  --shadow-card: 0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --radius-card: 12px; --radius-input: 8px; --radius-btn: 8px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg-page); color: var(--c-text); }
+
+/* Role Switcher Bar */
+.role-switcher {
+  background: linear-gradient(135deg, var(--c-primary-dark), var(--c-primary));
+  color: #fff; padding: 8px 24px; display: flex; align-items: center; gap: 12px; font-size: 13px;
+}
+.role-switcher label { font-weight: 500; opacity: 0.85; }
+.role-switcher select {
+  background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3);
+  padding: 4px 10px; border-radius: var(--radius-input); font-size: 13px; cursor: pointer;
+}
+.role-switcher select option { color: #333; background: #fff; }
+
+/* App Header */
+.app-header {
+  background: var(--bg-header); border-bottom: 1px solid var(--c-border-light);
+  padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.app-header .logo { font-weight: 700; font-size: 18px; color: var(--c-primary); }
+.app-header .logo span { color: var(--c-accent); }
+.header-right { display: flex; align-items: center; gap: 16px; }
+.header-right .notif { width: 36px; height: 36px; border-radius: 50%; background: var(--bg-page); display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--c-border-light); font-size: 16px; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--c-primary), var(--c-primary-light)); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; }
+
+/* Layout */
+.layout { display: flex; min-height: calc(100vh - 56px - 36px); }
+
+/* Sidebar */
+.sidebar {
+  width: 240px; background: var(--bg-sidebar); border-right: 1px solid var(--c-border-light);
+  padding: 16px 0; flex-shrink: 0;
+}
+.sidebar .nav-section { padding: 0 16px; margin-bottom: 8px; font-size: 11px; font-weight: 600; color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.sidebar a {
+  display: flex; align-items: center; gap: 10px; padding: 10px 20px; color: var(--c-text-secondary);
+  text-decoration: none; font-size: 14px; transition: all 0.15s;
+}
+.sidebar a:hover { background: var(--bg-hover); color: var(--c-text); }
+.sidebar a.active { background: var(--c-accent-soft); color: var(--c-accent); font-weight: 600; border-right: 3px solid var(--c-accent); }
+.sidebar .icon { width: 20px; text-align: center; }
+
+/* Main Content */
+.main { flex: 1; padding: 24px 32px; max-width: calc(100% - 240px); }
+
+/* Breadcrumb */
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--c-text-secondary); margin-bottom: 8px; }
+.breadcrumb a { color: var(--c-primary); text-decoration: none; }
+.breadcrumb a:hover { text-decoration: underline; }
+
+/* Page Header */
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+.page-title { font-size: 24px; font-weight: 700; color: var(--c-text); }
+.page-subtitle { font-size: 14px; color: var(--c-text-secondary); margin-top: 4px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 0; border-bottom: 2px solid var(--c-border-light); margin-bottom: 24px; }
+.tab {
+  padding: 10px 20px; font-size: 14px; font-weight: 500; color: var(--c-text-secondary);
+  cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;
+}
+.tab:hover { color: var(--c-text); }
+.tab.active { color: var(--c-accent); border-bottom-color: var(--c-accent); font-weight: 600; }
+
+/* Empty State Toggle */
+.toggle-bar {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding: 10px 16px;
+  background: var(--bg-card); border: 1px solid var(--c-border-light); border-radius: var(--radius-input);
+  font-size: 13px; color: var(--c-text-secondary);
+}
+.toggle-switch { position: relative; width: 40px; height: 22px; cursor: pointer; }
+.toggle-switch input { display: none; }
+.toggle-slider {
+  position: absolute; inset: 0; background: var(--c-border); border-radius: 11px; transition: 0.2s;
+}
+.toggle-slider::before {
+  content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px;
+  background: #fff; border-radius: 50%; transition: 0.2s;
+}
+.toggle-switch input:checked + .toggle-slider { background: var(--c-accent); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+/* KPI Cards */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.kpi-card {
+  background: var(--bg-card); border-radius: var(--radius-card); padding: 20px;
+  box-shadow: var(--shadow-card); border: 1px solid var(--c-border-light); position: relative; overflow: hidden;
+}
+.kpi-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, var(--c-primary), var(--c-primary-light));
+}
+.kpi-card.revenue::before { background: linear-gradient(90deg, #059669, #34d399); }
+.kpi-card.margin::before { background: linear-gradient(90deg, var(--c-success), #86efac); }
+.kpi-card.actual::before { background: linear-gradient(90deg, var(--c-warning), #fcd34d); }
+.kpi-card .kpi-label { font-size: 12px; font-weight: 600; color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.kpi-card .kpi-value { font-size: 24px; font-weight: 700; color: var(--c-text); }
+.kpi-card .kpi-sub { font-size: 12px; color: var(--c-text-secondary); margin-top: 4px; }
+.kpi-card .locked-value { font-size: 22px; color: var(--c-text-muted); }
+
+/* Margin indicator */
+.margin-badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
+  border-radius: 20px; font-size: 13px; font-weight: 600; margin-top: 6px;
+}
+.margin-badge.green { background: #dcfce7; color: #166534; }
+.margin-badge.amber { background: #fef3c7; color: #92400e; }
+.margin-badge.red { background: #fecaca; color: #991b1b; }
+
+/* Cards / Sections */
+.section-card {
+  background: var(--bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card);
+  border: 1px solid var(--c-border-light); margin-bottom: 24px; overflow: hidden;
+}
+.section-header {
+  padding: 16px 20px; border-bottom: 1px solid var(--c-border-light);
+  display: flex; align-items: center; justify-content: space-between;
+  background: linear-gradient(135deg, rgba(43,57,144,0.03), rgba(74,91,181,0.02));
+}
+.section-title { font-size: 16px; font-weight: 600; color: var(--c-text); }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600;
+  color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+  background: var(--bg-stripe); border-bottom: 1px solid var(--c-border-light);
+}
+thead th.right { text-align: right; }
+tbody td {
+  padding: 12px 16px; font-size: 14px; color: var(--c-text); border-bottom: 1px solid var(--c-border-light);
+}
+tbody td.right { text-align: right; }
+tbody tr:hover { background: var(--bg-hover); }
+tbody tr:last-child td { border-bottom: none; }
+.total-row td { font-weight: 700; background: var(--bg-stripe); }
+
+/* Warning Banner */
+.warning-banner {
+  display: flex; align-items: center; gap: 10px; padding: 12px 16px; margin-bottom: 24px;
+  background: #fef3c7; border: 1px solid #fde68a; border-radius: var(--radius-input);
+  font-size: 13px; color: #92400e;
+}
+.warning-banner a { color: var(--c-primary); font-weight: 600; text-decoration: none; }
+.warning-banner a:hover { text-decoration: underline; }
+
+/* Two Column */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+
+/* Revenue vs Cost Bar */
+.bar-compare { padding: 20px; }
+.bar-item { margin-bottom: 16px; }
+.bar-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+.bar-label span:first-child { font-weight: 600; color: var(--c-text); }
+.bar-label span:last-child { color: var(--c-text-secondary); }
+.bar-track { height: 24px; background: var(--bg-page); border-radius: 12px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 12px; transition: width 0.4s; }
+.bar-fill.cost { background: linear-gradient(90deg, var(--c-primary), var(--c-primary-light)); }
+.bar-fill.revenue { background: linear-gradient(90deg, #059669, #34d399); }
+.bar-fill.actual { background: linear-gradient(90deg, var(--c-warning), #fcd34d); }
+
+/* Non-Human Costs Summary */
+.nhc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px; }
+.nhc-item { }
+.nhc-item .nhc-label { font-size: 12px; color: var(--c-text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
+.nhc-item .nhc-value { font-size: 20px; font-weight: 700; color: var(--c-text); margin-top: 4px; }
+.nhc-link { padding: 0 20px 16px; }
+.nhc-link a { font-size: 13px; color: var(--c-primary); text-decoration: none; font-weight: 500; }
+.nhc-link a:hover { text-decoration: underline; }
+
+/* Empty State */
+.empty-state {
+  text-align: center; padding: 60px 20px; color: var(--c-text-muted);
+}
+.empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state .empty-title { font-size: 16px; font-weight: 600; color: var(--c-text-secondary); margin-bottom: 8px; }
+.empty-state .empty-desc { font-size: 14px; color: var(--c-text-muted); max-width: 400px; margin: 0 auto; }
+
+/* Hidden */
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- Role Switcher Bar -->
+<div class="role-switcher">
+  <label>View as Role:</label>
+  <select id="roleSwitcher">
+    <option value="ceo" selected>CEO</option>
+    <option value="cto">CTO</option>
+    <option value="finance">Finance</option>
+    <option value="dm">Delivery Manager</option>
+    <option value="pm">Project Manager</option>
+    <option value="hr">HR</option>
+    <option value="engineer">Engineer</option>
+  </select>
+  <span style="opacity:0.7">|</span>
+  <span style="font-size:12px; opacity:0.7;">Module 08 - Financial Engine &mdash; Project Financials Tab</span>
+</div>
+
+<!-- App Header -->
+<div class="app-header">
+  <div class="logo">Sculpt<span>Flow</span></div>
+  <div class="header-right">
+    <div class="notif">&#128276;</div>
+    <div class="avatar">RK</div>
+  </div>
+</div>
+
+<!-- Layout -->
+<div class="layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="nav-section">Main</div>
+    <a href="#"><span class="icon">&#9776;</span> Dashboard</a>
+    <a href="#"><span class="icon">&#128101;</span> Clients</a>
+    <a href="#" class="active"><span class="icon">&#128196;</span> Projects</a>
+    <a href="#"><span class="icon">&#128100;</span> Resources</a>
+    <a href="#"><span class="icon">&#128197;</span> Allocations</a>
+    <div class="nav-section" style="margin-top:16px;">Financial</div>
+    <a href="#"><span class="icon">&#128176;</span> Invoices</a>
+    <a href="#"><span class="icon">&#128200;</span> Utilization</a>
+    <a href="#"><span class="icon">&#128178;</span> Non-Human Costs</a>
+    <div class="nav-section" style="margin-top:16px;">Intelligence</div>
+    <a href="#"><span class="icon">&#128226;</span> Bench View</a>
+    <a href="#"><span class="icon">&#128276;</span> Alerts</a>
+    <a href="#"><span class="icon">&#128214;</span> Audit Log</a>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+      <a href="#">Projects</a>
+      <span>/</span>
+      <a href="#">Project Phoenix</a>
+      <span>/</span>
+      <span>Financials</span>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <div class="page-title">Project Phoenix</div>
+        <div class="page-subtitle">Nexus Healthcare Pvt. Ltd. &mdash; Fixed Price &mdash; Active</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab">Overview</div>
+      <div class="tab">Assignments</div>
+      <div class="tab">Milestones</div>
+      <div class="tab">Invoices</div>
+      <div class="tab">Non-Human Costs</div>
+      <div class="tab active">Financials</div>
+      <div class="tab">Worklogs</div>
+    </div>
+
+    <!-- Empty State Toggle -->
+    <div class="toggle-bar">
+      <label class="toggle-switch">
+        <input type="checkbox" id="emptyToggle">
+        <span class="toggle-slider"></span>
+      </label>
+      <span>Show empty state</span>
+    </div>
+
+    <!-- Access Denied Message (for restricted roles) -->
+    <div id="accessDenied" class="section-card hidden">
+      <div style="text-align:center; padding:60px 20px;">
+        <div style="font-size:48px; margin-bottom:16px;">&#128274;</div>
+        <div style="font-size:16px; font-weight:600; color:var(--c-text-secondary); margin-bottom:8px;">Financial Data Restricted</div>
+        <div style="font-size:14px; color:var(--c-text-muted);">You do not have permission to view project financial details. Contact your manager for access.</div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="section-card hidden">
+      <div class="empty-state">
+        <div class="empty-icon">&#128200;</div>
+        <div class="empty-title">Financial data is not yet available</div>
+        <div class="empty-desc">Ensure resources have loaded costs and assignments have billing rates to see project financial analysis.</div>
+      </div>
+    </div>
+
+    <!-- Populated Content -->
+    <div id="populatedContent">
+      <!-- Warning Banner -->
+      <div class="warning-banner" id="warningBanner">
+        &#9888;&#65039; <span>1 resource is missing loaded cost data. Financial calculations may be incomplete. <a href="#">Update resource profiles</a></span>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid" id="kpiGrid">
+        <div class="kpi-card">
+          <div class="kpi-label">Total Cost</div>
+          <div class="kpi-value" id="kpiCost">&#8377;18,50,000</div>
+          <div class="kpi-sub">Resource + Non-Human Costs</div>
+        </div>
+        <div class="kpi-card revenue">
+          <div class="kpi-label">Projected Revenue</div>
+          <div class="kpi-value" id="kpiRevenue">&#8377;28,00,000</div>
+          <div class="kpi-sub">Based on contract value</div>
+        </div>
+        <div class="kpi-card actual">
+          <div class="kpi-label">Actual Revenue</div>
+          <div class="kpi-value" id="kpiActual">&#8377;15,00,000</div>
+          <div class="kpi-sub">Approved + Paid invoices</div>
+        </div>
+        <div class="kpi-card margin">
+          <div class="kpi-label">Projected Margin</div>
+          <div class="kpi-value" id="kpiMargin">34.0%</div>
+          <div class="margin-badge green" id="marginBadge">&#9679; Healthy</div>
+        </div>
+      </div>
+
+      <!-- Resource Cost Breakdown -->
+      <div class="section-card" id="costBreakdown">
+        <div class="section-header">
+          <div class="section-title">Resource Cost Breakdown</div>
+          <span style="font-size:13px; color:var(--c-text-muted);">5 assigned resources</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Resource</th>
+              <th>Designation</th>
+              <th class="right">Allocation %</th>
+              <th class="right" id="colLoadedCost">Loaded Cost / Month</th>
+              <th class="right" id="colMonthlyCost">Monthly Cost Contribution</th>
+            </tr>
+          </thead>
+          <tbody id="costTableBody">
+            <tr>
+              <td><strong>Arjun Mehta</strong></td>
+              <td>Senior Full Stack Developer</td>
+              <td class="right">100%</td>
+              <td class="right cost-cell">&#8377;1,80,000</td>
+              <td class="right cost-cell">&#8377;1,80,000</td>
+            </tr>
+            <tr>
+              <td><strong>Priya Sharma</strong></td>
+              <td>UI/UX Designer</td>
+              <td class="right">60%</td>
+              <td class="right cost-cell">&#8377;1,40,000</td>
+              <td class="right cost-cell">&#8377;84,000</td>
+            </tr>
+            <tr>
+              <td><strong>Rohan Desai</strong></td>
+              <td>Backend Developer</td>
+              <td class="right">100%</td>
+              <td class="right cost-cell">&#8377;1,60,000</td>
+              <td class="right cost-cell">&#8377;1,60,000</td>
+            </tr>
+            <tr>
+              <td><strong>Neha Gupta</strong></td>
+              <td>QA Engineer</td>
+              <td class="right">50%</td>
+              <td class="right cost-cell">&#8377;1,20,000</td>
+              <td class="right cost-cell">&#8377;60,000</td>
+            </tr>
+            <tr>
+              <td><strong>Vikram Patel</strong></td>
+              <td>DevOps Engineer</td>
+              <td class="right">40%</td>
+              <td class="right cost-cell">&#8377;1,50,000</td>
+              <td class="right cost-cell">&#8377;60,000</td>
+            </tr>
+            <tr class="total-row">
+              <td colspan="2"><strong>Total Resource Cost</strong></td>
+              <td class="right">&mdash;</td>
+              <td class="right cost-cell">&mdash;</td>
+              <td class="right cost-cell"><strong>&#8377;5,44,000 /mo</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Two Column: Non-Human Costs + Revenue vs Cost -->
+      <div class="two-col">
+        <!-- Non-Human Cost Summary -->
+        <div class="section-card" id="nhcSection">
+          <div class="section-header">
+            <div class="section-title">Non-Human Costs</div>
+          </div>
+          <div class="nhc-grid">
+            <div class="nhc-item">
+              <div class="nhc-label">One-Time Costs</div>
+              <div class="nhc-value cost-cell">&#8377;3,50,000</div>
+            </div>
+            <div class="nhc-item">
+              <div class="nhc-label">Recurring (Monthly)</div>
+              <div class="nhc-value cost-cell">&#8377;45,000</div>
+            </div>
+            <div class="nhc-item">
+              <div class="nhc-label">Total NHC (To Date)</div>
+              <div class="nhc-value cost-cell">&#8377;5,75,000</div>
+            </div>
+            <div class="nhc-item">
+              <div class="nhc-label">NHC Categories</div>
+              <div class="nhc-value cost-cell" style="font-size:14px;">Licenses, Cloud, Travel</div>
+            </div>
+          </div>
+          <div class="nhc-link">
+            <a href="#">View detailed non-human costs &rarr;</a>
+          </div>
+        </div>
+
+        <!-- Revenue vs Cost Comparison -->
+        <div class="section-card" id="revenueComparison">
+          <div class="section-header">
+            <div class="section-title">Revenue vs Cost</div>
+          </div>
+          <div class="bar-compare">
+            <div class="bar-item">
+              <div class="bar-label">
+                <span>Total Cost</span>
+                <span class="cost-cell">&#8377;18,50,000</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill cost" style="width:66%;"></div>
+              </div>
+            </div>
+            <div class="bar-item">
+              <div class="bar-label">
+                <span>Projected Revenue</span>
+                <span class="cost-cell">&#8377;28,00,000</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill revenue" style="width:100%;"></div>
+              </div>
+            </div>
+            <div class="bar-item">
+              <div class="bar-label">
+                <span>Actual Revenue</span>
+                <span class="cost-cell">&#8377;15,00,000</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill actual" style="width:54%;"></div>
+              </div>
+            </div>
+            <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--c-border-light);">
+              <div class="bar-label">
+                <span style="font-weight:700;">Projected Margin</span>
+                <span class="cost-cell" style="font-weight:700; color:var(--c-success);">&#8377;9,50,000 (34.0%)</span>
+              </div>
+              <div style="margin-top:8px;">
+                <div class="bar-label">
+                  <span>Actual Margin (to date)</span>
+                  <span class="cost-cell" style="color:var(--c-warning);">&#8377;5,25,000 (25.9%)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const roleSwitcher = document.getElementById('roleSwitcher');
+const emptyToggle = document.getElementById('emptyToggle');
+const populatedContent = document.getElementById('populatedContent');
+const emptyState = document.getElementById('emptyState');
+const accessDenied = document.getElementById('accessDenied');
+const warningBanner = document.getElementById('warningBanner');
+
+const costCells = document.querySelectorAll('.cost-cell');
+const kpiCost = document.getElementById('kpiCost');
+const kpiRevenue = document.getElementById('kpiRevenue');
+const kpiActual = document.getElementById('kpiActual');
+const kpiMargin = document.getElementById('kpiMargin');
+const marginBadge = document.getElementById('marginBadge');
+
+const originalValues = {
+  kpiCost: kpiCost.innerHTML,
+  kpiRevenue: kpiRevenue.innerHTML,
+  kpiActual: kpiActual.innerHTML,
+  kpiMargin: kpiMargin.innerHTML,
+};
+
+function updateView() {
+  const role = roleSwitcher.value;
+  const isEmpty = emptyToggle.checked;
+  const restrictedRoles = ['pm', 'hr', 'engineer'];
+  const financialRoles = ['ceo', 'cto', 'finance', 'dm'];
+
+  accessDenied.classList.add('hidden');
+  emptyState.classList.add('hidden');
+  populatedContent.classList.add('hidden');
+
+  if (restrictedRoles.includes(role)) {
+    accessDenied.classList.remove('hidden');
+    return;
+  }
+
+  if (isEmpty) {
+    emptyState.classList.remove('hidden');
+    return;
+  }
+
+  populatedContent.classList.remove('hidden');
+
+  // DM sees financial data for own portfolio
+  if (role === 'dm') {
+    warningBanner.style.display = 'none';
+  } else {
+    warningBanner.style.display = '';
+  }
+}
+
+roleSwitcher.addEventListener('change', updateView);
+emptyToggle.addEventListener('change', updateView);
+updateView();
+</script>
+</body>
+</html>

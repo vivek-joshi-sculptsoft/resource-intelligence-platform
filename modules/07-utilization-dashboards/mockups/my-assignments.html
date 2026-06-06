@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Assignments | SculptSoft RIP</title>
+<style>
+:root {
+  --bg-page: #F0F1FA; --bg-card: #ffffff; --bg-sidebar: #F5F6FC;
+  --bg-header: #ffffff; --bg-hover: #F0F1FA; --bg-stripe: #F5F6FC;
+  --c-primary: #2B3990; --c-primary-dark: #1B2B65; --c-primary-light: #4A5BB5;
+  --c-accent: #FF4B2B; --c-accent-hover: #E63E1F; --c-accent-soft: #FFF0EC;
+  --c-text: #1e1b4b; --c-text-secondary: #6b7280; --c-text-muted: #7C85C0;
+  --c-border: #D6DAF0; --c-border-light: #E8EAF6;
+  --c-danger: #ef4444; --c-success: #22c55e; --c-warning: #f59e0b;
+  --shadow-card: 0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --radius-card: 12px; --radius-input: 8px; --radius-btn: 8px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg-page); color: var(--c-text); min-height: 100vh; }
+
+/* Role Switcher Bar */
+.role-switcher { position: sticky; top: 0; z-index: 1000; background: var(--c-primary-dark); display: flex; align-items: center; padding: 0 24px; height: 40px; gap: 8px; }
+.role-switcher .label { color: rgba(255,255,255,0.6); font-size: 12px; font-weight: 500; margin-right: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.role-switcher button { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; transition: all 0.2s; font-family: var(--font); }
+.role-switcher button:hover { background: rgba(255,255,255,0.2); color: #fff; }
+.role-switcher button.active { background: var(--c-accent); color: #fff; border-color: var(--c-accent); font-weight: 600; }
+.role-switcher .toggle-empty { margin-left: auto; display: flex; align-items: center; gap: 6px; color: rgba(255,255,255,0.6); font-size: 12px; }
+.role-switcher .toggle-empty input { accent-color: var(--c-accent); }
+
+/* App Header */
+.app-header { background: var(--bg-header); border-bottom: 1px solid var(--c-border-light); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.app-header .logo { font-size: 18px; font-weight: 700; color: var(--c-primary); }
+.app-header .logo span { color: var(--c-accent); }
+.app-header .user-info { display: flex; align-items: center; gap: 10px; }
+.app-header .avatar { width: 32px; height: 32px; background: var(--c-primary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+.app-header .user-name { font-size: 13px; color: var(--c-text-secondary); }
+
+/* Layout */
+.app-layout { display: flex; min-height: calc(100vh - 96px); }
+.sidebar { width: 220px; background: var(--bg-sidebar); border-right: 1px solid var(--c-border-light); padding: 16px 0; flex-shrink: 0; }
+.sidebar a { display: flex; align-items: center; gap: 10px; padding: 10px 20px; color: var(--c-text-secondary); text-decoration: none; font-size: 14px; transition: all 0.15s; }
+.sidebar a:hover { background: var(--bg-hover); color: var(--c-text); }
+.sidebar a.active { background: var(--c-accent-soft); color: var(--c-accent); font-weight: 600; border-right: 3px solid var(--c-accent); }
+.sidebar .section-title { padding: 16px 20px 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-text-muted); font-weight: 600; }
+.main-content { flex: 1; padding: 24px 32px; }
+
+/* Page Header */
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.page-header h1 { font-size: 22px; font-weight: 700; }
+.page-header .subtitle { font-size: 13px; color: var(--c-text-secondary); margin-top: 2px; }
+
+/* Welcome Card */
+.welcome-card { background: linear-gradient(135deg, var(--c-primary) 0%, var(--c-primary-light) 60%, #6366f1 100%); border-radius: var(--radius-card); padding: 24px 28px; margin-bottom: 24px; color: #fff; display: flex; align-items: center; justify-content: space-between; }
+.welcome-card .welcome-text h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.welcome-card .welcome-text p { font-size: 14px; opacity: 0.85; }
+.welcome-card .welcome-stats { display: flex; gap: 24px; }
+.welcome-stat { text-align: center; }
+.welcome-stat .ws-value { font-size: 28px; font-weight: 800; }
+.welcome-stat .ws-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.75; }
+
+/* Assignment Cards */
+.assignments-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.assignment-card { background: var(--bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card); border: 1px solid var(--c-border-light); overflow: hidden; transition: box-shadow 0.2s, transform 0.2s; cursor: pointer; }
+.assignment-card:hover { box-shadow: 0 6px 20px rgba(43,57,144,0.12); transform: translateY(-2px); }
+.assignment-card .card-accent { height: 4px; }
+.assignment-card .card-accent.blue { background: linear-gradient(90deg, var(--c-primary), var(--c-primary-light)); }
+.assignment-card .card-accent.green { background: linear-gradient(90deg, #16a34a, #22c55e); }
+.assignment-card .card-accent.purple { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+.assignment-card .card-body { padding: 20px; }
+.assignment-card .project-name { font-size: 16px; font-weight: 700; color: var(--c-text); margin-bottom: 4px; }
+.assignment-card .client-name { font-size: 13px; color: var(--c-text-secondary); margin-bottom: 16px; }
+
+/* Assignment Details */
+.assign-details { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.assign-detail { display: flex; flex-direction: column; }
+.assign-detail .ad-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-text-muted); margin-bottom: 2px; font-weight: 600; }
+.assign-detail .ad-value { font-size: 14px; font-weight: 600; color: var(--c-text); }
+
+/* Allocation Ring */
+.alloc-ring-wrapper { display: flex; align-items: center; gap: 10px; }
+.alloc-ring { position: relative; width: 44px; height: 44px; }
+.alloc-ring svg { width: 44px; height: 44px; transform: rotate(-90deg); }
+.alloc-ring circle { fill: none; stroke-width: 4; }
+.alloc-ring .track { stroke: var(--c-border-light); }
+.alloc-ring .fill { stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+.alloc-ring .fill.blue { stroke: var(--c-primary); }
+.alloc-ring .fill.green { stroke: var(--c-success); }
+.alloc-ring .fill.purple { stroke: #7c3aed; }
+.alloc-ring-pct { font-size: 18px; font-weight: 800; color: var(--c-text); }
+.alloc-ring-label { font-size: 11px; color: var(--c-text-muted); }
+
+/* Worklog Link */
+.worklog-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 16px; padding: 8px 14px; background: var(--bg-page); border-radius: var(--radius-btn); color: var(--c-primary); font-size: 13px; font-weight: 600; text-decoration: none; border: 1px solid var(--c-border-light); transition: all 0.15s; }
+.worklog-link:hover { background: var(--c-primary); color: #fff; border-color: var(--c-primary); }
+
+/* Not Engineer Notice */
+.not-engineer { display: none; text-align: center; padding: 80px 20px; }
+.not-engineer .icon { font-size: 48px; margin-bottom: 16px; }
+.not-engineer h3 { font-size: 18px; color: var(--c-text); margin-bottom: 8px; }
+.not-engineer p { font-size: 14px; color: var(--c-text-secondary); max-width: 400px; margin: 0 auto; }
+
+/* Empty State */
+.empty-state { display: none; text-align: center; padding: 60px 20px; }
+.empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state h3 { font-size: 16px; color: var(--c-text); margin-bottom: 6px; }
+.empty-state p { font-size: 13px; color: var(--c-text-secondary); }
+
+/* Total Allocation Bar */
+.total-alloc { margin-bottom: 24px; }
+.total-alloc .ta-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.total-alloc .ta-label { font-size: 13px; color: var(--c-text-secondary); font-weight: 500; }
+.total-alloc .ta-pct { font-size: 15px; font-weight: 700; color: var(--c-primary); }
+.total-alloc .ta-bar { height: 10px; background: var(--c-border-light); border-radius: 5px; overflow: hidden; }
+.total-alloc .ta-fill { height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--c-primary), var(--c-primary-light)); transition: width 0.6s ease; }
+</style>
+</head>
+<body>
+
+<!-- Role Switcher Bar -->
+<div class="role-switcher">
+  <span class="label">Viewing as:</span>
+  <button data-role="CEO">CEO</button>
+  <button data-role="CTO">CTO</button>
+  <button data-role="DM">DM</button>
+  <button data-role="PM">PM</button>
+  <button data-role="FINANCE">Finance</button>
+  <button data-role="HR">HR</button>
+  <button class="active" data-role="ENGINEER">Engineer</button>
+  <div class="toggle-empty">
+    <input type="checkbox" id="toggleEmpty">
+    <label for="toggleEmpty">Show Empty State</label>
+  </div>
+</div>
+
+<!-- App Header -->
+<header class="app-header">
+  <div class="logo">Sculpt<span>RIP</span></div>
+  <div class="user-info">
+    <span class="user-name" id="currentUser">Rohit Joshi (Engineer)</span>
+    <div class="avatar" id="currentAvatar">RJ</div>
+  </div>
+</header>
+
+<!-- Layout -->
+<div class="app-layout">
+  <!-- Sidebar (simplified for Engineer) -->
+  <nav class="sidebar" id="sidebarNav">
+    <div class="section-title">My Work</div>
+    <a href="#" class="active">&#9633; My Assignments</a>
+    <a href="#">&#9633; My Worklogs</a>
+    <div class="section-title">Views</div>
+    <a href="#">&#9633; Availability</a>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- Engineer View -->
+    <div id="engineerView">
+      <!-- Welcome Card -->
+      <div class="welcome-card">
+        <div class="welcome-text">
+          <h2>Welcome back, Rohit!</h2>
+          <p>Here are your active project assignments at SculptSoft.</p>
+        </div>
+        <div class="welcome-stats">
+          <div class="welcome-stat">
+            <div class="ws-value">3</div>
+            <div class="ws-label">Active Projects</div>
+          </div>
+          <div class="welcome-stat">
+            <div class="ws-value">80%</div>
+            <div class="ws-label">Total Allocation</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Allocation Bar -->
+      <div class="total-alloc">
+        <div class="ta-header">
+          <span class="ta-label">Total Allocation</span>
+          <span class="ta-pct">80% allocated &middot; 20% available</span>
+        </div>
+        <div class="ta-bar">
+          <div class="ta-fill" style="width: 80%"></div>
+        </div>
+      </div>
+
+      <!-- Assignment Cards -->
+      <div class="page-header">
+        <div>
+          <h1>My Active Assignments</h1>
+          <div class="subtitle">Your current project assignments and allocation details</div>
+        </div>
+      </div>
+
+      <div class="assignments-grid" id="assignmentsGrid">
+        <!-- Assignment 1 -->
+        <div class="assignment-card">
+          <div class="card-accent blue"></div>
+          <div class="card-body">
+            <div class="project-name">Reliance Digital Transformation</div>
+            <div class="client-name">Reliance Industries Ltd.</div>
+            <div class="assign-details">
+              <div class="assign-detail">
+                <span class="ad-label">My Role</span>
+                <span class="ad-value">Frontend Developer</span>
+              </div>
+              <div class="assign-detail">
+                <div class="alloc-ring-wrapper">
+                  <div class="alloc-ring">
+                    <svg viewBox="0 0 44 44">
+                      <circle class="track" cx="22" cy="22" r="18"/>
+                      <circle class="fill blue" cx="22" cy="22" r="18" stroke-dasharray="113.1" stroke-dashoffset="56.5"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="alloc-ring-pct">50%</div>
+                    <div class="alloc-ring-label">Allocation</div>
+                  </div>
+                </div>
+              </div>
+              <div class="assign-detail">
+                <span class="ad-label">Start Date</span>
+                <span class="ad-value">01 Feb 2026</span>
+              </div>
+              <div class="assign-detail">
+                <span class="ad-label">End Date</span>
+                <span class="ad-value">31 Aug 2026</span>
+              </div>
+            </div>
+            <a href="#" class="worklog-link">&#128221; Log Hours</a>
+          </div>
+        </div>
+
+        <!-- Assignment 2 -->
+        <div class="assignment-card">
+          <div class="card-accent green"></div>
+          <div class="card-body">
+            <div class="project-name">HDFC Mobile Banking Redesign</div>
+            <div class="client-name">HDFC Bank</div>
+            <div class="assign-details">
+              <div class="assign-detail">
+                <span class="ad-label">My Role</span>
+                <span class="ad-value">React Developer</span>
+              </div>
+              <div class="assign-detail">
+                <div class="alloc-ring-wrapper">
+                  <div class="alloc-ring">
+                    <svg viewBox="0 0 44 44">
+                      <circle class="track" cx="22" cy="22" r="18"/>
+                      <circle class="fill green" cx="22" cy="22" r="18" stroke-dasharray="113.1" stroke-dashoffset="79.2"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="alloc-ring-pct">30%</div>
+                    <div class="alloc-ring-label">Allocation</div>
+                  </div>
+                </div>
+              </div>
+              <div class="assign-detail">
+                <span class="ad-label">Start Date</span>
+                <span class="ad-value">15 Mar 2026</span>
+              </div>
+              <div class="assign-detail">
+                <span class="ad-label">End Date</span>
+                <span class="ad-value">10 Jun 2026</span>
+              </div>
+            </div>
+            <a href="#" class="worklog-link">&#128221; Log Hours</a>
+          </div>
+        </div>
+
+        <!-- Assignment 3 (no worklog) -->
+        <div class="assignment-card">
+          <div class="card-accent purple"></div>
+          <div class="card-body">
+            <div class="project-name">Bajaj Finserv Analytics</div>
+            <div class="client-name">Bajaj Finserv</div>
+            <div class="assign-details">
+              <div class="assign-detail">
+                <span class="ad-label">My Role</span>
+                <span class="ad-value">Code Reviewer</span>
+              </div>
+              <div class="assign-detail">
+                <div class="alloc-ring-wrapper">
+                  <div class="alloc-ring">
+                    <svg viewBox="0 0 44 44">
+                      <circle class="track" cx="22" cy="22" r="18"/>
+                      <circle class="fill purple" cx="22" cy="22" r="18" stroke-dasharray="113.1" stroke-dashoffset="101.8"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="alloc-ring-pct">10%</div>
+                    <div class="alloc-ring-label">Allocation</div>
+                  </div>
+                </div>
+              </div>
+              <div class="assign-detail">
+                <span class="ad-label">Start Date</span>
+                <span class="ad-value">01 May 2026</span>
+              </div>
+              <div class="assign-detail">
+                <span class="ad-label">End Date</span>
+                <span class="ad-value" style="color: var(--c-success);">Ongoing</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Not Engineer Notice -->
+    <div class="not-engineer" id="notEngineer">
+      <div class="icon">&#128100;</div>
+      <h3>This is the Engineer View</h3>
+      <p>My Assignments is designed for engineers to see their own project assignments. Switch to the Engineer role to see this view, or use the Dashboard or Availability pages for your role.</p>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState">
+      <div class="icon">&#128203;</div>
+      <h3>You have no active project assignments</h3>
+      <p>When you are assigned to a project, your assignments will appear here with project details and allocation information.</p>
+    </div>
+  </main>
+</div>
+
+<script>
+// Role config
+const roleConfig = {
+  CEO:      { user: 'Vivek Sharma', avatar: 'VS', isEngineer: false },
+  CTO:      { user: 'Rajesh Kumar', avatar: 'RK', isEngineer: false },
+  DM:       { user: 'Arjun Mehta', avatar: 'AM', isEngineer: false },
+  PM:       { user: 'Priya Patel', avatar: 'PP', isEngineer: false },
+  FINANCE:  { user: 'Neha Gupta', avatar: 'NG', isEngineer: false },
+  HR:       { user: 'Sunita Reddy', avatar: 'SR', isEngineer: false },
+  ENGINEER: { user: 'Rohit Joshi', avatar: 'RJ', isEngineer: true }
+};
+
+function applyRole(role) {
+  const cfg = roleConfig[role];
+  document.getElementById('currentUser').textContent = cfg.user + ' (' + role + ')';
+  document.getElementById('currentAvatar').textContent = cfg.avatar;
+
+  document.getElementById('engineerView').style.display = cfg.isEngineer ? 'block' : 'none';
+  document.getElementById('notEngineer').style.display = cfg.isEngineer ? 'none' : 'block';
+
+  // Update sidebar for engineer vs. other roles
+  const sidebar = document.getElementById('sidebarNav');
+  if (cfg.isEngineer) {
+    sidebar.innerHTML = '<div class="section-title">My Work</div>' +
+      '<a href="#" class="active">&#9633; My Assignments</a>' +
+      '<a href="#">&#9633; My Worklogs</a>' +
+      '<div class="section-title">Views</div>' +
+      '<a href="#">&#9633; Availability</a>';
+  } else {
+    sidebar.innerHTML = '<div class="section-title">Main</div>' +
+      '<a href="#">&#9633; Dashboard</a>' +
+      '<a href="#">&#9633; Clients</a>' +
+      '<a href="#">&#9633; Projects</a>' +
+      '<a href="#">&#9633; Resources</a>' +
+      '<a href="#">&#9633; Allocations</a>' +
+      '<div class="section-title">Analytics</div>' +
+      '<a href="#">&#9633; Utilization</a>' +
+      '<a href="#">&#9633; Availability</a>' +
+      '<div class="section-title">Finance</div>' +
+      '<a href="#">&#9633; Invoicing</a>' +
+      '<div class="section-title">System</div>' +
+      '<a href="#">&#9633; Audit Log</a>' +
+      '<a href="#">&#9633; Settings</a>';
+  }
+}
+
+document.querySelectorAll('.role-switcher button[data-role]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.role-switcher button[data-role]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyRole(btn.dataset.role);
+    // Reset empty state toggle
+    document.getElementById('toggleEmpty').checked = false;
+    document.getElementById('emptyState').style.display = 'none';
+  });
+});
+
+// Empty State Toggle
+document.getElementById('toggleEmpty').addEventListener('change', function() {
+  const activeRole = document.querySelector('.role-switcher button.active').dataset.role;
+  if (roleConfig[activeRole].isEngineer) {
+    if (this.checked) {
+      document.getElementById('engineerView').style.display = 'none';
+      document.getElementById('emptyState').style.display = 'block';
+    } else {
+      document.getElementById('engineerView').style.display = 'block';
+      document.getElementById('emptyState').style.display = 'none';
+    }
+  }
+});
+</script>
+</body>
+</html>

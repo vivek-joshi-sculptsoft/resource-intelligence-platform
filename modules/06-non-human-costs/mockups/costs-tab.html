@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Non-Human Costs Tab | Project Detail | SculptSoft RIP</title>
+<style>
+:root {
+  --bg-page: #F0F1FA; --bg-card: #ffffff; --bg-sidebar: #F5F6FC;
+  --bg-header: #ffffff; --bg-hover: #F0F1FA; --bg-stripe: #F5F6FC;
+  --c-primary: #2B3990; --c-primary-dark: #1B2B65; --c-primary-light: #4A5BB5;
+  --c-accent: #FF4B2B; --c-accent-hover: #E63E1F; --c-accent-soft: #FFF0EC;
+  --c-text: #1e1b4b; --c-text-secondary: #6b7280; --c-text-muted: #7C85C0;
+  --c-border: #D6DAF0; --c-border-light: #E8EAF6;
+  --c-danger: #ef4444; --c-success: #22c55e; --c-warning: #f59e0b;
+  --shadow-card: 0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --radius-card: 12px; --radius-input: 8px; --radius-btn: 8px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg-page); color: var(--c-text); min-height: 100vh; }
+
+/* Role Switcher Bar */
+.role-switcher { position: sticky; top: 0; z-index: 1000; background: var(--c-primary-dark); display: flex; align-items: center; padding: 0 24px; height: 40px; gap: 8px; }
+.role-switcher .label { color: rgba(255,255,255,0.6); font-size: 12px; font-weight: 500; margin-right: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.role-switcher button { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; transition: all 0.2s; font-family: var(--font); }
+.role-switcher button:hover { background: rgba(255,255,255,0.2); color: #fff; }
+.role-switcher button.active { background: var(--c-accent); color: #fff; border-color: var(--c-accent); font-weight: 600; }
+.role-switcher .toggle-empty { margin-left: auto; display: flex; align-items: center; gap: 6px; color: rgba(255,255,255,0.6); font-size: 12px; }
+.role-switcher .toggle-empty input { accent-color: var(--c-accent); }
+
+/* App Header */
+.app-header { background: var(--bg-header); border-bottom: 1px solid var(--c-border-light); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.app-header .logo { font-size: 18px; font-weight: 700; color: var(--c-primary); }
+.app-header .logo span { color: var(--c-accent); }
+.app-header .user-info { display: flex; align-items: center; gap: 10px; }
+.app-header .avatar { width: 32px; height: 32px; background: var(--c-primary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+.app-header .user-name { font-size: 13px; color: var(--c-text-secondary); }
+
+/* Layout */
+.app-layout { display: flex; min-height: calc(100vh - 96px); }
+.sidebar { width: 220px; background: var(--bg-sidebar); border-right: 1px solid var(--c-border-light); padding: 16px 0; flex-shrink: 0; }
+.sidebar a { display: flex; align-items: center; gap: 10px; padding: 10px 20px; color: var(--c-text-secondary); text-decoration: none; font-size: 14px; transition: all 0.15s; }
+.sidebar a:hover { background: var(--bg-hover); color: var(--c-text); }
+.sidebar a.active { background: var(--c-accent-soft); color: var(--c-accent); font-weight: 600; border-right: 3px solid var(--c-accent); }
+.sidebar .section-title { padding: 16px 20px 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-text-muted); font-weight: 600; }
+.main-content { flex: 1; padding: 24px 32px; overflow-x: auto; }
+
+/* Breadcrumb */
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--c-text-secondary); margin-bottom: 8px; }
+.breadcrumb a { color: var(--c-primary); text-decoration: none; }
+.breadcrumb a:hover { text-decoration: underline; }
+.breadcrumb .sep { color: var(--c-text-muted); }
+
+/* Page Header */
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.page-header h1 { font-size: 22px; font-weight: 700; color: var(--c-text); }
+.page-header .subtitle { font-size: 13px; color: var(--c-text-secondary); margin-top: 2px; }
+
+/* Project Tabs */
+.project-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--c-border-light); margin-bottom: 24px; }
+.project-tabs button { padding: 10px 20px; font-size: 14px; font-weight: 500; color: var(--c-text-secondary); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; font-family: var(--font); }
+.project-tabs button:hover { color: var(--c-text); }
+.project-tabs button.active { color: var(--c-accent); border-bottom-color: var(--c-accent); font-weight: 600; }
+
+/* Card */
+.card { background: var(--bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card); border: 1px solid var(--c-border-light); }
+
+/* Action Bar */
+.action-bar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--c-border-light); }
+.action-bar .filters { display: flex; gap: 10px; align-items: center; }
+.action-bar select, .action-bar input { padding: 7px 12px; border: 1px solid var(--c-border); border-radius: var(--radius-input); font-size: 13px; font-family: var(--font); color: var(--c-text); background: #fff; }
+.action-bar select:focus, .action-bar input:focus { outline: none; border-color: var(--c-primary); box-shadow: 0 0 0 3px rgba(43,57,144,0.08); }
+.btn-primary { background: var(--c-accent); color: #fff; border: none; padding: 8px 18px; border-radius: var(--radius-btn); font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; font-family: var(--font); display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary:hover { background: var(--c-accent-hover); }
+.btn-secondary { background: #fff; color: var(--c-primary); border: 1px solid var(--c-border); padding: 8px 14px; border-radius: var(--radius-btn); font-size: 13px; cursor: pointer; font-family: var(--font); }
+.btn-secondary:hover { background: var(--bg-hover); }
+
+/* Toggle */
+.toggle-wrapper { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--c-text-secondary); }
+.toggle-wrapper input[type="checkbox"] { accent-color: var(--c-primary); width: 16px; height: 16px; }
+
+/* Table */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table thead th { background: linear-gradient(135deg, var(--c-primary) 0%, var(--c-primary-light) 100%); color: #fff; padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+.data-table thead th:first-child { border-radius: 0; }
+.data-table thead th:last-child { border-radius: 0; }
+.data-table tbody tr { border-bottom: 1px solid var(--c-border-light); cursor: pointer; transition: background 0.1s; }
+.data-table tbody tr:hover { background: var(--bg-hover); }
+.data-table tbody tr:nth-child(even) { background: var(--bg-stripe); }
+.data-table tbody tr:nth-child(even):hover { background: var(--bg-hover); }
+.data-table td { padding: 12px 16px; font-size: 13px; white-space: nowrap; }
+.data-table .text-right { text-align: right; }
+.data-table .text-center { text-align: center; }
+.data-table tfoot td { padding: 14px 16px; font-weight: 700; font-size: 13px; background: var(--bg-sidebar); border-top: 2px solid var(--c-border); }
+
+/* Badges */
+.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+.badge-category { background: #EEF0FF; color: var(--c-primary); }
+.badge-recurring { background: #FEF3C7; color: #92400E; }
+.badge-onetime { background: #F0FDF4; color: #166534; }
+.badge-currency { background: var(--c-accent-soft); color: var(--c-accent); font-weight: 700; font-size: 10px; padding: 2px 6px; border-radius: 4px; }
+
+/* Delete Btn */
+.btn-icon { background: none; border: none; cursor: pointer; padding: 4px; border-radius: 4px; color: var(--c-text-muted); transition: all 0.15s; }
+.btn-icon:hover { background: #FEE2E2; color: var(--c-danger); }
+
+/* Empty State */
+.empty-state { display: none; text-align: center; padding: 60px 20px; }
+.empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state h3 { font-size: 16px; color: var(--c-text); margin-bottom: 6px; }
+.empty-state p { font-size: 13px; color: var(--c-text-secondary); margin-bottom: 20px; }
+
+/* Access Denied */
+.access-denied { display: none; text-align: center; padding: 80px 20px; }
+.access-denied .icon { font-size: 48px; margin-bottom: 16px; }
+.access-denied h3 { font-size: 18px; color: var(--c-text); margin-bottom: 8px; }
+.access-denied p { font-size: 14px; color: var(--c-text-secondary); }
+
+/* Summary Row */
+.summary-cards { display: flex; gap: 16px; margin-bottom: 20px; }
+.summary-mini { background: var(--bg-card); border: 1px solid var(--c-border-light); border-radius: var(--radius-card); padding: 14px 20px; flex: 1; box-shadow: var(--shadow-card); }
+.summary-mini .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-text-muted); margin-bottom: 4px; }
+.summary-mini .value { font-size: 20px; font-weight: 700; color: var(--c-primary); }
+.summary-mini .value.accent { color: var(--c-accent); }
+</style>
+</head>
+<body>
+
+<!-- Role Switcher Bar -->
+<div class="role-switcher">
+  <span class="label">Viewing as:</span>
+  <button class="active" data-role="CEO">CEO</button>
+  <button data-role="CTO">CTO</button>
+  <button data-role="DM">DM</button>
+  <button data-role="PM">PM</button>
+  <button data-role="FINANCE">Finance</button>
+  <button data-role="HR">HR</button>
+  <button data-role="ENGINEER">Engineer</button>
+  <div class="toggle-empty">
+    <input type="checkbox" id="toggleEmpty">
+    <label for="toggleEmpty">Show Empty State</label>
+  </div>
+</div>
+
+<!-- App Header -->
+<header class="app-header">
+  <div class="logo">Sculpt<span>RIP</span></div>
+  <div class="user-info">
+    <span class="user-name" id="currentUser">Vivek Sharma (CEO)</span>
+    <div class="avatar" id="currentAvatar">VS</div>
+  </div>
+</header>
+
+<!-- Layout -->
+<div class="app-layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="section-title">Main</div>
+    <a href="#">&#9633; Dashboard</a>
+    <a href="#">&#9633; Clients</a>
+    <a href="#" class="active">&#9633; Projects</a>
+    <a href="#">&#9633; Resources</a>
+    <a href="#">&#9633; Allocations</a>
+    <div class="section-title">Analytics</div>
+    <a href="#">&#9633; Utilization</a>
+    <a href="#">&#9633; Availability</a>
+    <div class="section-title">Finance</div>
+    <a href="#">&#9633; Invoicing</a>
+    <div class="section-title">System</div>
+    <a href="#">&#9633; Audit Log</a>
+    <a href="#">&#9633; Settings</a>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+      <a href="#">Projects</a>
+      <span class="sep">/</span>
+      <a href="#">Reliance Digital Transformation</a>
+      <span class="sep">/</span>
+      <span>Non-Human Costs</span>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <h1>Reliance Digital Transformation</h1>
+        <div class="subtitle">Client: Reliance Industries Ltd. &middot; Type: T&amp;M &middot; DM: Arjun Mehta &middot; PM: Priya Patel</div>
+      </div>
+    </div>
+
+    <!-- Project Tabs -->
+    <div class="project-tabs">
+      <button>Overview</button>
+      <button>Team & Allocations</button>
+      <button>Milestones</button>
+      <button class="active">Non-Human Costs</button>
+      <button>Worklogs</button>
+      <button>Invoices</button>
+    </div>
+
+    <!-- Access Denied State -->
+    <div class="access-denied" id="accessDenied">
+      <div class="icon">&#128274;</div>
+      <h3>Access Restricted</h3>
+      <p>You do not have permission to view non-human costs. This tab is available to CEO, CTO, Delivery Managers, Project Managers, and Finance roles.</p>
+    </div>
+
+    <!-- Main Data Area -->
+    <div id="dataArea">
+      <!-- Summary Cards -->
+      <div class="summary-cards">
+        <div class="summary-mini">
+          <div class="label">Total Cost (INR)</div>
+          <div class="value">&#8377;4,73,900</div>
+        </div>
+        <div class="summary-mini">
+          <div class="label">One-Time Total</div>
+          <div class="value">&#8377;97,400</div>
+        </div>
+        <div class="summary-mini">
+          <div class="label">Recurring Monthly</div>
+          <div class="value accent">&#8377;3,76,500</div>
+        </div>
+        <div class="summary-mini">
+          <div class="label">Cost Entries</div>
+          <div class="value">5</div>
+        </div>
+      </div>
+
+      <!-- Table Card -->
+      <div class="card">
+        <!-- Action Bar -->
+        <div class="action-bar">
+          <div class="filters">
+            <select id="categoryFilter">
+              <option value="">All Categories</option>
+              <option value="SOFTWARE_LICENSE">Software License</option>
+              <option value="HOSTING">Cloud Infra</option>
+              <option value="TRAVEL">Travel</option>
+              <option value="TRAINING">Training</option>
+              <option value="EQUIPMENT">Devices</option>
+              <option value="OTHER">Other</option>
+            </select>
+            <div class="toggle-wrapper">
+              <input type="checkbox" id="recurringFilter">
+              <label for="recurringFilter">Recurring only</label>
+            </div>
+          </div>
+          <button class="btn-primary" id="addCostBtn">+ Add Cost</button>
+        </div>
+
+        <!-- Data Table -->
+        <div id="costTableWrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th class="text-right">Amount</th>
+                <th class="text-center">Exchange Rate</th>
+                <th class="text-right">Amount (INR)</th>
+                <th>Recurring</th>
+                <th>Added By</th>
+                <th class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>01 Jan 2026</td>
+                <td>GitHub Enterprise Licenses (15 seats)</td>
+                <td><span class="badge badge-category">Software License</span></td>
+                <td class="text-right">$1,200.00 <span class="badge-currency">USD</span></td>
+                <td class="text-center">83.50</td>
+                <td class="text-right" style="font-weight:600;">&#8377;1,00,200</td>
+                <td><span class="badge badge-recurring">Monthly until Dec 2026</span></td>
+                <td>Priya Patel</td>
+                <td class="text-center">
+                  <button class="btn-icon" title="Edit">&#9998;</button>
+                  <button class="btn-icon" title="Delete">&#128465;</button>
+                </td>
+              </tr>
+              <tr>
+                <td>15 Jan 2026</td>
+                <td>AWS Hosting (ap-south-1)</td>
+                <td><span class="badge badge-category">Cloud Infra</span></td>
+                <td class="text-right">$2,850.00 <span class="badge-currency">USD</span></td>
+                <td class="text-center">83.50</td>
+                <td class="text-right" style="font-weight:600;">&#8377;2,37,975</td>
+                <td><span class="badge badge-recurring">Monthly until Jun 2026</span></td>
+                <td>Arjun Mehta</td>
+                <td class="text-center">
+                  <button class="btn-icon" title="Edit">&#9998;</button>
+                  <button class="btn-icon" title="Delete">&#128465;</button>
+                </td>
+              </tr>
+              <tr>
+                <td>05 Feb 2026</td>
+                <td>Team Offsite Travel - Mumbai</td>
+                <td><span class="badge badge-category">Travel</span></td>
+                <td class="text-right">&#8377;45,000.00 <span class="badge-currency">INR</span></td>
+                <td class="text-center" style="color: var(--c-text-muted);">1.0000</td>
+                <td class="text-right" style="font-weight:600;">&#8377;45,000</td>
+                <td><span class="badge badge-onetime">One-time</span></td>
+                <td>Priya Patel</td>
+                <td class="text-center">
+                  <button class="btn-icon" title="Edit">&#9998;</button>
+                  <button class="btn-icon" title="Delete">&#128465;</button>
+                </td>
+              </tr>
+              <tr>
+                <td>10 Mar 2026</td>
+                <td>Figma Business Plan (5 editors)</td>
+                <td><span class="badge badge-category">Software License</span></td>
+                <td class="text-right">$450.00 <span class="badge-currency">USD</span></td>
+                <td class="text-center">85.00</td>
+                <td class="text-right" style="font-weight:600;">&#8377;38,250</td>
+                <td><span class="badge badge-recurring">Monthly until Dec 2026</span></td>
+                <td>Vivek Sharma</td>
+                <td class="text-center">
+                  <button class="btn-icon" title="Edit">&#9998;</button>
+                  <button class="btn-icon" title="Delete">&#128465;</button>
+                </td>
+              </tr>
+              <tr>
+                <td>20 Apr 2026</td>
+                <td>MacBook Pro M3 - New Hire</td>
+                <td><span class="badge badge-category">Devices</span></td>
+                <td class="text-right">&#8377;52,400.00 <span class="badge-currency">INR</span></td>
+                <td class="text-center" style="color: var(--c-text-muted);">1.0000</td>
+                <td class="text-right" style="font-weight:600;">&#8377;52,400</td>
+                <td><span class="badge badge-onetime">One-time</span></td>
+                <td>Arjun Mehta</td>
+                <td class="text-center">
+                  <button class="btn-icon" title="Edit">&#9998;</button>
+                  <button class="btn-icon" title="Delete">&#128465;</button>
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="5" class="text-right">Grand Total (INR)</td>
+                <td class="text-right" style="font-size: 15px; color: var(--c-primary);">&#8377;4,73,825</td>
+                <td colspan="3"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState">
+          <div class="icon">&#128230;</div>
+          <h3>No costs recorded yet</h3>
+          <p>Add your first cost entry to start tracking non-human project expenses.</p>
+          <button class="btn-primary">+ Add Cost</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// Role Switcher
+const roleConfig = {
+  CEO:      { user: 'Vivek Sharma', avatar: 'VS', access: true },
+  CTO:      { user: 'Rajesh Kumar', avatar: 'RK', access: true },
+  DM:       { user: 'Arjun Mehta', avatar: 'AM', access: true },
+  PM:       { user: 'Priya Patel', avatar: 'PP', access: true },
+  FINANCE:  { user: 'Neha Gupta', avatar: 'NG', access: true },
+  HR:       { user: 'Sunita Reddy', avatar: 'SR', access: false },
+  ENGINEER: { user: 'Rohit Joshi', avatar: 'RJ', access: false }
+};
+
+document.querySelectorAll('.role-switcher button[data-role]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.role-switcher button[data-role]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const role = btn.dataset.role;
+    const cfg = roleConfig[role];
+    document.getElementById('currentUser').textContent = cfg.user + ' (' + role + ')';
+    document.getElementById('currentAvatar').textContent = cfg.avatar;
+    document.getElementById('accessDenied').style.display = cfg.access ? 'none' : 'block';
+    document.getElementById('dataArea').querySelector('.summary-cards').style.display = cfg.access ? 'flex' : 'none';
+    document.getElementById('dataArea').querySelector('.card').style.display = cfg.access ? 'block' : 'none';
+  });
+});
+
+// Empty State Toggle
+document.getElementById('toggleEmpty').addEventListener('change', function() {
+  const table = document.getElementById('costTableWrapper');
+  const empty = document.getElementById('emptyState');
+  const actionBar = document.querySelector('.action-bar');
+  const summaryCards = document.querySelector('.summary-cards');
+  if (this.checked) {
+    table.style.display = 'none';
+    empty.style.display = 'block';
+    actionBar.style.display = 'none';
+    summaryCards.style.display = 'none';
+  } else {
+    table.style.display = 'block';
+    empty.style.display = 'none';
+    actionBar.style.display = 'flex';
+    summaryCards.style.display = 'flex';
+  }
+});
+</script>
+</body>
+</html>

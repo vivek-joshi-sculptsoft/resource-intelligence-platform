@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Configuration - Resource Intelligence Platform</title>
+<style>
+:root {
+  --bg-page: #F0F1FA; --bg-card: #ffffff; --bg-sidebar: #F5F6FC;
+  --bg-header: #ffffff; --bg-hover: #F0F1FA; --bg-stripe: #F5F6FC;
+  --c-primary: #2B3990; --c-primary-dark: #1B2B65; --c-primary-light: #4A5BB5;
+  --c-accent: #FF4B2B; --c-accent-hover: #E63E1F; --c-accent-soft: #FFF0EC;
+  --c-text: #1e1b4b; --c-text-secondary: #6b7280; --c-text-muted: #7C85C0;
+  --c-border: #D6DAF0; --c-border-light: #E8EAF6;
+  --c-danger: #ef4444; --c-success: #22c55e; --c-warning: #f59e0b;
+  --shadow-card: 0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --radius-card: 12px; --radius-input: 8px; --radius-btn: 8px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg-page); color: var(--c-text); }
+
+/* Role Switcher Bar */
+.role-switcher { background: var(--c-primary-dark); color: #fff; padding: 6px 24px; display: flex; align-items: center; gap: 12px; font-size: 13px; }
+.role-switcher label { opacity: 0.8; }
+.role-switcher select { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.25); border-radius: 4px; padding: 3px 8px; font-size: 12px; }
+.role-switcher select option { color: #1e1b4b; }
+.role-switcher .empty-toggle { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+.role-switcher .empty-toggle input { accent-color: var(--c-accent); }
+
+/* Header */
+.header { background: var(--bg-header); border-bottom: 1px solid var(--c-border-light); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.header-left { display: flex; align-items: center; gap: 16px; }
+.header-logo { font-weight: 700; font-size: 18px; color: var(--c-primary); }
+.header-logo span { color: var(--c-accent); }
+.header-right { display: flex; align-items: center; gap: 16px; }
+.header-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--c-primary-light); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+.header-user { font-size: 13px; color: var(--c-text-secondary); }
+
+/* Notification Bell */
+.notification-bell { position: relative; cursor: pointer; padding: 6px; border-radius: 8px; transition: background 0.15s; }
+.notification-bell:hover { background: var(--bg-hover); }
+.notification-bell svg { width: 22px; height: 22px; fill: var(--c-text-secondary); }
+.notification-badge { position: absolute; top: 0; right: 0; background: var(--c-accent); color: #fff; font-size: 10px; font-weight: 700; min-width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center; justify-content: center; padding: 0 4px; border: 2px solid var(--bg-header); }
+
+/* Layout */
+.layout { display: flex; min-height: calc(100vh - 56px - 30px); }
+.sidebar { width: 240px; background: var(--bg-sidebar); border-right: 1px solid var(--c-border-light); padding: 16px 0; flex-shrink: 0; }
+.sidebar a { display: flex; align-items: center; gap: 10px; padding: 10px 20px; font-size: 14px; color: var(--c-text-secondary); text-decoration: none; transition: all 0.15s; }
+.sidebar a:hover { background: var(--bg-hover); color: var(--c-text); }
+.sidebar a.active { background: var(--c-primary); color: #fff; border-radius: 0 8px 8px 0; margin-right: 12px; }
+.sidebar .section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--c-text-muted); padding: 18px 20px 6px; letter-spacing: 0.5px; }
+.sidebar .alert-count { background: var(--c-accent); color: #fff; font-size: 11px; font-weight: 600; border-radius: 10px; padding: 1px 7px; margin-left: auto; }
+
+/* Main Content */
+.main { flex: 1; padding: 28px 32px; max-width: calc(100% - 240px); }
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.page-title { font-size: 22px; font-weight: 700; color: var(--c-text); }
+.page-subtitle { font-size: 14px; color: var(--c-text-secondary); margin-bottom: 24px; }
+
+/* Access restriction notice */
+.access-notice { background: var(--c-accent-soft); border: 1px solid #fecaca; border-radius: var(--radius-card); padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: #b91c1c; display: flex; align-items: center; gap: 8px; }
+.access-badge { background: var(--c-primary-dark); color: #fff; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+
+/* Config Card */
+.config-card { background: var(--bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card); border: 1px solid var(--c-border-light); margin-bottom: 24px; }
+.config-header { padding: 20px 24px; border-bottom: 1px solid var(--c-border-light); display: flex; align-items: center; justify-content: space-between; }
+.config-header h3 { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+.config-header-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.config-header-icon.alerts { background: #fffbeb; }
+.config-header-icon.system { background: #eff6ff; }
+
+/* Config Row */
+.config-row { display: grid; grid-template-columns: 240px 1fr 120px 1fr; align-items: center; gap: 16px; padding: 18px 24px; border-bottom: 1px solid var(--c-border-light); }
+.config-row:last-child { border-bottom: none; }
+.config-row:hover { background: var(--bg-hover); }
+
+.config-key { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 13px; color: var(--c-primary); background: var(--bg-stripe); padding: 4px 8px; border-radius: 4px; display: inline-block; word-break: break-all; }
+
+.config-value-group { display: flex; flex-direction: column; gap: 4px; }
+.config-input { display: flex; align-items: center; gap: 8px; }
+.config-input input, .config-input select { padding: 8px 12px; border: 1px solid var(--c-border); border-radius: var(--radius-input); font-size: 14px; width: 120px; color: var(--c-text); }
+.config-input input:focus, .config-input select:focus { outline: none; border-color: var(--c-primary); box-shadow: 0 0 0 3px rgba(43,57,144,0.1); }
+.config-unit { font-size: 12px; color: var(--c-text-muted); }
+
+.config-default { font-size: 12px; color: var(--c-text-muted); text-align: center; }
+.config-default strong { font-weight: 500; }
+
+.config-description { font-size: 13px; color: var(--c-text-secondary); line-height: 1.4; }
+
+/* Config Footer */
+.config-footer { padding: 16px 24px; border-top: 1px solid var(--c-border-light); display: flex; align-items: center; justify-content: space-between; background: var(--bg-stripe); border-radius: 0 0 var(--radius-card) var(--radius-card); }
+.config-footer-info { font-size: 12px; color: var(--c-text-muted); }
+.config-footer-info strong { color: var(--c-text-secondary); font-weight: 500; }
+
+/* Modified indicator */
+.modified-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c-warning); display: inline-block; margin-right: 4px; }
+
+/* Buttons */
+.btn { padding: 8px 16px; border: none; border-radius: var(--radius-btn); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary { background: var(--c-accent); color: #fff; }
+.btn-primary:hover { background: var(--c-accent-hover); }
+.btn-secondary { background: #fff; color: var(--c-text); border: 1px solid var(--c-border); }
+.btn-secondary:hover { background: var(--bg-hover); }
+.btn-success { background: var(--c-success); color: #fff; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+
+/* Toast */
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--c-success); color: #fff; padding: 12px 20px; border-radius: var(--radius-card); box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; z-index: 1000; animation: slideIn 0.3s ease-out; }
+@keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.toast-icon { font-size: 18px; }
+
+/* Column headers */
+.config-columns { display: grid; grid-template-columns: 240px 1fr 120px 1fr; gap: 16px; padding: 10px 24px; border-bottom: 2px solid var(--c-border); }
+.config-col-header { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-text-muted); }
+</style>
+</head>
+<body>
+
+<!-- Role Switcher Bar -->
+<div class="role-switcher">
+  <label>Viewing as:</label>
+  <select id="roleSwitcher">
+    <option value="ceo" selected>CEO - Rajiv Mehta</option>
+    <option value="cto">CTO - Suresh Nair</option>
+  </select>
+  <span style="margin-left: 8px; opacity: 0.6;">|</span>
+  <span style="opacity: 0.6; font-size: 12px;">CEO and CTO access only</span>
+  <div class="empty-toggle">
+    <input type="checkbox" id="emptyToggle" style="display:none;">
+  </div>
+</div>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-logo">Sculpt<span>Soft</span> RIP</div>
+  </div>
+  <div class="header-right">
+    <div class="notification-bell">
+      <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>
+      <span class="notification-badge">4</span>
+    </div>
+    <span class="header-user">Rajiv Mehta</span>
+    <div class="header-avatar">RM</div>
+  </div>
+</div>
+
+<!-- Layout -->
+<div class="layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="section-label">Main</div>
+    <a href="#">&#128202; Dashboard</a>
+    <a href="#">&#128101; Clients</a>
+    <a href="#">&#128196; Projects</a>
+    <a href="#">&#128100; Resources</a>
+    <a href="#">&#128197; Allocations</a>
+    <div class="section-label">Reports</div>
+    <a href="#">&#128200; Utilization</a>
+    <a href="#">&#128176; Financials</a>
+    <div class="section-label">Alerts</div>
+    <a href="#">&#128276; Alerts <span class="alert-count">4</span></a>
+    <div class="section-label">Admin</div>
+    <a href="#" class="active">&#9881; System Config</a>
+    <a href="#">&#128274; Roles & Access</a>
+    <a href="#">&#128220; Audit Log</a>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <div class="page-title">System Configuration</div>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <span class="access-badge">CEO</span>
+        <span class="access-badge">CTO</span>
+        <span style="font-size: 12px; color: var(--c-text-muted);">Restricted access</span>
+      </div>
+    </div>
+    <p class="page-subtitle">Manage system-wide thresholds and default values. Changes apply immediately and are logged in the audit trail.</p>
+
+    <!-- Alert Thresholds Card -->
+    <div class="config-card">
+      <div class="config-header">
+        <h3>
+          <span class="config-header-icon alerts">&#128276;</span>
+          Alert Thresholds
+        </h3>
+        <button class="btn btn-primary" id="saveAlerts">&#128190; Save Changes</button>
+      </div>
+      <div class="config-columns">
+        <div class="config-col-header">Config Key</div>
+        <div class="config-col-header">Current Value</div>
+        <div class="config-col-header">Default</div>
+        <div class="config-col-header">Description</div>
+      </div>
+      <div>
+        <div class="config-row">
+          <div><span class="config-key">alert.contract_expiry_days</span></div>
+          <div class="config-value-group">
+            <div class="config-input">
+              <input type="number" value="30" min="1" max="365">
+              <span class="config-unit">days</span>
+            </div>
+          </div>
+          <div class="config-default"><strong>30</strong></div>
+          <div class="config-description">Days before contract end date to trigger the first warning alert. Gives the team time to begin renewal discussions with the client.</div>
+        </div>
+
+        <div class="config-row">
+          <div><span class="config-key">alert.contract_expiry_urgent_days</span></div>
+          <div class="config-value-group">
+            <div class="config-input">
+              <input type="number" value="7" min="1" max="90">
+              <span class="config-unit">days</span>
+            </div>
+          </div>
+          <div class="config-default"><strong>7</strong></div>
+          <div class="config-description">Days before contract end date for the urgent/critical alert. This triggers a CRITICAL severity notification requiring immediate action.</div>
+        </div>
+
+        <div class="config-row">
+          <div><span class="config-key">alert.bench_threshold_days</span></div>
+          <div class="config-value-group">
+            <div class="config-input">
+              <input type="number" value="7" min="1" max="180" style="border-color: var(--c-warning);">
+              <span class="config-unit">days</span>
+              <span class="modified-dot" title="Modified from default"></span>
+            </div>
+          </div>
+          <div class="config-default"><strong>7</strong></div>
+          <div class="config-description">Number of consecutive days a resource can remain unassigned before a bench duration alert is triggered. Lower values provide earlier visibility.</div>
+        </div>
+
+        <div class="config-row">
+          <div><span class="config-key">alert.utilization_threshold_pct</span></div>
+          <div class="config-value-group">
+            <div class="config-input">
+              <input type="number" value="70" min="0" max="100">
+              <span class="config-unit">%</span>
+            </div>
+          </div>
+          <div class="config-default"><strong>70</strong></div>
+          <div class="config-description">Minimum acceptable company-wide utilization percentage. Weekly checks trigger a WARNING alert if overall utilization drops below this threshold.</div>
+        </div>
+      </div>
+      <div class="config-footer">
+        <div class="config-footer-info">
+          Last modified: <strong>28 May 2026 at 14:32</strong> by <strong>Suresh Nair (CTO)</strong>
+        </div>
+        <button class="btn btn-secondary btn-sm">&#128260; Reset to Defaults</button>
+      </div>
+    </div>
+
+    <!-- System Defaults Card -->
+    <div class="config-card">
+      <div class="config-header">
+        <h3>
+          <span class="config-header-icon system">&#9881;</span>
+          System Defaults
+        </h3>
+        <button class="btn btn-primary" id="saveSystem">&#128190; Save Changes</button>
+      </div>
+      <div class="config-columns">
+        <div class="config-col-header">Config Key</div>
+        <div class="config-col-header">Current Value</div>
+        <div class="config-col-header">Default</div>
+        <div class="config-col-header">Description</div>
+      </div>
+      <div>
+        <div class="config-row">
+          <div><span class="config-key">system.working_days_per_month</span></div>
+          <div class="config-value-group">
+            <div class="config-input">
+              <input type="number" value="22" min="1" max="31">
+              <span class="config-unit">days</span>
+            </div>
+          </div>
+          <div class="config-default"><strong>22</strong></div>
+          <div class="config-description">Standard working days per month used in revenue and cost calculations. This affects projected revenue, utilization percentages, and monthly cost computations.</div>
+        </div>
+
+        <div class="config-row">
+          <div><span class="config-key">system.working_hours_per_day</span></div>
+          <div class="config-value-group">
+            <div class="config-input">
+              <input type="number" value="8" min="1" max="24">
+              <span class="config-unit">hours</span>
+            </div>
+          </div>
+          <div class="config-default"><strong>8</strong></div>
+          <div class="config-description">Standard working hours per day used to calculate full-time equivalent (FTE) allocations and capacity planning. Affects all utilization computations.</div>
+        </div>
+
+        <div class="config-row">
+          <div><span class="config-key">system.default_currency</span></div>
+          <div class="config-value-group">
+            <div class="config-input">
+              <select>
+                <option value="INR" selected>INR</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+                <option value="SGD">SGD</option>
+                <option value="AUD">AUD</option>
+              </select>
+            </div>
+          </div>
+          <div class="config-default"><strong>INR</strong></div>
+          <div class="config-description">Default currency for new projects and financial displays. All monetary values are shown in this currency by default. Individual projects can override this setting.</div>
+        </div>
+      </div>
+      <div class="config-footer">
+        <div class="config-footer-info">
+          Last modified: <strong>15 Apr 2026 at 10:15</strong> by <strong>Rajiv Mehta (CEO)</strong>
+        </div>
+        <button class="btn btn-secondary btn-sm">&#128260; Reset to Defaults</button>
+      </div>
+    </div>
+
+    <!-- Audit Info -->
+    <div style="background: var(--bg-stripe); border: 1px solid var(--c-border-light); border-radius: var(--radius-card); padding: 16px 20px; display: flex; align-items: center; gap: 12px;">
+      <span style="font-size: 20px;">&#128220;</span>
+      <div>
+        <div style="font-size: 13px; font-weight: 600; color: var(--c-text);">All configuration changes are audited</div>
+        <div style="font-size: 12px; color: var(--c-text-secondary);">Every change to system configuration is recorded in the audit log with the old value, new value, and the user who made the change. <a href="#" style="color: var(--c-primary);">View audit log &rarr;</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Success Toast -->
+<div class="toast" id="toast" style="display: none;">
+  <span class="toast-icon">&#10003;</span>
+  Configuration saved successfully
+</div>
+
+<script>
+document.getElementById('saveAlerts').addEventListener('click', function() {
+  var toast = document.getElementById('toast');
+  toast.style.display = 'flex';
+  setTimeout(function() { toast.style.display = 'none'; }, 3000);
+});
+document.getElementById('saveSystem').addEventListener('click', function() {
+  var toast = document.getElementById('toast');
+  toast.style.display = 'flex';
+  setTimeout(function() { toast.style.display = 'none'; }, 3000);
+});
+</script>
+</body>
+</html>

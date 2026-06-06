@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add/Edit Non-Human Cost | SculptSoft RIP</title>
+<style>
+:root {
+  --bg-page: #F0F1FA; --bg-card: #ffffff; --bg-sidebar: #F5F6FC;
+  --bg-header: #ffffff; --bg-hover: #F0F1FA; --bg-stripe: #F5F6FC;
+  --c-primary: #2B3990; --c-primary-dark: #1B2B65; --c-primary-light: #4A5BB5;
+  --c-accent: #FF4B2B; --c-accent-hover: #E63E1F; --c-accent-soft: #FFF0EC;
+  --c-text: #1e1b4b; --c-text-secondary: #6b7280; --c-text-muted: #7C85C0;
+  --c-border: #D6DAF0; --c-border-light: #E8EAF6;
+  --c-danger: #ef4444; --c-success: #22c55e; --c-warning: #f59e0b;
+  --shadow-card: 0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --radius-card: 12px; --radius-input: 8px; --radius-btn: 8px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg-page); color: var(--c-text); min-height: 100vh; }
+
+/* Role Switcher Bar */
+.role-switcher { position: sticky; top: 0; z-index: 1000; background: var(--c-primary-dark); display: flex; align-items: center; padding: 0 24px; height: 40px; gap: 8px; }
+.role-switcher .label { color: rgba(255,255,255,0.6); font-size: 12px; font-weight: 500; margin-right: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.role-switcher button { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; transition: all 0.2s; font-family: var(--font); }
+.role-switcher button:hover { background: rgba(255,255,255,0.2); color: #fff; }
+.role-switcher button.active { background: var(--c-accent); color: #fff; border-color: var(--c-accent); font-weight: 600; }
+.role-switcher .toggle-empty { margin-left: auto; display: flex; align-items: center; gap: 6px; color: rgba(255,255,255,0.6); font-size: 12px; }
+.role-switcher .toggle-empty input { accent-color: var(--c-accent); }
+
+/* App Header */
+.app-header { background: var(--bg-header); border-bottom: 1px solid var(--c-border-light); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.app-header .logo { font-size: 18px; font-weight: 700; color: var(--c-primary); }
+.app-header .logo span { color: var(--c-accent); }
+.app-header .user-info { display: flex; align-items: center; gap: 10px; }
+.app-header .avatar { width: 32px; height: 32px; background: var(--c-primary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+.app-header .user-name { font-size: 13px; color: var(--c-text-secondary); }
+
+/* Layout */
+.app-layout { display: flex; min-height: calc(100vh - 96px); }
+.sidebar { width: 220px; background: var(--bg-sidebar); border-right: 1px solid var(--c-border-light); padding: 16px 0; flex-shrink: 0; }
+.sidebar a { display: flex; align-items: center; gap: 10px; padding: 10px 20px; color: var(--c-text-secondary); text-decoration: none; font-size: 14px; transition: all 0.15s; }
+.sidebar a:hover { background: var(--bg-hover); color: var(--c-text); }
+.sidebar a.active { background: var(--c-accent-soft); color: var(--c-accent); font-weight: 600; border-right: 3px solid var(--c-accent); }
+.sidebar .section-title { padding: 16px 20px 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-text-muted); font-weight: 600; }
+.main-content { flex: 1; padding: 24px 32px; position: relative; }
+
+/* Modal Overlay */
+.modal-overlay { position: fixed; inset: 0; background: rgba(27, 43, 101, 0.5); z-index: 2000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+.modal { background: var(--bg-card); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); width: 560px; max-height: 90vh; overflow-y: auto; }
+.modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--c-border-light); display: flex; align-items: center; justify-content: space-between; }
+.modal-header h2 { font-size: 18px; font-weight: 700; color: var(--c-text); }
+.modal-close { background: none; border: none; font-size: 20px; color: var(--c-text-muted); cursor: pointer; padding: 4px; border-radius: 6px; }
+.modal-close:hover { background: var(--bg-hover); color: var(--c-text); }
+.modal-body { padding: 20px 24px; }
+.modal-footer { padding: 16px 24px 20px; border-top: 1px solid var(--c-border-light); display: flex; justify-content: flex-end; gap: 10px; }
+
+/* Form */
+.form-group { margin-bottom: 18px; }
+.form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--c-text); margin-bottom: 6px; }
+.form-group label .required { color: var(--c-danger); }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 14px; border: 1px solid var(--c-border); border-radius: var(--radius-input); font-size: 14px; font-family: var(--font); color: var(--c-text); background: #fff; transition: border-color 0.15s, box-shadow 0.15s; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--c-primary); box-shadow: 0 0 0 3px rgba(43,57,144,0.08); }
+.form-group input:disabled { background: var(--bg-stripe); color: var(--c-text-muted); cursor: not-allowed; }
+.form-group textarea { resize: vertical; min-height: 70px; }
+.form-group .hint { font-size: 12px; color: var(--c-text-muted); margin-top: 4px; }
+.form-group .error { font-size: 12px; color: var(--c-danger); margin-top: 4px; display: none; }
+
+/* Form Row (inline fields) */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-row-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; }
+
+/* INR Preview */
+.inr-preview { background: linear-gradient(135deg, #E0F7FA 0%, #E8F5E9 100%); border: 2px solid #26A69A; border-radius: var(--radius-card); padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.inr-preview .preview-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #00796B; font-weight: 600; }
+.inr-preview .preview-value { font-size: 24px; font-weight: 800; color: #00695C; }
+.inr-preview .preview-formula { font-size: 12px; color: #00897B; margin-top: 2px; }
+
+/* Checkbox/Toggle */
+.checkbox-group { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.checkbox-group input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--c-primary); cursor: pointer; }
+.checkbox-group label { font-size: 14px; font-weight: 500; color: var(--c-text); cursor: pointer; }
+
+/* Hidden field */
+.recurring-fields { display: none; }
+.recurring-fields.visible { display: block; }
+
+/* Buttons */
+.btn-primary { background: var(--c-accent); color: #fff; border: none; padding: 10px 24px; border-radius: var(--radius-btn); font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s; font-family: var(--font); }
+.btn-primary:hover { background: var(--c-accent-hover); }
+.btn-secondary { background: #fff; color: var(--c-text); border: 1px solid var(--c-border); padding: 10px 20px; border-radius: var(--radius-btn); font-size: 14px; cursor: pointer; font-family: var(--font); }
+.btn-secondary:hover { background: var(--bg-hover); }
+
+/* Access Denied */
+.access-denied { display: none; text-align: center; padding: 80px 20px; }
+.access-denied .icon { font-size: 48px; margin-bottom: 16px; }
+.access-denied h3 { font-size: 18px; color: var(--c-text); margin-bottom: 8px; }
+.access-denied p { font-size: 14px; color: var(--c-text-secondary); }
+
+/* Breadcrumb */
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--c-text-secondary); margin-bottom: 8px; }
+.breadcrumb a { color: var(--c-primary); text-decoration: none; }
+.breadcrumb a:hover { text-decoration: underline; }
+.breadcrumb .sep { color: var(--c-text-muted); }
+.page-header { margin-bottom: 24px; }
+.page-header h1 { font-size: 22px; font-weight: 700; }
+.page-header .subtitle { font-size: 13px; color: var(--c-text-secondary); margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<!-- Role Switcher Bar -->
+<div class="role-switcher">
+  <span class="label">Viewing as:</span>
+  <button data-role="CEO">CEO</button>
+  <button data-role="CTO">CTO</button>
+  <button data-role="DM">DM</button>
+  <button data-role="PM">PM</button>
+  <button class="active" data-role="FINANCE">Finance</button>
+  <button data-role="HR">HR</button>
+  <button data-role="ENGINEER">Engineer</button>
+  <div class="toggle-empty">
+    <input type="checkbox" id="toggleEmpty" disabled>
+    <label for="toggleEmpty">Show Empty State</label>
+  </div>
+</div>
+
+<!-- App Header -->
+<header class="app-header">
+  <div class="logo">Sculpt<span>RIP</span></div>
+  <div class="user-info">
+    <span class="user-name" id="currentUser">Neha Gupta (Finance)</span>
+    <div class="avatar" id="currentAvatar">NG</div>
+  </div>
+</header>
+
+<!-- Layout -->
+<div class="app-layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="section-title">Main</div>
+    <a href="#">&#9633; Dashboard</a>
+    <a href="#">&#9633; Clients</a>
+    <a href="#" class="active">&#9633; Projects</a>
+    <a href="#">&#9633; Resources</a>
+    <a href="#">&#9633; Allocations</a>
+    <div class="section-title">Analytics</div>
+    <a href="#">&#9633; Utilization</a>
+    <a href="#">&#9633; Availability</a>
+    <div class="section-title">Finance</div>
+    <a href="#">&#9633; Invoicing</a>
+    <div class="section-title">System</div>
+    <a href="#">&#9633; Audit Log</a>
+    <a href="#">&#9633; Settings</a>
+  </nav>
+
+  <!-- Main Content (dimmed behind modal) -->
+  <main class="main-content">
+    <div class="breadcrumb">
+      <a href="#">Projects</a>
+      <span class="sep">/</span>
+      <a href="#">Reliance Digital Transformation</a>
+      <span class="sep">/</span>
+      <span>Non-Human Costs</span>
+    </div>
+    <div class="page-header">
+      <h1>Reliance Digital Transformation</h1>
+      <div class="subtitle">Client: Reliance Industries Ltd. &middot; Type: T&amp;M &middot; DM: Arjun Mehta &middot; PM: Priya Patel</div>
+    </div>
+
+    <!-- Access Denied -->
+    <div class="access-denied" id="accessDenied">
+      <div class="icon">&#128274;</div>
+      <h3>Access Restricted</h3>
+      <p>You do not have permission to add or edit costs. This form is available to CEO, CTO, Delivery Managers, Project Managers, and Finance roles.</p>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Overlay -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Add Non-Human Cost</h2>
+      <button class="modal-close" title="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <!-- Description -->
+      <div class="form-group">
+        <label>Description <span class="required">*</span></label>
+        <input type="text" id="description" placeholder="e.g., AWS Hosting (ap-south-1)" value="Jira Software Cloud (25 users)">
+      </div>
+
+      <!-- Category -->
+      <div class="form-group">
+        <label>Category <span class="required">*</span></label>
+        <select id="category">
+          <option value="">Select category...</option>
+          <option value="SOFTWARE_LICENSE" selected>Software License</option>
+          <option value="HOSTING">Cloud Infra</option>
+          <option value="TRAVEL">Travel</option>
+          <option value="TRAINING">Training</option>
+          <option value="EQUIPMENT">Devices</option>
+          <option value="OTHER">Other</option>
+        </select>
+      </div>
+
+      <!-- Amount + Currency + Exchange Rate -->
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Amount <span class="required">*</span></label>
+          <input type="number" id="amount" placeholder="0.00" step="0.01" min="0.01" value="750.00">
+          <div class="error" id="amountError">Cost amount must be positive</div>
+        </div>
+        <div class="form-group">
+          <label>Currency <span class="required">*</span></label>
+          <select id="currency">
+            <option value="INR">INR</option>
+            <option value="USD" selected>USD</option>
+            <option value="EUR">EUR</option>
+            <option value="GBP">GBP</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Exchange Rate <span class="required">*</span></label>
+          <input type="number" id="exchangeRate" placeholder="1.0000" step="0.0001" min="0.0001" value="83.5000">
+          <div class="error" id="rateError">Exchange rate must be positive</div>
+        </div>
+      </div>
+
+      <!-- Live INR Preview -->
+      <div class="inr-preview">
+        <div>
+          <div class="preview-label">INR Equivalent</div>
+          <div class="preview-formula" id="previewFormula">$750.00 x 83.5000 =</div>
+        </div>
+        <div class="preview-value" id="previewValue">&#8377;62,625.00</div>
+      </div>
+
+      <!-- Cost Date + Vendor -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Cost Date <span class="required">*</span></label>
+          <input type="date" id="costDate" value="2026-06-01">
+        </div>
+        <div class="form-group">
+          <label>Vendor</label>
+          <input type="text" id="vendor" placeholder="e.g., Atlassian" value="Atlassian">
+        </div>
+      </div>
+
+      <!-- Recurring Toggle -->
+      <div class="checkbox-group">
+        <input type="checkbox" id="isRecurring" checked>
+        <label for="isRecurring">This is a recurring cost</label>
+      </div>
+
+      <!-- Recurring End Date (conditionally shown) -->
+      <div class="recurring-fields visible" id="recurringFields">
+        <div class="form-group">
+          <label>Recurring End Date <span class="required">*</span></label>
+          <input type="date" id="recurringEndDate" value="2027-05-31">
+          <div class="hint">Monthly recurring cost until this date.</div>
+          <div class="error" id="endDateError">Recurring end date must be after cost date</div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="notes" placeholder="Any additional notes...">Annual cloud subscription for project management. Billed monthly via Atlassian marketplace.</textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary">Cancel</button>
+      <button class="btn-primary">Save Cost</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Role Switcher
+const roleConfig = {
+  CEO:      { user: 'Vivek Sharma', avatar: 'VS', access: true },
+  CTO:      { user: 'Rajesh Kumar', avatar: 'RK', access: true },
+  DM:       { user: 'Arjun Mehta', avatar: 'AM', access: true },
+  PM:       { user: 'Priya Patel', avatar: 'PP', access: true },
+  FINANCE:  { user: 'Neha Gupta', avatar: 'NG', access: true },
+  HR:       { user: 'Sunita Reddy', avatar: 'SR', access: false },
+  ENGINEER: { user: 'Rohit Joshi', avatar: 'RJ', access: false }
+};
+
+document.querySelectorAll('.role-switcher button[data-role]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.role-switcher button[data-role]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const role = btn.dataset.role;
+    const cfg = roleConfig[role];
+    document.getElementById('currentUser').textContent = cfg.user + ' (' + role + ')';
+    document.getElementById('currentAvatar').textContent = cfg.avatar;
+    document.getElementById('accessDenied').style.display = cfg.access ? 'none' : 'block';
+    document.getElementById('modalOverlay').style.display = cfg.access ? 'flex' : 'none';
+  });
+});
+
+// Currency change -> auto exchange rate
+const currencyEl = document.getElementById('currency');
+const rateEl = document.getElementById('exchangeRate');
+currencyEl.addEventListener('change', function() {
+  if (this.value === 'INR') {
+    rateEl.value = '1.0000';
+    rateEl.disabled = true;
+  } else {
+    rateEl.disabled = false;
+    if (this.value === 'USD') rateEl.value = '83.5000';
+    else if (this.value === 'EUR') rateEl.value = '90.2000';
+    else if (this.value === 'GBP') rateEl.value = '105.7500';
+  }
+  updatePreview();
+});
+
+// Live INR Preview
+function updatePreview() {
+  const amount = parseFloat(document.getElementById('amount').value) || 0;
+  const rate = parseFloat(rateEl.value) || 0;
+  const currency = currencyEl.value;
+  const inr = amount * rate;
+
+  const symbols = { INR: '₹', USD: '$', EUR: '€', GBP: '£' };
+  const symbol = symbols[currency] || '';
+
+  document.getElementById('previewFormula').textContent =
+    symbol + amount.toFixed(2) + ' x ' + rate.toFixed(4) + ' =';
+  document.getElementById('previewValue').textContent =
+    '₹' + inr.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+document.getElementById('amount').addEventListener('input', updatePreview);
+rateEl.addEventListener('input', updatePreview);
+
+// Recurring toggle
+document.getElementById('isRecurring').addEventListener('change', function() {
+  document.getElementById('recurringFields').classList.toggle('visible', this.checked);
+});
+
+// Validation demo on amount
+document.getElementById('amount').addEventListener('input', function() {
+  document.getElementById('amountError').style.display =
+    (this.value && parseFloat(this.value) <= 0) ? 'block' : 'none';
+});
+
+// Validation demo on exchange rate
+rateEl.addEventListener('input', function() {
+  document.getElementById('rateError').style.display =
+    (this.value && parseFloat(this.value) <= 0) ? 'block' : 'none';
+});
+</script>
+</body>
+</html>

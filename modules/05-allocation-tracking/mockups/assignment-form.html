@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create / Edit Assignment — Resource Intelligence Platform</title>
+<style>
+:root {
+  --bg-page: #F0F1FA; --bg-card: #ffffff; --bg-sidebar: #F5F6FC;
+  --bg-header: #ffffff; --bg-hover: #F0F1FA; --bg-stripe: #F5F6FC;
+  --c-primary: #2B3990; --c-primary-dark: #1B2B65; --c-primary-light: #4A5BB5;
+  --c-accent: #FF4B2B; --c-accent-hover: #E63E1F; --c-accent-soft: #FFF0EC;
+  --c-text: #1e1b4b; --c-text-secondary: #6b7280; --c-text-muted: #7C85C0;
+  --c-border: #D6DAF0; --c-border-light: #E8EAF6;
+  --c-danger: #ef4444; --c-success: #22c55e; --c-warning: #f59e0b;
+  --shadow-card: 0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --radius-card: 12px; --radius-input: 8px; --radius-btn: 8px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg-page); color: var(--c-text); }
+
+.role-switcher { position: sticky; top: 0; z-index: 1000; background: var(--c-primary-dark); padding: 8px 24px; display: flex; align-items: center; gap: 8px; }
+.role-switcher label { color: #fff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-right: 8px; }
+.role-btn { padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.25); background: transparent; color: #fff; font-size: 12px; cursor: pointer; transition: all 0.2s; font-weight: 500; }
+.role-btn:hover { background: rgba(255,255,255,0.1); }
+.role-btn.active { background: var(--c-accent); border-color: var(--c-accent); }
+
+.toggle-bar { background: var(--c-primary-dark); padding: 4px 24px 8px; display: flex; gap: 8px; }
+.toggle-btn { padding: 4px 12px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.25); background: transparent; color: rgba(255,255,255,0.7); font-size: 11px; cursor: pointer; transition: all 0.2s; }
+.toggle-btn:hover { background: rgba(255,255,255,0.1); }
+.toggle-btn.active { background: rgba(255,255,255,0.15); color: #fff; }
+
+.app-header { background: var(--bg-header); border-bottom: 1px solid var(--c-border-light); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.app-logo { font-weight: 700; font-size: 18px; color: var(--c-primary); display: flex; align-items: center; gap: 10px; }
+.app-logo .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--c-primary), var(--c-accent)); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 14px; }
+.header-right { display: flex; align-items: center; gap: 16px; }
+.header-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--c-primary-light); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+
+.app-layout { display: flex; min-height: calc(100vh - 56px - 40px - 34px); }
+
+.sidebar { width: 220px; background: var(--bg-sidebar); border-right: 1px solid var(--c-border-light); padding: 16px 0; flex-shrink: 0; }
+.nav-section { padding: 0 16px; margin-bottom: 24px; }
+.nav-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--c-text-muted); margin-bottom: 8px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; border-radius: var(--radius-btn); color: var(--c-text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; text-decoration: none; margin: 1px 0; }
+.nav-item:hover { background: var(--bg-hover); color: var(--c-text); }
+.nav-item.active { background: var(--c-primary); color: #fff; }
+.nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+.main-content { flex: 1; padding: 24px 32px; display: flex; justify-content: center; }
+
+/* Slide-over / Modal style form */
+.form-panel { width: 100%; max-width: 580px; }
+.form-panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.form-panel-title { font-size: 20px; font-weight: 700; }
+.form-panel-subtitle { font-size: 13px; color: var(--c-text-secondary); margin-top: 2px; }
+.close-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--c-border); background: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--c-text-secondary); }
+.close-btn:hover { background: var(--bg-hover); }
+
+.form-card { background: var(--bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card); border: 1px solid var(--c-border-light); padding: 24px; margin-bottom: 16px; }
+.form-section-title { font-size: 13px; font-weight: 700; color: var(--c-primary); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--c-border-light); text-transform: uppercase; letter-spacing: 0.5px; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px; }
+.form-row.single { grid-template-columns: 1fr; }
+.form-group { display: flex; flex-direction: column; }
+.form-label { font-size: 12px; font-weight: 600; color: var(--c-text-secondary); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-label .required { color: var(--c-danger); }
+.form-input, .form-select { padding: 9px 12px; border: 1px solid var(--c-border); border-radius: var(--radius-input); font-size: 13px; font-family: var(--font); color: var(--c-text); transition: border-color 0.2s; }
+.form-input:focus, .form-select:focus { outline: none; border-color: var(--c-primary-light); box-shadow: 0 0 0 3px rgba(43,57,144,0.1); }
+.form-input.error { border-color: var(--c-danger); background: #fef2f2; }
+.form-error { font-size: 12px; color: var(--c-danger); margin-top: 3px; display: flex; align-items: center; gap: 4px; }
+.form-help { font-size: 11px; color: var(--c-text-muted); margin-top: 3px; }
+.form-input:disabled { background: var(--bg-stripe); color: var(--c-text-muted); cursor: not-allowed; }
+
+/* Checkbox */
+.checkbox-wrapper { display: flex; align-items: center; gap: 8px; padding: 8px 0; }
+.checkbox-wrapper input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--c-primary); cursor: pointer; }
+.checkbox-label { font-size: 13px; font-weight: 500; }
+.checkbox-desc { font-size: 11px; color: var(--c-text-muted); }
+
+/* Resource selector info */
+.resource-info { background: var(--bg-stripe); border-radius: var(--radius-input); padding: 8px 12px; margin-top: 6px; font-size: 12px; color: var(--c-text-secondary); display: flex; align-items: center; gap: 8px; }
+.resource-info .alloc-badge { padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.alloc-ok { background: #dcfce7; color: #15803d; }
+.alloc-warn { background: #fef3c7; color: #92400e; }
+
+/* Alert banners */
+.alert-banner { padding: 10px 16px; border-radius: var(--radius-input); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; }
+.alert-banner.warning { background: #fef3c7; border: 1px solid #fde68a; color: #92400e; }
+.alert-banner.error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+.alert-banner-icon { font-size: 16px; }
+
+/* Locked field */
+.locked-field { padding: 9px 12px; border: 1px dashed var(--c-border); border-radius: var(--radius-input); background: var(--bg-stripe); color: var(--c-text-muted); font-size: 13px; font-style: italic; display: flex; align-items: center; gap: 6px; }
+
+/* Actions */
+.form-actions { display: flex; gap: 10px; justify-content: flex-end; padding-top: 8px; }
+.btn-primary { padding: 10px 28px; background: var(--c-accent); color: #fff; border: none; border-radius: var(--radius-btn); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-primary:hover { background: var(--c-accent-hover); }
+.btn-secondary { padding: 10px 28px; background: #fff; color: var(--c-text-secondary); border: 1px solid var(--c-border); border-radius: var(--radius-btn); font-size: 14px; font-weight: 500; cursor: pointer; }
+.btn-secondary:hover { background: var(--bg-hover); }
+
+/* Validation summary */
+.validation-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: var(--radius-card); padding: 14px 18px; margin-bottom: 16px; }
+.validation-title { font-size: 13px; font-weight: 700; color: var(--c-danger); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.validation-list { list-style: none; padding: 0; }
+.validation-list li { font-size: 12px; color: #991b1b; padding: 3px 0; padding-left: 16px; position: relative; }
+.validation-list li:before { content: "x"; position: absolute; left: 0; font-weight: 700; }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- Role Switcher -->
+<div class="role-switcher">
+  <label>View as:</label>
+  <button class="role-btn active" data-role="CEO" onclick="switchRole('CEO')">CEO</button>
+  <button class="role-btn" data-role="CTO" onclick="switchRole('CTO')">CTO</button>
+  <button class="role-btn" data-role="DM" onclick="switchRole('DM')">DM</button>
+  <button class="role-btn" data-role="PM" onclick="switchRole('PM')">PM</button>
+  <button class="role-btn" data-role="FINANCE" onclick="switchRole('FINANCE')">Finance</button>
+  <button class="role-btn" data-role="HR" onclick="switchRole('HR')">HR</button>
+  <button class="role-btn" data-role="ENGINEER" onclick="switchRole('ENGINEER')">Engineer</button>
+</div>
+<div class="toggle-bar">
+  <button class="toggle-btn" onclick="toggleValidation(this)">Toggle Validation Errors</button>
+  <button class="toggle-btn" onclick="toggleEmptyState(this)">Toggle Empty State (Access Denied)</button>
+</div>
+
+<!-- App Header -->
+<div class="app-header">
+  <div class="app-logo">
+    <div class="logo-icon">RI</div>
+    Resource Intelligence Platform
+  </div>
+  <div class="header-right">
+    <span style="font-size:13px;color:var(--c-text-secondary)" id="roleDisplay">CEO</span>
+    <div class="header-avatar">VS</div>
+  </div>
+</div>
+
+<div class="app-layout">
+  <div class="sidebar">
+    <div class="nav-section">
+      <div class="nav-section-title">Main</div>
+      <a class="nav-item" href="#"><span class="nav-icon">&#9632;</span> Dashboard</a>
+      <a class="nav-item" href="#"><span class="nav-icon">&#9679;</span> Clients</a>
+      <a class="nav-item active" href="#"><span class="nav-icon">&#9670;</span> Projects</a>
+      <a class="nav-item" href="#"><span class="nav-icon">&#9733;</span> Resources</a>
+      <a class="nav-item" href="#"><span class="nav-icon">&#9830;</span> Allocations</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Finance</div>
+      <a class="nav-item" href="#"><span class="nav-icon">&#8377;</span> Invoicing</a>
+      <a class="nav-item" href="#"><span class="nav-icon">&#9835;</span> Costs</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Reports</div>
+      <a class="nav-item" href="#"><span class="nav-icon">&#9776;</span> Utilization</a>
+      <a class="nav-item" href="#"><span class="nav-icon">&#9888;</span> Alerts</a>
+      <a class="nav-item" href="#"><span class="nav-icon">&#8634;</span> Audit Log</a>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <!-- Form Panel -->
+    <div class="form-panel" id="formPanel">
+      <div class="form-panel-header">
+        <div>
+          <div class="form-panel-title">Add Assignment</div>
+          <div class="form-panel-subtitle">Project: TechCorp ERP Migration</div>
+        </div>
+        <button class="close-btn" onclick="alert('Close form')">&times;</button>
+      </div>
+
+      <!-- Validation Summary (toggled) -->
+      <div class="validation-box hidden" id="validationBox">
+        <div class="validation-title">&#9888; Please fix the following errors</div>
+        <ul class="validation-list">
+          <li>Billability cannot exceed allocation percentage</li>
+          <li>End date must be after start date</li>
+        </ul>
+      </div>
+
+      <!-- Over-allocation Warning -->
+      <div class="alert-banner warning" id="overAllocWarning">
+        <span class="alert-banner-icon">&#9888;</span>
+        This will bring total allocation for Arjun Mehta to <strong>120%</strong> (currently 70% across other projects)
+      </div>
+
+      <!-- Assignment Details -->
+      <div class="form-card">
+        <div class="form-section-title">Assignment Details</div>
+
+        <!-- Resource Selector -->
+        <div class="form-row single">
+          <div class="form-group">
+            <label class="form-label">Resource <span class="required">*</span></label>
+            <select class="form-select" id="resourceSelect" onchange="updateResourceInfo()">
+              <option value="">Select a resource...</option>
+              <option value="arjun" selected>Arjun Mehta (SS-003) — Sr. Software Engineer</option>
+              <option value="priya">Priya Patel (SS-002) — Sr. Software Engineer</option>
+              <option value="sneha">Sneha Reddy (SS-006) — Software Engineer</option>
+              <option value="neha">Neha Gupta (SS-004) — QA Engineer</option>
+              <option value="amit">Amit Joshi (SS-007) — UI/UX Designer</option>
+              <option value="rajesh">Rajesh Kumar (SS-005) — DevOps Engineer</option>
+            </select>
+            <div class="resource-info" id="resourceInfo">
+              Current allocation: <strong>70%</strong> across 2 projects
+              <span class="alloc-badge alloc-warn">70% allocated</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Allocation & Billability -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Allocation % <span class="required">*</span></label>
+            <input class="form-input" type="number" min="1" max="100" value="50" id="allocInput" oninput="validateLive()">
+            <div class="form-help">Capacity consumed (1-100%)</div>
+            <div class="form-error hidden" id="allocError">Allocation must be between 1% and 100%</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Billability % <span class="required">*</span></label>
+            <input class="form-input error" type="number" min="0" max="100" value="60" id="billInput" oninput="validateLive()">
+            <div class="form-error" id="billError">Billability cannot exceed allocation percentage</div>
+          </div>
+        </div>
+
+        <!-- Shadow Toggle -->
+        <div class="form-row single">
+          <div class="form-group">
+            <div class="checkbox-wrapper">
+              <input type="checkbox" id="shadowCheck" onchange="toggleShadow()">
+              <div>
+                <div class="checkbox-label">Shadow Assignment</div>
+                <div class="checkbox-desc">Shadow resources have 0% billability and no billing rate</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dates & Overrides -->
+      <div class="form-card">
+        <div class="form-section-title">Dates & Overrides</div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Start Date <span class="required">*</span></label>
+            <input class="form-input" type="date" value="2026-06-01" id="startDate" onchange="validateLive()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">End Date</label>
+            <input class="form-input" type="date" value="" id="endDate" onchange="validateLive()">
+            <div class="form-help">Leave empty for ongoing assignment</div>
+            <div class="form-error hidden" id="dateError">End date must be after start date</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Project Designation Override</label>
+            <input class="form-input" type="text" placeholder="e.g. Frontend Lead" id="projDesig">
+            <div class="form-help">Overrides resource's default designation for this project</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Project Expertise Override</label>
+            <input class="form-input" type="text" placeholder="e.g. React, GraphQL" id="projExpertise">
+            <div class="form-help">Overrides resource's default expertise for this project</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Billing Rate (Phase 2) -->
+      <div class="form-card" id="rateCard">
+        <div class="form-section-title">Billing</div>
+        <div class="form-row single">
+          <div class="form-group">
+            <label class="form-label">Billing Rate (per hour)</label>
+            <div class="locked-field">
+              <span>&#128274;</span>
+              Phase 2 -- Available in Financial Engine phase
+            </div>
+            <div class="form-help">Per-hour rate in project billing currency. Null for shadow assignments.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button class="btn-secondary" onclick="alert('Close form')">Cancel</button>
+        <button class="btn-primary" onclick="submitForm()">Save Assignment</button>
+      </div>
+    </div>
+
+    <!-- Access Denied -->
+    <div id="accessDenied" class="hidden" style="max-width:580px;width:100%">
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius-card);padding:40px 20px;text-align:center">
+        <div style="font-size:48px;margin-bottom:12px">&#128683;</div>
+        <div style="font-size:18px;font-weight:700;color:var(--c-danger);margin-bottom:6px">Access Denied</div>
+        <div style="font-size:13px;color:var(--c-text-secondary)">You do not have permission to create or edit assignments. This action is available to CEO, CTO, DM, and PM roles.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentRole = 'CEO';
+let showValidation = false;
+let showAccessDenied = false;
+
+const roleConfig = {
+  CEO:      { canAccess: true, seeRate: true },
+  CTO:      { canAccess: true, seeRate: true },
+  DM:       { canAccess: true, seeRate: true },
+  PM:       { canAccess: true, seeRate: false },
+  FINANCE:  { canAccess: false, seeRate: true },
+  HR:       { canAccess: false, seeRate: false },
+  ENGINEER: { canAccess: false, seeRate: false }
+};
+
+function switchRole(role) {
+  currentRole = role;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.toggle('active', b.dataset.role === role));
+  document.getElementById('roleDisplay').textContent = role;
+  applyRoleAccess();
+}
+
+function toggleValidation(btn) {
+  showValidation = !showValidation;
+  btn.classList.toggle('active', showValidation);
+  applyRoleAccess();
+}
+
+function toggleEmptyState(btn) {
+  showAccessDenied = !showAccessDenied;
+  btn.classList.toggle('active', showAccessDenied);
+  applyRoleAccess();
+}
+
+function applyRoleAccess() {
+  const cfg = roleConfig[currentRole];
+  const hasAccess = cfg.canAccess && !showAccessDenied;
+
+  document.getElementById('formPanel').classList.toggle('hidden', !hasAccess);
+  document.getElementById('accessDenied').classList.toggle('hidden', hasAccess);
+
+  document.getElementById('rateCard').classList.toggle('hidden', !cfg.seeRate);
+  document.getElementById('validationBox').classList.toggle('hidden', !showValidation);
+}
+
+function toggleShadow() {
+  const checked = document.getElementById('shadowCheck').checked;
+  const billInput = document.getElementById('billInput');
+  if (checked) {
+    billInput.value = 0;
+    billInput.disabled = true;
+    billInput.classList.remove('error');
+    document.getElementById('billError').classList.add('hidden');
+  } else {
+    billInput.disabled = false;
+  }
+}
+
+function updateResourceInfo() {
+  const val = document.getElementById('resourceSelect').value;
+  const infoEl = document.getElementById('resourceInfo');
+  const allocData = {
+    arjun:  { pct: 70, projects: 2, cls: 'alloc-warn' },
+    priya:  { pct: 100, projects: 1, cls: 'alloc-warn' },
+    sneha:  { pct: 0, projects: 0, cls: 'alloc-ok' },
+    neha:   { pct: 50, projects: 1, cls: 'alloc-ok' },
+    amit:   { pct: 60, projects: 1, cls: 'alloc-warn' },
+    rajesh: { pct: 100, projects: 1, cls: 'alloc-warn' }
+  };
+  if (allocData[val]) {
+    const d = allocData[val];
+    infoEl.innerHTML = `Current allocation: <strong>${d.pct}%</strong> across ${d.projects} project(s) <span class="alloc-badge ${d.cls}">${d.pct}% allocated</span>`;
+    infoEl.classList.remove('hidden');
+
+    // Update warning
+    const alloc = parseInt(document.getElementById('allocInput').value) || 0;
+    const total = d.pct + alloc;
+    const warn = document.getElementById('overAllocWarning');
+    if (total > 100) {
+      warn.innerHTML = `<span class="alert-banner-icon">&#9888;</span> This will bring total allocation for ${document.getElementById('resourceSelect').selectedOptions[0].text.split(' (')[0]} to <strong>${total}%</strong> (currently ${d.pct}% across other projects)`;
+      warn.classList.remove('hidden');
+    } else {
+      warn.classList.add('hidden');
+    }
+  } else {
+    infoEl.classList.add('hidden');
+    document.getElementById('overAllocWarning').classList.add('hidden');
+  }
+}
+
+function validateLive() {
+  const alloc = parseInt(document.getElementById('allocInput').value) || 0;
+  const bill = parseInt(document.getElementById('billInput').value) || 0;
+  const shadow = document.getElementById('shadowCheck').checked;
+
+  // Allocation range
+  const allocErr = document.getElementById('allocError');
+  if (alloc < 1 || alloc > 100) {
+    allocErr.classList.remove('hidden');
+    document.getElementById('allocInput').classList.add('error');
+  } else {
+    allocErr.classList.add('hidden');
+    document.getElementById('allocInput').classList.remove('error');
+  }
+
+  // Billability vs allocation
+  const billErr = document.getElementById('billError');
+  if (!shadow && bill > alloc) {
+    billErr.classList.remove('hidden');
+    billErr.textContent = 'Billability cannot exceed allocation percentage';
+    document.getElementById('billInput').classList.add('error');
+  } else {
+    billErr.classList.add('hidden');
+    document.getElementById('billInput').classList.remove('error');
+  }
+
+  // Date validation
+  const start = document.getElementById('startDate').value;
+  const end = document.getElementById('endDate').value;
+  const dateErr = document.getElementById('dateError');
+  if (start && end && end <= start) {
+    dateErr.classList.remove('hidden');
+    document.getElementById('endDate').classList.add('error');
+  } else {
+    dateErr.classList.add('hidden');
+    document.getElementById('endDate').classList.remove('error');
+  }
+
+  updateResourceInfo();
+}
+
+function submitForm() {
+  const alloc = parseInt(document.getElementById('allocInput').value) || 0;
+  const bill = parseInt(document.getElementById('billInput').value) || 0;
+  const shadow = document.getElementById('shadowCheck').checked;
+  const resource = document.getElementById('resourceSelect').value;
+  const start = document.getElementById('startDate').value;
+  const end = document.getElementById('endDate').value;
+
+  let errors = [];
+  if (!resource) errors.push('Resource is required');
+  if (alloc < 1 || alloc > 100) errors.push('Allocation must be between 1% and 100%');
+  if (!shadow && bill > alloc) errors.push('Billability cannot exceed allocation percentage');
+  if (shadow && bill > 0) errors.push('Shadow resources cannot have billability');
+  if (!start) errors.push('Start date is required');
+  if (start && end && end <= start) errors.push('End date must be after start date');
+
+  if (errors.length > 0) {
+    alert('Validation errors:\n- ' + errors.join('\n- '));
+  } else {
+    alert('Assignment saved successfully!');
+  }
+}
+
+applyRoleAccess();
+</script>
+</body>
+</html>

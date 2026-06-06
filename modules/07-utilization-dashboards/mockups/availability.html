@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resource Availability | SculptSoft RIP</title>
+<style>
+:root {
+  --bg-page: #F0F1FA; --bg-card: #ffffff; --bg-sidebar: #F5F6FC;
+  --bg-header: #ffffff; --bg-hover: #F0F1FA; --bg-stripe: #F5F6FC;
+  --c-primary: #2B3990; --c-primary-dark: #1B2B65; --c-primary-light: #4A5BB5;
+  --c-accent: #FF4B2B; --c-accent-hover: #E63E1F; --c-accent-soft: #FFF0EC;
+  --c-text: #1e1b4b; --c-text-secondary: #6b7280; --c-text-muted: #7C85C0;
+  --c-border: #D6DAF0; --c-border-light: #E8EAF6;
+  --c-danger: #ef4444; --c-success: #22c55e; --c-warning: #f59e0b;
+  --shadow-card: 0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --radius-card: 12px; --radius-input: 8px; --radius-btn: 8px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg-page); color: var(--c-text); min-height: 100vh; }
+
+/* Role Switcher Bar */
+.role-switcher { position: sticky; top: 0; z-index: 1000; background: var(--c-primary-dark); display: flex; align-items: center; padding: 0 24px; height: 40px; gap: 8px; }
+.role-switcher .label { color: rgba(255,255,255,0.6); font-size: 12px; font-weight: 500; margin-right: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.role-switcher button { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; transition: all 0.2s; font-family: var(--font); }
+.role-switcher button:hover { background: rgba(255,255,255,0.2); color: #fff; }
+.role-switcher button.active { background: var(--c-accent); color: #fff; border-color: var(--c-accent); font-weight: 600; }
+.role-switcher .toggle-empty { margin-left: auto; display: flex; align-items: center; gap: 6px; color: rgba(255,255,255,0.6); font-size: 12px; }
+.role-switcher .toggle-empty input { accent-color: var(--c-accent); }
+
+/* App Header */
+.app-header { background: var(--bg-header); border-bottom: 1px solid var(--c-border-light); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.app-header .logo { font-size: 18px; font-weight: 700; color: var(--c-primary); }
+.app-header .logo span { color: var(--c-accent); }
+.app-header .user-info { display: flex; align-items: center; gap: 10px; }
+.app-header .avatar { width: 32px; height: 32px; background: var(--c-primary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+.app-header .user-name { font-size: 13px; color: var(--c-text-secondary); }
+
+/* Layout */
+.app-layout { display: flex; min-height: calc(100vh - 96px); }
+.sidebar { width: 220px; background: var(--bg-sidebar); border-right: 1px solid var(--c-border-light); padding: 16px 0; flex-shrink: 0; }
+.sidebar a { display: flex; align-items: center; gap: 10px; padding: 10px 20px; color: var(--c-text-secondary); text-decoration: none; font-size: 14px; transition: all 0.15s; }
+.sidebar a:hover { background: var(--bg-hover); color: var(--c-text); }
+.sidebar a.active { background: var(--c-accent-soft); color: var(--c-accent); font-weight: 600; border-right: 3px solid var(--c-accent); }
+.sidebar .section-title { padding: 16px 20px 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-text-muted); font-weight: 600; }
+.main-content { flex: 1; padding: 24px 32px; overflow-x: auto; }
+
+/* Page Header */
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.page-header h1 { font-size: 22px; font-weight: 700; }
+.page-header .subtitle { font-size: 13px; color: var(--c-text-secondary); margin-top: 2px; }
+
+/* Toolbar */
+.toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 12px; }
+.toolbar .search-box { position: relative; }
+.toolbar .search-box input { padding: 8px 14px 8px 36px; border: 1px solid var(--c-border); border-radius: var(--radius-input); font-size: 13px; width: 280px; font-family: var(--font); }
+.toolbar .search-box input:focus { outline: none; border-color: var(--c-primary); box-shadow: 0 0 0 3px rgba(43,57,144,0.08); }
+.toolbar .search-box .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--c-text-muted); font-size: 14px; }
+.toolbar .filters { display: flex; gap: 8px; }
+.filter-btn { padding: 7px 14px; font-size: 12px; font-weight: 500; border: 1px solid var(--c-border); background: #fff; color: var(--c-text-secondary); border-radius: 20px; cursor: pointer; font-family: var(--font); transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+.filter-btn:hover { border-color: var(--c-primary); color: var(--c-primary); }
+.filter-btn.active { background: var(--c-primary); color: #fff; border-color: var(--c-primary); }
+.filter-btn .count { background: rgba(255,255,255,0.2); padding: 1px 7px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+.filter-btn.active .count { background: rgba(255,255,255,0.3); }
+.filter-btn:not(.active) .count { background: var(--bg-stripe); color: var(--c-text-muted); }
+
+/* Card */
+.card { background: var(--bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card); border: 1px solid var(--c-border-light); margin-bottom: 20px; }
+
+/* Table */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table thead th { background: linear-gradient(135deg, var(--c-primary) 0%, var(--c-primary-light) 100%); color: #fff; padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; cursor: pointer; user-select: none; }
+.data-table thead th:hover { background: linear-gradient(135deg, var(--c-primary-light) 0%, var(--c-primary) 100%); }
+.data-table thead th .sort-icon { margin-left: 4px; font-size: 10px; opacity: 0.5; }
+.data-table tbody tr { border-bottom: 1px solid var(--c-border-light); transition: background 0.1s; }
+.data-table tbody tr:hover { background: var(--bg-hover); }
+.data-table tbody tr:nth-child(even) { background: var(--bg-stripe); }
+.data-table tbody tr:nth-child(even):hover { background: var(--bg-hover); }
+.data-table td { padding: 12px 16px; font-size: 13px; }
+.data-table .text-right { text-align: right; }
+.data-table .text-center { text-align: center; }
+
+/* Status Indicator */
+.status-dot { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 12px; }
+.status-dot .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.status-dot.available .dot { background: var(--c-success); box-shadow: 0 0 6px rgba(34,197,94,0.4); }
+.status-dot.available { color: #166534; }
+.status-dot.partial .dot { background: var(--c-warning); box-shadow: 0 0 6px rgba(245,158,11,0.4); }
+.status-dot.partial { color: #92400E; }
+.status-dot.fully .dot { background: #9CA3AF; }
+.status-dot.fully { color: #6B7280; }
+.status-dot.over .dot { background: var(--c-danger); box-shadow: 0 0 6px rgba(239,68,68,0.4); animation: pulse 1.5s infinite; }
+.status-dot.over { color: #B91C1C; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+/* Allocation Bar */
+.alloc-bar { display: flex; align-items: center; gap: 8px; }
+.alloc-track { width: 80px; height: 8px; background: #E5E7EB; border-radius: 4px; overflow: hidden; flex-shrink: 0; }
+.alloc-fill { height: 100%; border-radius: 4px; }
+.alloc-fill.green { background: var(--c-success); }
+.alloc-fill.amber { background: var(--c-warning); }
+.alloc-fill.gray { background: #9CA3AF; }
+.alloc-fill.red { background: var(--c-danger); }
+.alloc-pct { font-weight: 700; font-size: 13px; min-width: 40px; }
+
+/* Tags */
+.tag { display: inline-flex; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; background: #EEF0FF; color: var(--c-primary); margin-right: 4px; }
+
+/* Project pills */
+.project-pill { display: inline-flex; padding: 2px 8px; border-radius: 10px; font-size: 11px; background: var(--bg-stripe); color: var(--c-text-secondary); margin-right: 4px; margin-bottom: 2px; }
+
+/* Bench days */
+.bench-days { font-weight: 700; }
+.bench-days.long { color: var(--c-danger); }
+.bench-days.medium { color: var(--c-warning); }
+.bench-days.short { color: var(--c-success); }
+
+/* Empty State */
+.empty-state { display: none; text-align: center; padding: 60px 20px; }
+.empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state h3 { font-size: 16px; margin-bottom: 6px; }
+.empty-state p { font-size: 13px; color: var(--c-text-secondary); }
+
+/* Summary strip */
+.summary-strip { display: flex; gap: 24px; margin-bottom: 20px; }
+.summary-item { display: flex; align-items: center; gap: 8px; }
+.summary-item .dot-lg { width: 12px; height: 12px; border-radius: 50%; }
+.summary-item .dot-lg.green { background: var(--c-success); }
+.summary-item .dot-lg.amber { background: var(--c-warning); }
+.summary-item .dot-lg.gray { background: #9CA3AF; }
+.summary-item .dot-lg.red { background: var(--c-danger); }
+.summary-item .si-label { font-size: 13px; color: var(--c-text-secondary); }
+.summary-item .si-count { font-size: 15px; font-weight: 700; color: var(--c-text); }
+</style>
+</head>
+<body>
+
+<!-- Role Switcher Bar -->
+<div class="role-switcher">
+  <span class="label">Viewing as:</span>
+  <button class="active" data-role="CEO">CEO</button>
+  <button data-role="CTO">CTO</button>
+  <button data-role="DM">DM</button>
+  <button data-role="PM">PM</button>
+  <button data-role="FINANCE">Finance</button>
+  <button data-role="HR">HR</button>
+  <button data-role="ENGINEER">Engineer</button>
+  <div class="toggle-empty">
+    <input type="checkbox" id="toggleEmpty">
+    <label for="toggleEmpty">Show Empty State</label>
+  </div>
+</div>
+
+<!-- App Header -->
+<header class="app-header">
+  <div class="logo">Sculpt<span>RIP</span></div>
+  <div class="user-info">
+    <span class="user-name" id="currentUser">Vivek Sharma (CEO)</span>
+    <div class="avatar" id="currentAvatar">VS</div>
+  </div>
+</header>
+
+<!-- Layout -->
+<div class="app-layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="section-title">Main</div>
+    <a href="#">&#9633; Dashboard</a>
+    <a href="#">&#9633; Clients</a>
+    <a href="#">&#9633; Projects</a>
+    <a href="#">&#9633; Resources</a>
+    <a href="#">&#9633; Allocations</a>
+    <div class="section-title">Analytics</div>
+    <a href="#">&#9633; Utilization</a>
+    <a href="#" class="active">&#9633; Availability</a>
+    <div class="section-title">Finance</div>
+    <a href="#">&#9633; Invoicing</a>
+    <div class="section-title">System</div>
+    <a href="#">&#9633; Audit Log</a>
+    <a href="#">&#9633; Settings</a>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content" id="mainContent">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <h1>Resource Availability</h1>
+        <div class="subtitle">View allocation status of all active resources across the organization</div>
+      </div>
+    </div>
+
+    <!-- Summary Strip -->
+    <div class="summary-strip" id="summaryStrip">
+      <div class="summary-item">
+        <div class="dot-lg green"></div>
+        <div>
+          <div class="si-count">3</div>
+          <div class="si-label">Available (&gt;50%)</div>
+        </div>
+      </div>
+      <div class="summary-item">
+        <div class="dot-lg amber"></div>
+        <div>
+          <div class="si-count">3</div>
+          <div class="si-label">Partial (1-50%)</div>
+        </div>
+      </div>
+      <div class="summary-item">
+        <div class="dot-lg gray"></div>
+        <div>
+          <div class="si-count">3</div>
+          <div class="si-label">Fully Allocated</div>
+        </div>
+      </div>
+      <div class="summary-item">
+        <div class="dot-lg red"></div>
+        <div>
+          <div class="si-count">1</div>
+          <div class="si-label">Over-Allocated</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar" id="toolbar">
+      <div class="search-box">
+        <span class="search-icon">&#128269;</span>
+        <input type="text" placeholder="Search by resource name..." id="searchInput">
+      </div>
+      <div class="filters">
+        <button class="filter-btn active" data-filter="all">All <span class="count">10</span></button>
+        <button class="filter-btn" data-filter="available">Available <span class="count">3</span></button>
+        <button class="filter-btn" data-filter="partial">Partial <span class="count">3</span></button>
+        <button class="filter-btn" data-filter="fully">Fully Allocated <span class="count">3</span></button>
+        <button class="filter-btn" data-filter="over">Over-Allocated <span class="count">1</span></button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card" id="tableCard">
+      <table class="data-table" id="resourceTable">
+        <thead>
+          <tr>
+            <th>Resource Name <span class="sort-icon">&#9650;&#9660;</span></th>
+            <th>Designation</th>
+            <th>Allocation <span class="sort-icon">&#9650;&#9660;</span></th>
+            <th>Available <span class="sort-icon">&#9650;&#9660;</span></th>
+            <th>Status</th>
+            <th>Projects</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Available (>50% spare) -->
+          <tr data-status="available">
+            <td style="font-weight:600;">Rohit Joshi</td>
+            <td>Senior Software Engineer</td>
+            <td>
+              <div class="alloc-bar">
+                <div class="alloc-track"><div class="alloc-fill green" style="width:30%"></div></div>
+                <span class="alloc-pct" style="color:var(--c-success)">30%</span>
+              </div>
+            </td>
+            <td>
+              <div class="alloc-bar">
+                <div class="alloc-track"><div class="alloc-fill green" style="width:70%"></div></div>
+                <span class="alloc-pct" style="color:var(--c-success)">70%</span>
+              </div>
+            </td>
+            <td><span class="status-dot available"><span class="dot"></span>Available</span></td>
+            <td><span class="project-pill">HDFC Mobile Banking</span></td>
+            <td><span class="tag">React</span><span class="tag">Node.js</span></td>
+          </tr>
+          <tr data-status="available">
+            <td style="font-weight:600;">Sneha Patil</td>
+            <td>QA Engineer</td>
+            <td>
+              <div class="alloc-bar">
+                <div class="alloc-track"><div class="alloc-fill green" style="width:0%"></div></div>
+                <span class="alloc-pct" style="color:var(--c-success)">0%</span>
+              </div>
+            </td>
+            <td>
+              <div class="alloc-bar">
+                <div class="alloc-track"><div class="alloc-fill green" style="width:100%"></div></div>
+                <span class="alloc-pct" style="color:var(--c-success)">100%</span>
+              </div>
+            </td>
+            <td><span class="status-dot available"><span class="dot"></span>On Bench</span></td>
+            <td style="color: var(--c-text-muted); font-style: italic;">No active projects</td>
+            <td><span class="bench-days medium">18 days on bench</span></td>
+          </tr>
+          <tr data-status="available">
+            <td style="font-weight:600;">Vikram Singh</td>
+            <td>DevOps Engineer</td>
+            <td>
+              <div class="alloc-bar">
+                <div class="alloc-track"><div class="alloc-fill green" style="width:0%"></div></div>
+                <span class="alloc-pct" style="color:var(--c-success)">0%</span>
+              </div>
+            </td>
+            <td>
+              <div class="alloc-bar">
+                <div class="alloc-track"><div class="alloc-fill green" style="width:100%"></div></div>
+                <span class="alloc-pct" style="color:var(--c-success)">100%</span>
+              </div>
+            </td>
+            <td><span class="status-dot available"><span class="dot"></span>On Bench</span></td>
+            <td style="color: var(--c-text-muted); font-style: italic;">No active projects</td>
+            <td><span class="bench-days short">5 days on bench</span></td>
+          </tr>
+
+          <!-- Partial (1-50% spare) -->
+          <tr data-status="partial">
+            <td style="font-weight:600;">Priya Patel</td>
+            <td>Project Manager</td>
+            <td>
+              <div class="alloc-bar">
+                <div class="alloc-track"><div class="alloc-fill amber" style="width:60%"></div></div>
+                <span class="alloc-pct" style="color:var(--c-warning)">60%</span>
+              </div>
+            </td>
+            <td>
+              <div class="alloc-bar">
+                <div class="alloc-track"><div class="alloc-fill amber" style="width:40%"></div></div>
+                <span class="alloc-pct" style="color:var(--c-warning)">40%</span>
+              </div>
+            </td>
+            <td><span class="status-dot partial"><span class="dot"></span>Partial</span></td>
+            <td><span class="project-pill">Reliance DT</span><span class="project-pill">Wipro Cloud</span></td>
+            <td><span class="tag">PM</span><span class="tag">Agile</span></td>
+          </tr>
+          <tr data-status="partial">
+            <td style="font-weight:600;">Karthik Raman</td>
+            <td>Full Stack Developer</td>
+            <td>
+              <div class="alloc-bar">
+                <div class="alloc-track"><div class="alloc-fill amber" style="width:70%"></div></div>
+                <span class="alloc-pct" style="color:var(--c-warning)">70%</span>
+              </div>
+            </td>
+            <td>
+              <div class="alloc-bar">
+                <div class="alloc-track"><div class="alloc-fill amber" style="width:30%"></div></div>
+                <span class="alloc-pct" style="color:var(--c-warning)">30%</span>
+              </div>
+            </td>
+            <td><span class="status-dot partial"><span class="dot"></span>Partial</span></td>
+            <td><span class="project-pill">Reliance DT</span></td>
+            <td><span class="tag">React</span><span class="tag">Python</span></td>
+          </tr>
+          <tr data-status="partial">
+            <td style="font-weight:600;">Meera Krishnan</td>
+            <td>UI/UX Designer</td>
+            <td>
+              <div class="alloc-bar">
+                <div class="alloc-track"><div class="alloc-fill amber" style="width:50%"></div></div>
+                <span class="alloc-pct" style="color:var(--c-warning)">50%</span>
+              </div>
+            </td>
+            <td>
+              <div class="alloc-bar">
+                <div class="alloc-track"><div class="alloc-fill amber" style="width:50%"></div></div>
+                <span class="alloc-pct" style="color:var(--c-warning)">50%</span>
+              </div>
+            </td>
+            <td><span class="status-dot partial"><span class="dot"></span>Partial</span></td>
+            <td><span class="project-pill">Wipro Cloud</span></td>
+            <td><span class="tag">Figma</span><span class="tag">UI/UX</span></td>
+          </tr>
+
+          <!-- Fully Allocated -->
+          <tr data-status="fully">
+            <td style="font-weight:600;">Arjun Mehta</td>
+            <td>Delivery Manager</td>
+            <td>
+              <div class="alloc-bar">
+                <div class="alloc-track"><div class="alloc-fill gray" style="width:100%"></div></div>
+                <span class="alloc-pct" style="color:#6B7280">100%</span>
+              </div>
+            </td>
+            <td>
+              <div class="alloc-bar">
+                <div class="alloc-track"><div class="alloc-fill gray" style="width:0%"></div></div>
+                <span class="alloc-pct" style="color:#6B7280">0%</span>
+              </div>
+            </td>
+            <td><span class="status-dot fully"><span class="dot"></span>Fully Allocated</span></td>
+            <td><span class="project-pill">Reliance DT</span><span class="project-pill">Bajaj Analytics</span></td>
+            <td><span class="tag">DM</span><span class="tag">Architecture</span></td>
+          </tr>
+          <tr data-status="fully">
+            <td style="font-weight:600;">Anjali Verma</td>
+            <td>Backend Developer</td>
+            <td>
+              <div class="alloc-bar">
+                <div class="alloc-track"><div class="alloc-fill gray" style="width:100%"></div></div>
+                <span class="alloc-pct" style="color:#6B7280">100%</span>
+              </div>
+            </td>
+            <td>
+              <div class="alloc-bar">
+                <div class="alloc-track"><div class="alloc-fill gray" style="width:0%"></div></div>
+                <span class="alloc-pct" style="color:#6B7280">0%</span>
+              </div>
+            </td>
+            <td><span class="status-dot fully"><span class="dot"></span>Fully Allocated</span></td>
+            <td><span class="project-pill">TCS Portal</span></td>
+            <td><span class="tag">Java</span><span class="tag">Spring</span></td>
+          </tr>
+          <tr data-status="fully">
+            <td style="font-weight:600;">Amit Trivedi</td>
+            <td>Data Engineer</td>
+            <td>
+              <div class="alloc-bar">
+                <div class="alloc-track"><div class="alloc-fill gray" style="width:100%"></div></div>
+                <span class="alloc-pct" style="color:#6B7280">100%</span>
+              </div>
+            </td>
+            <td>
+              <div class="alloc-bar">
+                <div class="alloc-track"><div class="alloc-fill gray" style="width:0%"></div></div>
+                <span class="alloc-pct" style="color:#6B7280">0%</span>
+              </div>
+            </td>
+            <td><span class="status-dot fully"><span class="dot"></span>Fully Allocated</span></td>
+            <td><span class="project-pill">Bajaj Analytics</span></td>
+            <td><span class="tag">Python</span><span class="tag">Spark</span></td>
+          </tr>
+
+          <!-- Over-Allocated -->
+          <tr data-status="over">
+            <td style="font-weight:600;">Deepika Nair</td>
+            <td>Delivery Manager</td>
+            <td>
+              <div class="alloc-bar">
+                <div class="alloc-track"><div class="alloc-fill red" style="width:100%"></div></div>
+                <span class="alloc-pct" style="color:var(--c-danger)">120%</span>
+              </div>
+            </td>
+            <td>
+              <div class="alloc-bar">
+                <div class="alloc-track"><div class="alloc-fill red" style="width:0%"></div></div>
+                <span class="alloc-pct" style="color:var(--c-danger)">-20%</span>
+              </div>
+            </td>
+            <td><span class="status-dot over"><span class="dot"></span>Over-Allocated</span></td>
+            <td><span class="project-pill">HDFC Banking</span><span class="project-pill">Infosys Platform</span><span class="project-pill">Mahindra EV</span></td>
+            <td><span class="tag">DM</span><span class="tag">Cloud</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState">
+      <div class="icon">&#128100;</div>
+      <h3>No resources found</h3>
+      <p>Adjust your search or filter criteria to find resources.</p>
+    </div>
+  </main>
+</div>
+
+<script>
+// Role Switcher
+const roleConfig = {
+  CEO:      { user: 'Vivek Sharma', avatar: 'VS' },
+  CTO:      { user: 'Rajesh Kumar', avatar: 'RK' },
+  DM:       { user: 'Arjun Mehta', avatar: 'AM' },
+  PM:       { user: 'Priya Patel', avatar: 'PP' },
+  FINANCE:  { user: 'Neha Gupta', avatar: 'NG' },
+  HR:       { user: 'Sunita Reddy', avatar: 'SR' },
+  ENGINEER: { user: 'Rohit Joshi', avatar: 'RJ' }
+};
+
+document.querySelectorAll('.role-switcher button[data-role]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.role-switcher button[data-role]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const role = btn.dataset.role;
+    const cfg = roleConfig[role];
+    document.getElementById('currentUser').textContent = cfg.user + ' (' + role + ')';
+    document.getElementById('currentAvatar').textContent = cfg.avatar;
+    // All roles have access to availability view per ACCESS-MATRIX.md
+  });
+});
+
+// Filter buttons
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const filter = btn.dataset.filter;
+    document.querySelectorAll('#resourceTable tbody tr').forEach(row => {
+      if (filter === 'all' || row.dataset.status === filter) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  });
+});
+
+// Search
+document.getElementById('searchInput').addEventListener('input', function() {
+  const query = this.value.toLowerCase();
+  document.querySelectorAll('#resourceTable tbody tr').forEach(row => {
+    const name = row.querySelector('td').textContent.toLowerCase();
+    row.style.display = name.includes(query) ? '' : 'none';
+  });
+});
+
+// Empty State Toggle
+document.getElementById('toggleEmpty').addEventListener('change', function() {
+  const table = document.getElementById('tableCard');
+  const empty = document.getElementById('emptyState');
+  const toolbar = document.getElementById('toolbar');
+  const summary = document.getElementById('summaryStrip');
+  if (this.checked) {
+    table.style.display = 'none';
+    toolbar.style.display = 'none';
+    summary.style.display = 'none';
+    empty.style.display = 'block';
+  } else {
+    table.style.display = 'block';
+    toolbar.style.display = 'flex';
+    summary.style.display = 'flex';
+    empty.style.display = 'none';
+  }
+});
+</script>
+</body>
+</html>

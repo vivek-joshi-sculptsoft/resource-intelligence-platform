@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bench &amp; Availability View | Resource Intelligence Platform</title>
+<style>
+:root {
+  --bg-page: #F0F1FA; --bg-card: #ffffff; --bg-sidebar: #F5F6FC;
+  --bg-header: #ffffff; --bg-hover: #F0F1FA; --bg-stripe: #F5F6FC;
+  --c-primary: #2B3990; --c-primary-dark: #1B2B65; --c-primary-light: #4A5BB5;
+  --c-accent: #FF4B2B; --c-accent-hover: #E63E1F; --c-accent-soft: #FFF0EC;
+  --c-text: #1e1b4b; --c-text-secondary: #6b7280; --c-text-muted: #7C85C0;
+  --c-border: #D6DAF0; --c-border-light: #E8EAF6;
+  --c-danger: #ef4444; --c-success: #22c55e; --c-warning: #f59e0b;
+  --shadow-card: 0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --radius-card: 12px; --radius-input: 8px; --radius-btn: 8px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg-page); color: var(--c-text); }
+
+.role-switcher {
+  background: linear-gradient(135deg, var(--c-primary-dark), var(--c-primary));
+  color: #fff; padding: 8px 24px; display: flex; align-items: center; gap: 12px; font-size: 13px;
+}
+.role-switcher label { font-weight: 500; opacity: 0.85; }
+.role-switcher select {
+  background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3);
+  padding: 4px 10px; border-radius: var(--radius-input); font-size: 13px; cursor: pointer;
+}
+.role-switcher select option { color: #333; background: #fff; }
+
+.app-header {
+  background: var(--bg-header); border-bottom: 1px solid var(--c-border-light);
+  padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.app-header .logo { font-weight: 700; font-size: 18px; color: var(--c-primary); }
+.app-header .logo span { color: var(--c-accent); }
+.header-right { display: flex; align-items: center; gap: 16px; }
+.header-right .notif { width: 36px; height: 36px; border-radius: 50%; background: var(--bg-page); display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--c-border-light); font-size: 16px; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--c-primary), var(--c-primary-light)); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; }
+
+.layout { display: flex; min-height: calc(100vh - 56px - 36px); }
+
+.sidebar {
+  width: 240px; background: var(--bg-sidebar); border-right: 1px solid var(--c-border-light);
+  padding: 16px 0; flex-shrink: 0;
+}
+.sidebar .nav-section { padding: 0 16px; margin-bottom: 8px; font-size: 11px; font-weight: 600; color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.sidebar a {
+  display: flex; align-items: center; gap: 10px; padding: 10px 20px; color: var(--c-text-secondary);
+  text-decoration: none; font-size: 14px; transition: all 0.15s;
+}
+.sidebar a:hover { background: var(--bg-hover); color: var(--c-text); }
+.sidebar a.active { background: var(--c-accent-soft); color: var(--c-accent); font-weight: 600; border-right: 3px solid var(--c-accent); }
+.sidebar .icon { width: 20px; text-align: center; }
+
+.main { flex: 1; padding: 24px 32px; max-width: calc(100% - 240px); }
+
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+.page-title { font-size: 24px; font-weight: 700; color: var(--c-text); }
+.page-subtitle { font-size: 14px; color: var(--c-text-secondary); margin-top: 4px; }
+
+/* Toggle */
+.toggle-bar {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding: 10px 16px;
+  background: var(--bg-card); border: 1px solid var(--c-border-light); border-radius: var(--radius-input);
+  font-size: 13px; color: var(--c-text-secondary);
+}
+.toggle-switch { position: relative; width: 40px; height: 22px; cursor: pointer; }
+.toggle-switch input { display: none; }
+.toggle-slider {
+  position: absolute; inset: 0; background: var(--c-border); border-radius: 11px; transition: 0.2s;
+}
+.toggle-slider::before {
+  content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px;
+  background: #fff; border-radius: 50%; transition: 0.2s;
+}
+.toggle-switch input:checked + .toggle-slider { background: var(--c-accent); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+/* Summary Cards */
+.summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.summary-card {
+  background: var(--bg-card); border-radius: var(--radius-card); padding: 20px;
+  box-shadow: var(--shadow-card); border: 1px solid var(--c-border-light); position: relative; overflow: hidden;
+}
+.summary-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+}
+.summary-card.bench::before { background: linear-gradient(90deg, var(--c-danger), #f87171); }
+.summary-card.partial::before { background: linear-gradient(90deg, var(--c-warning), #fbbf24); }
+.summary-card.releasing::before { background: linear-gradient(90deg, var(--c-primary), var(--c-primary-light)); }
+.summary-card.allocated::before { background: linear-gradient(90deg, var(--c-success), #4ade80); }
+.summary-card .sc-number { font-size: 32px; font-weight: 800; color: var(--c-text); }
+.summary-card .sc-label { font-size: 13px; font-weight: 600; color: var(--c-text-secondary); margin-top: 4px; }
+.summary-card .sc-sub { font-size: 12px; color: var(--c-text-muted); margin-top: 2px; }
+
+/* Bench Cost Card */
+.bench-cost-card {
+  background: linear-gradient(135deg, var(--c-primary-dark), var(--c-primary));
+  color: #fff; border-radius: var(--radius-card); padding: 20px; margin-bottom: 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 4px 12px rgba(43,57,144,0.3);
+}
+.bench-cost-card .bcc-left { }
+.bench-cost-card .bcc-label { font-size: 13px; font-weight: 500; opacity: 0.8; }
+.bench-cost-card .bcc-value { font-size: 28px; font-weight: 800; margin-top: 4px; }
+.bench-cost-card .bcc-sub { font-size: 12px; opacity: 0.7; margin-top: 2px; }
+.bench-cost-card .bcc-right { text-align: right; }
+.bench-cost-card .bcc-daily-label { font-size: 11px; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.5px; }
+.bench-cost-card .bcc-daily-value { font-size: 18px; font-weight: 700; margin-top: 2px; }
+
+/* Tab bar */
+.section-tabs {
+  display: flex; gap: 0; border-bottom: 2px solid var(--c-border-light); margin-bottom: 0;
+}
+.section-tab {
+  padding: 12px 20px; font-size: 14px; font-weight: 500; color: var(--c-text-secondary);
+  cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-tab:hover { color: var(--c-text); }
+.section-tab.active { color: var(--c-accent); border-bottom-color: var(--c-accent); font-weight: 600; }
+.tab-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px;
+  font-size: 11px; font-weight: 700;
+}
+.section-tab.active .tab-count { background: var(--c-accent-soft); color: var(--c-accent); }
+.section-tab:not(.active) .tab-count { background: var(--bg-stripe); color: var(--c-text-muted); }
+
+/* Day Window Filter */
+.day-filter {
+  display: flex; align-items: center; gap: 8px; padding: 12px 20px;
+  background: var(--bg-stripe); border-bottom: 1px solid var(--c-border-light);
+}
+.day-btn {
+  padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+  cursor: pointer; border: 1px solid var(--c-border); background: var(--bg-card);
+  color: var(--c-text-secondary); transition: all 0.15s;
+}
+.day-btn:hover { border-color: var(--c-primary-light); color: var(--c-primary); }
+.day-btn.active { background: var(--c-primary); color: #fff; border-color: var(--c-primary); }
+
+/* Search */
+.search-bar {
+  display: flex; align-items: center; gap: 12px; padding: 12px 20px;
+  background: var(--bg-card); border-bottom: 1px solid var(--c-border-light);
+}
+.search-input {
+  flex: 1; max-width: 320px; padding: 8px 14px 8px 36px; font-size: 14px;
+  border: 1px solid var(--c-border); border-radius: var(--radius-input);
+  background: var(--bg-page); position: relative;
+}
+.search-input:focus { outline: none; border-color: var(--c-primary-light); background: var(--bg-card); box-shadow: 0 0 0 3px rgba(43,57,144,0.1); }
+.search-wrapper { position: relative; flex: 1; max-width: 320px; }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--c-text-muted); font-size: 14px; }
+
+/* Section Card */
+.section-card {
+  background: var(--bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card);
+  border: 1px solid var(--c-border-light); margin-bottom: 24px; overflow: hidden;
+}
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600;
+  color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+  background: var(--bg-stripe); border-bottom: 1px solid var(--c-border-light);
+}
+thead th.right { text-align: right; }
+thead th.center { text-align: center; }
+tbody td {
+  padding: 12px 16px; font-size: 14px; color: var(--c-text); border-bottom: 1px solid var(--c-border-light);
+}
+tbody td.right { text-align: right; }
+tbody td.center { text-align: center; }
+tbody tr:hover { background: var(--bg-hover); cursor: pointer; }
+tbody tr:last-child td { border-bottom: none; }
+
+/* Badges and pills */
+.tag-pill {
+  display: inline-flex; padding: 3px 8px; border-radius: 12px; font-size: 11px;
+  font-weight: 600; background: var(--bg-stripe); color: var(--c-text-secondary);
+  margin: 2px 2px;
+}
+.days-badge {
+  display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px;
+  border-radius: 20px; font-size: 12px; font-weight: 700;
+}
+.days-badge.danger { background: #fecaca; color: #991b1b; }
+.days-badge.warning { background: #fef3c7; color: #92400e; }
+.days-badge.ok { background: #dcfce7; color: #166534; }
+
+.project-link { color: var(--c-primary); text-decoration: none; font-weight: 500; }
+.project-link:hover { text-decoration: underline; }
+.resource-link { color: var(--c-text); text-decoration: none; font-weight: 600; }
+.resource-link:hover { color: var(--c-primary); text-decoration: underline; }
+
+/* Allocation bar */
+.alloc-bar-wrapper { display: flex; align-items: center; gap: 8px; }
+.alloc-bar { width: 60px; height: 8px; background: var(--bg-page); border-radius: 4px; overflow: hidden; }
+.alloc-bar-fill { height: 100%; border-radius: 4px; }
+.alloc-bar-fill.full { background: var(--c-success); }
+.alloc-bar-fill.partial { background: var(--c-warning); }
+.alloc-bar-fill.over { background: var(--c-danger); }
+
+/* Countdown */
+.countdown { font-weight: 700; }
+.countdown.urgent { color: var(--c-danger); }
+.countdown.soon { color: var(--c-warning); }
+.countdown.normal { color: var(--c-text-secondary); }
+
+/* Cost cell (restricted) */
+.cost-cell { }
+
+/* Empty State */
+.empty-state { text-align: center; padding: 60px 20px; color: var(--c-text-muted); }
+.empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state .empty-title { font-size: 16px; font-weight: 600; color: var(--c-text-secondary); margin-bottom: 8px; }
+.empty-state .empty-desc { font-size: 14px; color: var(--c-text-muted); max-width: 400px; margin: 0 auto; }
+
+.hidden { display: none !important; }
+
+/* Tab panels */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- Role Switcher Bar -->
+<div class="role-switcher">
+  <label>View as Role:</label>
+  <select id="roleSwitcher">
+    <option value="ceo" selected>CEO</option>
+    <option value="cto">CTO</option>
+    <option value="finance">Finance</option>
+    <option value="dm">Delivery Manager</option>
+    <option value="pm">Project Manager</option>
+    <option value="hr">HR</option>
+    <option value="engineer">Engineer</option>
+  </select>
+  <span style="opacity:0.7">|</span>
+  <span style="font-size:12px; opacity:0.7;">Module 10 - Bench &amp; Availability Forecasting &mdash; Resource Availability View</span>
+</div>
+
+<!-- App Header -->
+<div class="app-header">
+  <div class="logo">Sculpt<span>Flow</span></div>
+  <div class="header-right">
+    <div class="notif">&#128276;</div>
+    <div class="avatar">RK</div>
+  </div>
+</div>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="nav-section">Main</div>
+    <a href="#"><span class="icon">&#9776;</span> Dashboard</a>
+    <a href="#"><span class="icon">&#128101;</span> Clients</a>
+    <a href="#"><span class="icon">&#128196;</span> Projects</a>
+    <a href="#"><span class="icon">&#128100;</span> Resources</a>
+    <a href="#"><span class="icon">&#128197;</span> Allocations</a>
+    <div class="nav-section" style="margin-top:16px;">Financial</div>
+    <a href="#"><span class="icon">&#128176;</span> Invoices</a>
+    <a href="#"><span class="icon">&#128200;</span> Utilization</a>
+    <a href="#"><span class="icon">&#128178;</span> Non-Human Costs</a>
+    <div class="nav-section" style="margin-top:16px;">Intelligence</div>
+    <a href="#" class="active"><span class="icon">&#128226;</span> Bench View</a>
+    <a href="#"><span class="icon">&#128276;</span> Alerts</a>
+    <a href="#"><span class="icon">&#128214;</span> Audit Log</a>
+  </nav>
+
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Resource Availability</div>
+        <div class="page-subtitle">Track bench resources, partial availability, and upcoming releases across the organization</div>
+      </div>
+    </div>
+
+    <div class="toggle-bar">
+      <label class="toggle-switch">
+        <input type="checkbox" id="emptyToggle">
+        <span class="toggle-slider"></span>
+      </label>
+      <span>Show empty state</span>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="section-card hidden">
+      <div class="empty-state">
+        <div class="empty-icon">&#128100;</div>
+        <div class="empty-title">No resources currently on bench</div>
+        <div class="empty-desc">All resources are allocated to projects. Check back later or view the "Releasing Soon" tab for upcoming availability.</div>
+      </div>
+    </div>
+
+    <!-- Populated Content -->
+    <div id="populatedContent">
+      <!-- Summary Cards -->
+      <div class="summary-row">
+        <div class="summary-card bench">
+          <div class="sc-number">4</div>
+          <div class="sc-label">On Bench</div>
+          <div class="sc-sub">0% allocated</div>
+        </div>
+        <div class="summary-card partial">
+          <div class="sc-number">3</div>
+          <div class="sc-label">Partially Available</div>
+          <div class="sc-sub">&lt;100% allocated</div>
+        </div>
+        <div class="summary-card releasing">
+          <div class="sc-number">5</div>
+          <div class="sc-label">Releasing (30d)</div>
+          <div class="sc-sub">Ending within 30 days</div>
+        </div>
+        <div class="summary-card allocated">
+          <div class="sc-number">22</div>
+          <div class="sc-label">Fully Allocated</div>
+          <div class="sc-sub">100%+ allocated</div>
+        </div>
+      </div>
+
+      <!-- Bench Cost Summary -->
+      <div class="bench-cost-card" id="benchCostCard">
+        <div class="bcc-left">
+          <div class="bcc-label">Total Monthly Bench Cost</div>
+          <div class="bcc-value">&#8377;5,60,000</div>
+          <div class="bcc-sub">4 resources on bench</div>
+        </div>
+        <div class="bcc-right">
+          <div class="bcc-daily-label">Daily Bench Burn</div>
+          <div class="bcc-daily-value">&#8377;25,455 /day</div>
+        </div>
+      </div>
+
+      <!-- Tabbed Section -->
+      <div class="section-card">
+        <!-- Tab Bar -->
+        <div class="section-tabs">
+          <div class="section-tab active" data-tab="bench">
+            Current Bench <span class="tab-count">4</span>
+          </div>
+          <div class="section-tab" data-tab="partial">
+            Partially Available <span class="tab-count">3</span>
+          </div>
+          <div class="section-tab" data-tab="upcoming">
+            Upcoming Availability <span class="tab-count">5</span>
+          </div>
+          <div class="section-tab" data-tab="allocated">
+            Fully Allocated <span class="tab-count">22</span>
+          </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-bar">
+          <div class="search-wrapper">
+            <span class="search-icon">&#128269;</span>
+            <input type="text" class="search-input" placeholder="Search by resource name..." style="padding-left:36px;">
+          </div>
+        </div>
+
+        <!-- BENCH TAB -->
+        <div class="tab-panel active" id="tab-bench">
+          <table>
+            <thead>
+              <tr>
+                <th>Resource</th>
+                <th>Designation</th>
+                <th>Expertise</th>
+                <th>Bench Since</th>
+                <th class="center">Days on Bench</th>
+                <th>Tags</th>
+                <th class="right bench-cost-col">Bench Cost (Monthly)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><a href="#" class="resource-link">Kavita Nair</a></td>
+                <td>Senior React Developer</td>
+                <td>React, TypeScript, GraphQL</td>
+                <td>22 May 2026</td>
+                <td class="center"><span class="days-badge warning">15 days</span></td>
+                <td><span class="tag-pill">Frontend</span><span class="tag-pill">React</span></td>
+                <td class="right bench-cost-col">&#8377;1,60,000</td>
+              </tr>
+              <tr>
+                <td><a href="#" class="resource-link">Amit Joshi</a></td>
+                <td>Backend Developer</td>
+                <td>Java, Spring Boot, PostgreSQL</td>
+                <td>01 May 2026</td>
+                <td class="center"><span class="days-badge danger">36 days</span></td>
+                <td><span class="tag-pill">Backend</span><span class="tag-pill">Java</span></td>
+                <td class="right bench-cost-col">&#8377;1,40,000</td>
+              </tr>
+              <tr>
+                <td><a href="#" class="resource-link">Sneha Kulkarni</a></td>
+                <td>QA Engineer</td>
+                <td>Selenium, Cypress, API Testing</td>
+                <td>28 May 2026</td>
+                <td class="center"><span class="days-badge ok">9 days</span></td>
+                <td><span class="tag-pill">QA</span><span class="tag-pill">Automation</span></td>
+                <td class="right bench-cost-col">&#8377;1,10,000</td>
+              </tr>
+              <tr>
+                <td><a href="#" class="resource-link">Rahul Verma</a></td>
+                <td>Junior Developer</td>
+                <td>Python, Django, REST APIs</td>
+                <td>15 May 2026</td>
+                <td class="center"><span class="days-badge warning">22 days</span></td>
+                <td><span class="tag-pill">Backend</span><span class="tag-pill">Python</span></td>
+                <td class="right bench-cost-col">&#8377;90,000</td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="padding:12px 16px; background:var(--bg-stripe); display:flex; justify-content:flex-end; font-size:13px; font-weight:600; color:var(--c-text-secondary);">
+            <span class="bench-cost-col">Total Monthly: <strong style="color:var(--c-text);">&#8377;5,00,000</strong></span>
+          </div>
+        </div>
+
+        <!-- PARTIAL TAB -->
+        <div class="tab-panel" id="tab-partial">
+          <table>
+            <thead>
+              <tr>
+                <th>Resource</th>
+                <th>Designation</th>
+                <th class="center">Total Allocation</th>
+                <th class="center">Spare Capacity</th>
+                <th>Current Projects</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><a href="#" class="resource-link">Priya Sharma</a></td>
+                <td>UI/UX Designer</td>
+                <td class="center">
+                  <div class="alloc-bar-wrapper" style="justify-content:center;">
+                    <div class="alloc-bar"><div class="alloc-bar-fill partial" style="width:60%;"></div></div>
+                    <span>60%</span>
+                  </div>
+                </td>
+                <td class="center"><strong style="color:var(--c-success);">40%</strong></td>
+                <td><a href="#" class="project-link">Project Phoenix</a></td>
+              </tr>
+              <tr>
+                <td><a href="#" class="resource-link">Vikram Patel</a></td>
+                <td>DevOps Engineer</td>
+                <td class="center">
+                  <div class="alloc-bar-wrapper" style="justify-content:center;">
+                    <div class="alloc-bar"><div class="alloc-bar-fill partial" style="width:40%;"></div></div>
+                    <span>40%</span>
+                  </div>
+                </td>
+                <td class="center"><strong style="color:var(--c-success);">60%</strong></td>
+                <td><a href="#" class="project-link">Project Phoenix</a></td>
+              </tr>
+              <tr>
+                <td><a href="#" class="resource-link">Meera Reddy</a></td>
+                <td>Full Stack Developer</td>
+                <td class="center">
+                  <div class="alloc-bar-wrapper" style="justify-content:center;">
+                    <div class="alloc-bar"><div class="alloc-bar-fill partial" style="width:50%;"></div></div>
+                    <span>50%</span>
+                  </div>
+                </td>
+                <td class="center"><strong style="color:var(--c-success);">50%</strong></td>
+                <td><a href="#" class="project-link">CloudSync Migration</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- UPCOMING TAB -->
+        <div class="tab-panel" id="tab-upcoming">
+          <!-- Day Filter -->
+          <div class="day-filter">
+            <span style="font-size:13px; color:var(--c-text-secondary); font-weight:500;">Show releasing within:</span>
+            <button class="day-btn active" data-days="30">30 Days</button>
+            <button class="day-btn" data-days="60">60 Days</button>
+            <button class="day-btn" data-days="90">90 Days</button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Resource</th>
+                <th>Current Project</th>
+                <th class="center">Allocation %</th>
+                <th>End Date</th>
+                <th class="center">Days Until Available</th>
+              </tr>
+            </thead>
+            <tbody id="upcomingTableBody">
+              <tr data-days="5">
+                <td><a href="#" class="resource-link">Sanjay Kumar</a></td>
+                <td><a href="#" class="project-link">FinServe Analytics</a></td>
+                <td class="center">100%</td>
+                <td>11 Jun 2026</td>
+                <td class="center"><span class="countdown urgent">5 days</span></td>
+              </tr>
+              <tr data-days="12">
+                <td><a href="#" class="resource-link">Deepa Menon</a></td>
+                <td><a href="#" class="project-link">HealthTrack Mobile</a></td>
+                <td class="center">100%</td>
+                <td>18 Jun 2026</td>
+                <td class="center"><span class="countdown urgent">12 days</span></td>
+              </tr>
+              <tr data-days="18">
+                <td><a href="#" class="resource-link">Arun Krishnan</a></td>
+                <td><a href="#" class="project-link">EduLearn Platform</a></td>
+                <td class="center">80%</td>
+                <td>24 Jun 2026</td>
+                <td class="center"><span class="countdown soon">18 days</span></td>
+              </tr>
+              <tr data-days="25">
+                <td><a href="#" class="resource-link">Pooja Singh</a></td>
+                <td><a href="#" class="project-link">RetailMax POS</a></td>
+                <td class="center">100%</td>
+                <td>01 Jul 2026</td>
+                <td class="center"><span class="countdown soon">25 days</span></td>
+              </tr>
+              <tr data-days="28">
+                <td><a href="#" class="resource-link">Nikhil Rao</a></td>
+                <td><a href="#" class="project-link">CloudSync Migration</a></td>
+                <td class="center">60%</td>
+                <td>04 Jul 2026</td>
+                <td class="center"><span class="countdown normal">28 days</span></td>
+              </tr>
+              <tr data-days="42" class="extra-row hidden">
+                <td><a href="#" class="resource-link">Ritu Agarwal</a></td>
+                <td><a href="#" class="project-link">FinServe Analytics</a></td>
+                <td class="center">100%</td>
+                <td>18 Jul 2026</td>
+                <td class="center"><span class="countdown normal">42 days</span></td>
+              </tr>
+              <tr data-days="55" class="extra-row hidden">
+                <td><a href="#" class="resource-link">Karthik Iyer</a></td>
+                <td><a href="#" class="project-link">HealthTrack Mobile</a></td>
+                <td class="center">100%</td>
+                <td>31 Jul 2026</td>
+                <td class="center"><span class="countdown normal">55 days</span></td>
+              </tr>
+              <tr data-days="72" class="extra-row-90 hidden">
+                <td><a href="#" class="resource-link">Ananya Das</a></td>
+                <td><a href="#" class="project-link">EduLearn Platform</a></td>
+                <td class="center">80%</td>
+                <td>17 Aug 2026</td>
+                <td class="center"><span class="countdown normal">72 days</span></td>
+              </tr>
+              <tr data-days="85" class="extra-row-90 hidden">
+                <td><a href="#" class="resource-link">Vivek Saxena</a></td>
+                <td><a href="#" class="project-link">RetailMax POS</a></td>
+                <td class="center">100%</td>
+                <td>30 Aug 2026</td>
+                <td class="center"><span class="countdown normal">85 days</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- FULLY ALLOCATED TAB -->
+        <div class="tab-panel" id="tab-allocated">
+          <table>
+            <thead>
+              <tr>
+                <th>Resource</th>
+                <th>Designation</th>
+                <th class="center">Total Allocation</th>
+                <th>Projects</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><a href="#" class="resource-link">Arjun Mehta</a></td>
+                <td>Senior Full Stack Developer</td>
+                <td class="center">
+                  <div class="alloc-bar-wrapper" style="justify-content:center;">
+                    <div class="alloc-bar"><div class="alloc-bar-fill full" style="width:100%;"></div></div>
+                    <span>100%</span>
+                  </div>
+                </td>
+                <td><a href="#" class="project-link">Project Phoenix</a></td>
+              </tr>
+              <tr>
+                <td><a href="#" class="resource-link">Rohan Desai</a></td>
+                <td>Backend Developer</td>
+                <td class="center">
+                  <div class="alloc-bar-wrapper" style="justify-content:center;">
+                    <div class="alloc-bar"><div class="alloc-bar-fill full" style="width:100%;"></div></div>
+                    <span>100%</span>
+                  </div>
+                </td>
+                <td><a href="#" class="project-link">Project Phoenix</a></td>
+              </tr>
+              <tr>
+                <td><a href="#" class="resource-link">Sanjay Kumar</a></td>
+                <td>Data Engineer</td>
+                <td class="center">
+                  <div class="alloc-bar-wrapper" style="justify-content:center;">
+                    <div class="alloc-bar"><div class="alloc-bar-fill full" style="width:100%;"></div></div>
+                    <span>100%</span>
+                  </div>
+                </td>
+                <td><a href="#" class="project-link">FinServe Analytics</a></td>
+              </tr>
+              <tr>
+                <td><a href="#" class="resource-link">Deepa Menon</a></td>
+                <td>iOS Developer</td>
+                <td class="center">
+                  <div class="alloc-bar-wrapper" style="justify-content:center;">
+                    <div class="alloc-bar"><div class="alloc-bar-fill full" style="width:100%;"></div></div>
+                    <span>100%</span>
+                  </div>
+                </td>
+                <td><a href="#" class="project-link">HealthTrack Mobile</a></td>
+              </tr>
+              <tr>
+                <td><a href="#" class="resource-link">Neha Gupta</a></td>
+                <td>QA Engineer</td>
+                <td class="center">
+                  <div class="alloc-bar-wrapper" style="justify-content:center;">
+                    <div class="alloc-bar"><div class="alloc-bar-fill over" style="width:100%;"></div></div>
+                    <span style="color:var(--c-danger); font-weight:700;">120%</span>
+                  </div>
+                </td>
+                <td>
+                  <a href="#" class="project-link">Project Phoenix</a>,
+                  <a href="#" class="project-link">CloudSync Migration</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="padding:12px 16px; text-align:center; font-size:13px; color:var(--c-text-muted);">
+            Showing 5 of 22 fully allocated resources &mdash; <a href="#" style="color:var(--c-primary); text-decoration:none;">View all</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const roleSwitcher = document.getElementById('roleSwitcher');
+const emptyToggle = document.getElementById('emptyToggle');
+const populatedContent = document.getElementById('populatedContent');
+const emptyState = document.getElementById('emptyState');
+const benchCostCard = document.getElementById('benchCostCard');
+
+// Tab switching
+const sectionTabs = document.querySelectorAll('.section-tab');
+const tabPanels = document.querySelectorAll('.tab-panel');
+
+sectionTabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    sectionTabs.forEach(t => t.classList.remove('active'));
+    tabPanels.forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// Day filter for upcoming tab
+const dayBtns = document.querySelectorAll('.day-btn');
+dayBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    dayBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const days = parseInt(btn.dataset.days);
+    const extraRows = document.querySelectorAll('.extra-row');
+    const extra90Rows = document.querySelectorAll('.extra-row-90');
+    if (days === 30) {
+      extraRows.forEach(r => r.classList.add('hidden'));
+      extra90Rows.forEach(r => r.classList.add('hidden'));
+    } else if (days === 60) {
+      extraRows.forEach(r => r.classList.remove('hidden'));
+      extra90Rows.forEach(r => r.classList.add('hidden'));
+    } else {
+      extraRows.forEach(r => r.classList.remove('hidden'));
+      extra90Rows.forEach(r => r.classList.remove('hidden'));
+    }
+  });
+});
+
+function updateView() {
+  const role = roleSwitcher.value;
+  const isEmpty = emptyToggle.checked;
+
+  emptyState.classList.add('hidden');
+  populatedContent.classList.add('hidden');
+
+  if (isEmpty) {
+    emptyState.classList.remove('hidden');
+    return;
+  }
+
+  populatedContent.classList.remove('hidden');
+
+  // Bench cost card: visible to CEO, CTO, Finance only
+  const costRoles = ['ceo', 'cto', 'finance'];
+  benchCostCard.classList.toggle('hidden', !costRoles.includes(role));
+
+  // Bench cost column visibility
+  const costCols = document.querySelectorAll('.bench-cost-col');
+  costCols.forEach(col => {
+    col.style.display = costRoles.includes(role) ? '' : 'none';
+  });
+
+  // Engineer sees limited view (own name only concept)
+  // HR sees all names but no cost data
+}
+
+roleSwitcher.addEventListener('change', updateView);
+emptyToggle.addEventListener('change', updateView);
+updateView();
+</script>
+</body>
+</html>

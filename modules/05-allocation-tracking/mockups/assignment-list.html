@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assignment List — TechCorp ERP Migration — Resource Intelligence Platform</title>
+<style>
+:root {
+  --bg-page: #F0F1FA; --bg-card: #ffffff; --bg-sidebar: #F5F6FC;
+  --bg-header: #ffffff; --bg-hover: #F0F1FA; --bg-stripe: #F5F6FC;
+  --c-primary: #2B3990; --c-primary-dark: #1B2B65; --c-primary-light: #4A5BB5;
+  --c-accent: #FF4B2B; --c-accent-hover: #E63E1F; --c-accent-soft: #FFF0EC;
+  --c-text: #1e1b4b; --c-text-secondary: #6b7280; --c-text-muted: #7C85C0;
+  --c-border: #D6DAF0; --c-border-light: #E8EAF6;
+  --c-danger: #ef4444; --c-success: #22c55e; --c-warning: #f59e0b;
+  --shadow-card: 0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --radius-card: 12px; --radius-input: 8px; --radius-btn: 8px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg-page); color: var(--c-text); }
+
+.role-switcher { position: sticky; top: 0; z-index: 1000; background: var(--c-primary-dark); padding: 8px 24px; display: flex; align-items: center; gap: 8px; }
+.role-switcher label { color: #fff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-right: 8px; }
+.role-btn { padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.25); background: transparent; color: #fff; font-size: 12px; cursor: pointer; transition: all 0.2s; font-weight: 500; }
+.role-btn:hover { background: rgba(255,255,255,0.1); }
+.role-btn.active { background: var(--c-accent); border-color: var(--c-accent); }
+
+.toggle-bar { background: var(--c-primary-dark); padding: 4px 24px 8px; display: flex; gap: 8px; }
+.toggle-btn { padding: 4px 12px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.25); background: transparent; color: rgba(255,255,255,0.7); font-size: 11px; cursor: pointer; transition: all 0.2s; }
+.toggle-btn:hover { background: rgba(255,255,255,0.1); }
+.toggle-btn.active { background: rgba(255,255,255,0.15); color: #fff; }
+
+.app-header { background: var(--bg-header); border-bottom: 1px solid var(--c-border-light); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.app-logo { font-weight: 700; font-size: 18px; color: var(--c-primary); display: flex; align-items: center; gap: 10px; }
+.app-logo .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--c-primary), var(--c-accent)); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 14px; }
+.header-right { display: flex; align-items: center; gap: 16px; }
+.header-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--c-primary-light); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+
+.app-layout { display: flex; min-height: calc(100vh - 56px - 40px - 34px); }
+
+.sidebar { width: 220px; background: var(--bg-sidebar); border-right: 1px solid var(--c-border-light); padding: 16px 0; flex-shrink: 0; }
+.nav-section { padding: 0 16px; margin-bottom: 24px; }
+.nav-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--c-text-muted); margin-bottom: 8px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; border-radius: var(--radius-btn); color: var(--c-text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; text-decoration: none; margin: 1px 0; }
+.nav-item:hover { background: var(--bg-hover); color: var(--c-text); }
+.nav-item.active { background: var(--c-primary); color: #fff; }
+.nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+.main-content { flex: 1; padding: 24px 32px; overflow-x: auto; }
+
+.breadcrumb { font-size: 13px; color: var(--c-text-secondary); margin-bottom: 20px; }
+.breadcrumb a { color: var(--c-primary); text-decoration: none; }
+.breadcrumb a:hover { text-decoration: underline; }
+
+/* Project Context Header */
+.project-context { background: var(--bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card); border: 1px solid var(--c-border-light); padding: 20px 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+.project-info h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.project-meta { font-size: 13px; color: var(--c-text-secondary); display: flex; gap: 20px; }
+.project-meta span { display: flex; align-items: center; gap: 4px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 2px solid var(--c-border-light); }
+.tab { padding: 10px 20px; font-size: 13px; font-weight: 600; color: var(--c-text-secondary); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+.tab:hover { color: var(--c-text); }
+.tab.active { color: var(--c-primary); border-bottom-color: var(--c-primary); }
+
+/* Alert Banner */
+.alert-banner { padding: 12px 20px; border-radius: var(--radius-card); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 500; }
+.alert-banner.warning { background: #fef3c7; border: 1px solid #fde68a; color: #92400e; }
+.alert-banner.danger { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+.alert-banner-icon { font-size: 18px; }
+
+/* Header row */
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.section-title { font-size: 16px; font-weight: 700; }
+
+.btn-primary { padding: 9px 20px; background: var(--c-accent); color: #fff; border: none; border-radius: var(--radius-btn); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary:hover { background: var(--c-accent-hover); }
+.btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500; }
+.btn-edit { background: var(--c-primary); color: #fff; }
+.btn-edit:hover { background: var(--c-primary-dark); }
+.btn-release { background: #fef2f2; color: var(--c-danger); border: 1px solid #fecaca; }
+.btn-release:hover { background: #fee2e2; }
+
+.filter-row { display: flex; gap: 12px; margin-bottom: 16px; }
+.filter-select { padding: 7px 28px 7px 12px; border: 1px solid var(--c-border); border-radius: var(--radius-input); font-size: 13px; background: #fff; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; cursor: pointer; }
+
+/* Table */
+.table-card { background: var(--bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card); overflow: hidden; border: 1px solid var(--c-border-light); }
+table { width: 100%; border-collapse: collapse; }
+thead th { background: linear-gradient(135deg, var(--c-primary), var(--c-primary-light)); color: #fff; padding: 11px 14px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; text-align: left; white-space: nowrap; cursor: pointer; }
+thead th:hover { background: linear-gradient(135deg, var(--c-primary-dark), var(--c-primary)); }
+tbody tr { border-bottom: 1px solid var(--c-border-light); transition: background 0.1s; }
+tbody tr:nth-child(even) { background: var(--bg-stripe); }
+tbody tr:hover { background: var(--bg-hover); }
+td { padding: 11px 14px; font-size: 13px; vertical-align: middle; white-space: nowrap; }
+.resource-link { font-weight: 600; color: var(--c-primary); cursor: pointer; text-decoration: none; }
+.resource-link:hover { text-decoration: underline; }
+
+.badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+.badge-active { background: #dcfce7; color: #15803d; }
+.badge-released { background: #e5e7eb; color: #4b5563; }
+.badge-auto { background: #fef3c7; color: #92400e; }
+.badge-shadow { background: #ede9fe; color: #6d28d9; }
+
+.empty-state { padding: 60px 20px; text-align: center; }
+.empty-state-icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+.empty-state-text { font-size: 13px; color: var(--c-text-secondary); }
+
+.actions-cell { display: flex; gap: 6px; }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- Role Switcher -->
+<div class="role-switcher">
+  <label>View as:</label>
+  <button class="role-btn active" data-role="CEO" onclick="switchRole('CEO')">CEO</button>
+  <button class="role-btn" data-role="CTO" onclick="switchRole('CTO')">CTO</button>
+  <button class="role-btn" data-role="DM" onclick="switchRole('DM')">DM</button>
+  <button class="role-btn" data-role="PM" onclick="switchRole('PM')">PM</button>
+  <button class="role-btn" data-role="FINANCE" onclick="switchRole('FINANCE')">Finance</button>
+  <button class="role-btn" data-role="HR" onclick="switchRole('HR')">HR</button>
+  <button class="role-btn" data-role="ENGINEER" onclick="switchRole('ENGINEER')">Engineer</button>
+</div>
+<div class="toggle-bar">
+  <button class="toggle-btn" onclick="toggleEmptyState(this)">Toggle Empty State</button>
+</div>
+
+<!-- App Header -->
+<div class="app-header">
+  <div class="app-logo">
+    <div class="logo-icon">RI</div>
+    Resource Intelligence Platform
+  </div>
+  <div class="header-right">
+    <span style="font-size:13px;color:var(--c-text-secondary)" id="roleDisplay">CEO</span>
+    <div class="header-avatar">VS</div>
+  </div>
+</div>
+
+<div class="app-layout">
+  <div class="sidebar">
+    <div class="nav-section">
+      <div class="nav-section-title">Main</div>
+      <a class="nav-item" href="#"><span class="nav-icon">&#9632;</span> Dashboard</a>
+      <a class="nav-item" href="#"><span class="nav-icon">&#9679;</span> Clients</a>
+      <a class="nav-item active" href="#"><span class="nav-icon">&#9670;</span> Projects</a>
+      <a class="nav-item" href="#"><span class="nav-icon">&#9733;</span> Resources</a>
+      <a class="nav-item" href="#"><span class="nav-icon">&#9830;</span> Allocations</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Finance</div>
+      <a class="nav-item" href="#"><span class="nav-icon">&#8377;</span> Invoicing</a>
+      <a class="nav-item" href="#"><span class="nav-icon">&#9835;</span> Costs</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Reports</div>
+      <a class="nav-item" href="#"><span class="nav-icon">&#9776;</span> Utilization</a>
+      <a class="nav-item" href="#"><span class="nav-icon">&#9888;</span> Alerts</a>
+      <a class="nav-item" href="#"><span class="nav-icon">&#8634;</span> Audit Log</a>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="breadcrumb">
+      <a href="#">Projects</a> &rsaquo; <a href="#">TechCorp ERP Migration</a> &rsaquo; Assignments
+    </div>
+
+    <!-- Project Context -->
+    <div class="project-context">
+      <div class="project-info">
+        <h1>TechCorp ERP Migration</h1>
+        <div class="project-meta">
+          <span>Client: TechCorp Solutions Pvt. Ltd.</span>
+          <span>Type: Fixed Price</span>
+          <span>DM: Vivek Sharma</span>
+          <span>PM: Kavita Nair</span>
+        </div>
+      </div>
+      <span class="badge badge-active" style="font-size:13px;padding:6px 16px">Active</span>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab">Overview</div>
+      <div class="tab active">Assignments</div>
+      <div class="tab">Milestones</div>
+      <div class="tab">Worklogs</div>
+      <div class="tab">Costs</div>
+    </div>
+
+    <!-- Over-allocation Banner -->
+    <div class="alert-banner danger" id="overAllocBanner">
+      <span class="alert-banner-icon">&#9888;</span>
+      <strong>Over-Allocation Detected:</strong> Arjun Mehta is allocated at 120% across all projects. Review assignments to resolve.
+    </div>
+
+    <!-- Section Header -->
+    <div class="section-header">
+      <div class="section-title">Project Assignments (5)</div>
+      <button class="btn-primary" id="addAssignBtn" onclick="alert('Open assignment form modal')">
+        + Add Assignment
+      </button>
+    </div>
+
+    <!-- Filter -->
+    <div class="filter-row">
+      <select class="filter-select">
+        <option>All Statuses</option>
+        <option selected>Active</option>
+        <option>Released</option>
+        <option>Auto-Released</option>
+      </select>
+    </div>
+
+    <!-- Data View -->
+    <div id="dataView">
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Resource</th>
+              <th>Effective Designation</th>
+              <th>Allocation %</th>
+              <th class="col-billability">Billability %</th>
+              <th class="col-shadow">Shadow</th>
+              <th class="col-rate">Billing Rate</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Status</th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><a class="resource-link" href="#">Arjun Mehta</a></td>
+              <td>Frontend Lead</td>
+              <td><strong>50%</strong></td>
+              <td class="col-billability">50%</td>
+              <td class="col-shadow">--</td>
+              <td class="col-rate" style="color:var(--c-text-muted);font-style:italic">Phase 2</td>
+              <td>01 Jan 2026</td>
+              <td>30 Jun 2026</td>
+              <td><span class="badge badge-active">Active</span></td>
+              <td class="col-actions">
+                <div class="actions-cell">
+                  <button class="btn-sm btn-edit" onclick="alert('Edit assignment for Arjun Mehta')">Edit</button>
+                  <button class="btn-sm btn-release" onclick="confirmRelease('Arjun Mehta')">Release</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><a class="resource-link" href="#">Priya Patel</a></td>
+              <td>Backend Lead</td>
+              <td><strong>80%</strong></td>
+              <td class="col-billability">80%</td>
+              <td class="col-shadow">--</td>
+              <td class="col-rate" style="color:var(--c-text-muted);font-style:italic">Phase 2</td>
+              <td>01 Jan 2026</td>
+              <td>Ongoing</td>
+              <td><span class="badge badge-active">Active</span></td>
+              <td class="col-actions">
+                <div class="actions-cell">
+                  <button class="btn-sm btn-edit" onclick="alert('Edit assignment for Priya Patel')">Edit</button>
+                  <button class="btn-sm btn-release" onclick="confirmRelease('Priya Patel')">Release</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><a class="resource-link" href="#">Neha Gupta</a></td>
+              <td>QA Engineer</td>
+              <td><strong>50%</strong></td>
+              <td class="col-billability">50%</td>
+              <td class="col-shadow">--</td>
+              <td class="col-rate" style="color:var(--c-text-muted);font-style:italic">Phase 2</td>
+              <td>15 Feb 2026</td>
+              <td>30 Jun 2026</td>
+              <td><span class="badge badge-active">Active</span></td>
+              <td class="col-actions">
+                <div class="actions-cell">
+                  <button class="btn-sm btn-edit" onclick="alert('Edit assignment for Neha Gupta')">Edit</button>
+                  <button class="btn-sm btn-release" onclick="confirmRelease('Neha Gupta')">Release</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><a class="resource-link" href="#">Amit Joshi</a></td>
+              <td>UI Designer</td>
+              <td><strong>30%</strong></td>
+              <td class="col-billability">0%</td>
+              <td class="col-shadow"><span class="badge badge-shadow">Shadow</span></td>
+              <td class="col-rate" style="color:var(--c-text-muted);font-style:italic">Phase 2</td>
+              <td>01 Mar 2026</td>
+              <td>30 Jun 2026</td>
+              <td><span class="badge badge-active">Active</span></td>
+              <td class="col-actions">
+                <div class="actions-cell">
+                  <button class="btn-sm btn-edit" onclick="alert('Edit assignment for Amit Joshi')">Edit</button>
+                  <button class="btn-sm btn-release" onclick="confirmRelease('Amit Joshi')">Release</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><a class="resource-link" href="#">Kavita Nair</a></td>
+              <td>Business Analyst</td>
+              <td><strong>40%</strong></td>
+              <td class="col-billability">40%</td>
+              <td class="col-shadow">--</td>
+              <td class="col-rate" style="color:var(--c-text-muted);font-style:italic">Phase 2</td>
+              <td>01 Jan 2026</td>
+              <td>Ongoing</td>
+              <td><span class="badge badge-active">Active</span></td>
+              <td class="col-actions">
+                <div class="actions-cell">
+                  <button class="btn-sm btn-edit" onclick="alert('Edit assignment for Kavita Nair')">Edit</button>
+                  <button class="btn-sm btn-release" onclick="confirmRelease('Kavita Nair')">Release</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyView" class="hidden">
+      <div class="table-card">
+        <div class="empty-state">
+          <div class="empty-state-icon">&#128101;</div>
+          <div class="empty-state-title">No assignments yet</div>
+          <div class="empty-state-text">Add a resource to this project.</div>
+          <button class="btn-primary" style="margin-top:16px" id="emptyAddBtn">+ Add Assignment</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Release Confirmation Modal -->
+<div id="releaseModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:2000;display:none;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:var(--radius-card);padding:28px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.15)">
+    <h3 style="margin-bottom:8px;font-size:16px">Confirm Release</h3>
+    <p style="font-size:13px;color:var(--c-text-secondary);margin-bottom:20px" id="releaseMsg">Are you sure you want to release this assignment?</p>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn-sm" style="padding:8px 20px;background:#f3f4f6;color:var(--c-text-secondary);border:1px solid var(--c-border)" onclick="closeModal()">Cancel</button>
+      <button class="btn-sm" style="padding:8px 20px;background:var(--c-danger);color:#fff" onclick="alert('Assignment released!');closeModal()">Release</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentRole = 'CEO';
+let showEmpty = false;
+
+const roleConfig = {
+  CEO:      { canAdd: true, canEdit: true, seeBillability: true, seeShadow: true, seeRate: true },
+  CTO:      { canAdd: true, canEdit: true, seeBillability: true, seeShadow: true, seeRate: true },
+  DM:       { canAdd: true, canEdit: true, seeBillability: true, seeShadow: true, seeRate: true },
+  PM:       { canAdd: true, canEdit: true, seeBillability: true, seeShadow: true, seeRate: false },
+  FINANCE:  { canAdd: false, canEdit: false, seeBillability: true, seeShadow: true, seeRate: true },
+  HR:       { canAdd: false, canEdit: false, seeBillability: false, seeShadow: false, seeRate: false },
+  ENGINEER: { canAdd: false, canEdit: false, seeBillability: false, seeShadow: false, seeRate: false }
+};
+
+function switchRole(role) {
+  currentRole = role;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.toggle('active', b.dataset.role === role));
+  document.getElementById('roleDisplay').textContent = role;
+  applyRoleAccess();
+}
+
+function toggleEmptyState(btn) {
+  showEmpty = !showEmpty;
+  btn.classList.toggle('active', showEmpty);
+  applyRoleAccess();
+}
+
+function applyRoleAccess() {
+  const cfg = roleConfig[currentRole];
+
+  document.getElementById('addAssignBtn').classList.toggle('hidden', !cfg.canAdd);
+  document.getElementById('emptyAddBtn').classList.toggle('hidden', !cfg.canAdd);
+
+  // Columns
+  document.querySelectorAll('.col-billability').forEach(el => el.classList.toggle('hidden', !cfg.seeBillability));
+  document.querySelectorAll('.col-shadow').forEach(el => el.classList.toggle('hidden', !cfg.seeShadow));
+  document.querySelectorAll('.col-rate').forEach(el => el.classList.toggle('hidden', !cfg.seeRate));
+  document.querySelectorAll('.col-actions').forEach(el => el.classList.toggle('hidden', !cfg.canEdit));
+
+  // Over-alloc banner
+  document.getElementById('overAllocBanner').classList.toggle('hidden', showEmpty || currentRole === 'ENGINEER');
+
+  // Data vs empty
+  document.getElementById('dataView').classList.toggle('hidden', showEmpty);
+  document.getElementById('emptyView').classList.toggle('hidden', !showEmpty);
+}
+
+function confirmRelease(name) {
+  document.getElementById('releaseMsg').textContent = `Are you sure you want to release ${name} from this project? This action cannot be undone.`;
+  document.getElementById('releaseModal').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('releaseModal').style.display = 'none';
+}
+
+applyRoleAccess();
+</script>
+</body>
+</html>

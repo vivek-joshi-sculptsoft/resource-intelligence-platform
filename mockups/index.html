@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mockup Review — Resource Intelligence Platform</title>
+  <style>
+    :root {
+      --c-primary: #2B3990;
+      --c-primary-dark: #1B2B65;
+      --c-primary-light: #4A5BB5;
+      --c-accent: #FF4B2B;
+      --c-accent-hover: #E63E1F;
+      --c-accent-soft: #FFF0EC;
+      --c-text: #1e1b4b;
+      --c-text-secondary: #6b7280;
+      --c-text-muted: #7C85C0;
+      --c-border: #D6DAF0;
+      --c-border-light: #E8EAF6;
+      --c-success: #22c55e;
+      --c-warning: #f59e0b;
+      --bg-page: #F0F1FA;
+      --bg-card: #ffffff;
+      --radius: 12px;
+      --shadow: 0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04);
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg-page);
+      color: var(--c-text);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, var(--c-primary-dark), var(--c-primary), var(--c-primary-light));
+      color: white;
+      padding: 32px 40px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .header h1 { font-size: 24px; font-weight: 700; }
+    .header p { opacity: 0.8; font-size: 14px; }
+    .header-stats {
+      display: flex;
+      gap: 24px;
+      margin-top: 16px;
+    }
+    .stat {
+      background: rgba(255,255,255,0.12);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    .stat strong { font-size: 18px; display: block; }
+
+    /* Layout */
+    .layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      height: calc(100vh - 130px);
+    }
+
+    /* Sidebar - Module List */
+    .sidebar {
+      background: var(--bg-card);
+      border-right: 1px solid var(--c-border);
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+    .sidebar-title {
+      padding: 0 20px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--c-text-muted);
+    }
+    .module-item {
+      padding: 12px 20px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: all 150ms ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .module-item:hover { background: var(--bg-page); }
+    .module-item.active {
+      background: var(--c-accent-soft);
+      border-left-color: var(--c-accent);
+    }
+    .module-item .name {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--c-text);
+    }
+    .module-item .phase {
+      font-size: 11px;
+      color: var(--c-text-muted);
+      margin-top: 2px;
+    }
+    .module-item .count {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    .count-done { background: #d1fae5; color: #065f46; }
+    .count-pending { background: #fef3c7; color: #92400e; }
+
+    /* Main Content */
+    .main {
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    /* Module Detail */
+    .module-header {
+      margin-bottom: 20px;
+    }
+    .module-header h2 {
+      font-size: 20px;
+      color: var(--c-primary);
+      margin-bottom: 4px;
+    }
+    .module-header p {
+      color: var(--c-text-secondary);
+      font-size: 13px;
+    }
+
+    /* Screen Cards Grid */
+    .screen-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .screen-card {
+      background: var(--bg-card);
+      border: 1px solid var(--c-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: all 200ms ease;
+      cursor: pointer;
+    }
+    .screen-card:hover {
+      box-shadow: 0 8px 24px rgba(43,57,144,0.12);
+      transform: translateY(-2px);
+    }
+    .screen-card.active-card {
+      border-color: var(--c-accent);
+      box-shadow: 0 0 0 2px var(--c-accent-soft), 0 8px 24px rgba(43,57,144,0.12);
+    }
+    .screen-preview {
+      height: 160px;
+      background: linear-gradient(135deg, #E8EAF6, #F0F1FA);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid var(--c-border-light);
+      position: relative;
+      overflow: hidden;
+    }
+    .screen-preview iframe {
+      width: 200%;
+      height: 200%;
+      border: none;
+      transform: scale(0.5);
+      transform-origin: top left;
+      pointer-events: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    .screen-preview .placeholder {
+      color: var(--c-text-muted);
+      font-size: 32px;
+      opacity: 0.3;
+    }
+    .screen-info {
+      padding: 14px 16px;
+    }
+    .screen-name {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--c-text);
+      margin-bottom: 2px;
+    }
+    .screen-route {
+      font-size: 12px;
+      color: var(--c-text-muted);
+      font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+    }
+    .screen-status {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 6px;
+    }
+    .status-ready { background: #d1fae5; color: #065f46; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+
+    /* Preview Panel */
+    .preview-panel {
+      display: none;
+      background: var(--bg-card);
+      border: 1px solid var(--c-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-top: 16px;
+    }
+    .preview-panel.visible { display: block; }
+    .preview-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: var(--c-primary-dark);
+      color: white;
+    }
+    .preview-toolbar .title { font-weight: 600; font-size: 14px; }
+    .preview-toolbar .actions { display: flex; gap: 8px; }
+    .preview-toolbar button {
+      padding: 5px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: transparent;
+      color: white;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 150ms;
+    }
+    .preview-toolbar button:hover { background: rgba(255,255,255,0.1); }
+    .preview-toolbar button.close-btn { background: var(--c-accent); border-color: var(--c-accent); }
+    .preview-iframe-wrap {
+      width: 100%;
+      height: 70vh;
+      min-height: 500px;
+    }
+    .preview-iframe-wrap iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* Welcome screen */
+    .welcome {
+      text-align: center;
+      padding: 80px 40px;
+    }
+    .welcome-icon { font-size: 64px; opacity: 0.3; margin-bottom: 16px; }
+    .welcome h2 { color: var(--c-primary); font-size: 22px; margin-bottom: 8px; }
+    .welcome p { color: var(--c-text-secondary); max-width: 500px; margin: 0 auto; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { max-height: 200px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <h1>Mockup Review</h1>
+        <p>Resource Intelligence Platform — SculptSoft</p>
+      </div>
+    </div>
+    <div class="header-stats">
+      <div class="stat"><strong id="stat-modules">13</strong>Modules</div>
+      <div class="stat"><strong id="stat-screens">34</strong>Total Screens</div>
+      <div class="stat"><strong id="stat-ready">0</strong>Ready</div>
+      <div class="stat"><strong id="stat-pending">0</strong>Pending</div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar">
+      <div class="sidebar-title">Modules</div>
+      <div id="module-list"></div>
+    </div>
+    <div class="main" id="main-content">
+      <div class="welcome">
+        <div class="welcome-icon">📐</div>
+        <h2>Select a Module</h2>
+        <p>Choose a module from the left panel to review its screen mockups. Click any screen card to preview it inline.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const MODULES = [
+      {
+        id: '01-auth-and-roles',
+        name: '01 — Auth & Roles',
+        phase: 'Phase 1',
+        screens: [
+          { name: 'Login', route: '/login', file: 'login.html' },
+          { name: 'User Management', route: '/admin/users', file: 'user-management.html' },
+          { name: 'Create / Edit User Form', route: '/admin/users/new', file: 'user-form.html' },
+          { name: 'Role Management', route: '/admin/roles', file: 'role-management.html' }
+        ]
+      },
+      {
+        id: '02-client-management',
+        name: '02 — Client Management',
+        phase: 'Phase 1',
+        screens: [
+          { name: 'Client List', route: '/clients', file: 'client-list.html' },
+          { name: 'Client Detail', route: '/clients/:id', file: 'client-detail.html' },
+          { name: 'Client Create / Edit Form', route: '/clients/new', file: 'client-form.html' }
+        ]
+      },
+      {
+        id: '03-project-management',
+        name: '03 — Project Management',
+        phase: 'Phase 1',
+        screens: [
+          { name: 'Project List', route: '/projects', file: 'project-list.html' },
+          { name: 'Project Detail', route: '/projects/:id', file: 'project-detail.html' },
+          { name: 'Project Create / Edit Form', route: '/projects/new', file: 'project-form.html' }
+        ]
+      },
+      {
+        id: '04-resource-management',
+        name: '04 — Resource Management',
+        phase: 'Phase 1',
+        screens: [
+          { name: 'Resource List', route: '/resources', file: 'resource-list.html' },
+          { name: 'Resource Profile', route: '/resources/:id', file: 'resource-profile.html' },
+          { name: 'Resource Create / Edit Form', route: '/resources/new', file: 'resource-form.html' }
+        ]
+      },
+      {
+        id: '05-allocation-tracking',
+        name: '05 — Allocation Tracking',
+        phase: 'Phase 1',
+        screens: [
+          { name: 'Assignment List', route: '/projects/:id#assignments', file: 'assignment-list.html' },
+          { name: 'Assignment Create / Edit Form', route: '/assignments/new', file: 'assignment-form.html' },
+          { name: 'Resource Assignments Panel', route: '/resources/:id#assignments', file: 'resource-assignments.html' }
+        ]
+      },
+      {
+        id: '06-non-human-costs',
+        name: '06 — Non-Human Costs',
+        phase: 'Phase 2',
+        screens: [
+          { name: 'Non-Human Costs Tab', route: '/projects/:id#costs', file: 'costs-tab.html' },
+          { name: 'Cost Create / Edit Form', route: '/costs/new', file: 'cost-form.html' }
+        ]
+      },
+      {
+        id: '07-utilization-dashboards',
+        name: '07 — Utilization Dashboards',
+        phase: 'Phase 1+2',
+        screens: [
+          { name: 'Company Dashboard', route: '/dashboard', file: 'company-dashboard.html' },
+          { name: 'Resource Availability View', route: '/availability', file: 'availability.html' },
+          { name: 'My Assignments (Engineer)', route: '/my-assignments', file: 'my-assignments.html' }
+        ]
+      },
+      {
+        id: '08-financial-engine',
+        name: '08 — Financial Engine',
+        phase: 'Phase 2',
+        screens: [
+          { name: 'Project Financials Tab', route: '/projects/:id#financials', file: 'project-financials.html' }
+        ]
+      },
+      {
+        id: '09-invoicing',
+        name: '09 — Invoicing',
+        phase: 'Phase 2',
+        screens: [
+          { name: 'Milestones Tab', route: '/projects/:id#milestones', file: 'milestones-tab.html' },
+          { name: 'Invoices Tab', route: '/projects/:id#invoices', file: 'invoices-tab.html' },
+          { name: 'Invoice Create / Edit Form', route: '/invoices/new', file: 'invoice-form.html' }
+        ]
+      },
+      {
+        id: '10-bench-forecasting',
+        name: '10 — Bench Forecasting',
+        phase: 'Phase 2',
+        screens: [
+          { name: 'Resource Availability View', route: '/bench', file: 'bench-view.html' }
+        ]
+      },
+      {
+        id: '11-worklog',
+        name: '11 — Worklog',
+        phase: 'Phase 1',
+        screens: [
+          { name: 'Worklog Entry', route: '/my-worklogs', file: 'worklog-entry.html' },
+          { name: 'Worklog Tab (Project)', route: '/projects/:id#worklogs', file: 'worklog-tab.html' },
+          { name: 'Worklog History', route: '/my-worklogs/history', file: 'worklog-history.html' }
+        ]
+      },
+      {
+        id: '12-alerts',
+        name: '12 — Alerts',
+        phase: 'Phase 3',
+        screens: [
+          { name: 'Alert List Page', route: '/alerts', file: 'alert-list.html' },
+          { name: 'SystemConfig Admin', route: '/admin/config', file: 'system-config.html' }
+        ]
+      },
+      {
+        id: '13-audit-history',
+        name: '13 — Audit History',
+        phase: 'Phase 1+3',
+        screens: [
+          { name: 'Audit Log Viewer', route: '/admin/audit', file: 'audit-viewer.html' },
+          { name: 'Change History Panel', route: '(embedded)', file: 'change-history.html' },
+          { name: 'Point-in-Time Reconstruction', route: '/admin/audit/reconstruct', file: 'reconstruction.html' }
+        ]
+      }
+    ];
+
+    function getFilePath(moduleId, fileName) {
+      return '../modules/' + moduleId + '/mockups/' + fileName;
+    }
+
+    const screenStatus = {};
+
+    function init() {
+      const list = document.getElementById('module-list');
+      let totalScreens = 0;
+
+      for (const mod of MODULES) {
+        for (const screen of mod.screens) {
+          screenStatus[mod.id + '/' + screen.file] = true;
+          totalScreens++;
+        }
+
+        const item = document.createElement('div');
+        item.className = 'module-item';
+        item.dataset.moduleId = mod.id;
+        item.innerHTML = `
+          <div>
+            <div class="name">${mod.name}</div>
+            <div class="phase">${mod.phase}</div>
+          </div>
+          <span class="count count-done">${mod.screens.length}/${mod.screens.length}</span>
+        `;
+        item.onclick = () => selectModule(mod.id);
+        list.appendChild(item);
+      }
+
+      document.getElementById('stat-screens').textContent = totalScreens;
+      document.getElementById('stat-ready').textContent = totalScreens;
+      document.getElementById('stat-pending').textContent = 0;
+    }
+
+    function selectModule(moduleId) {
+      document.querySelectorAll('.module-item').forEach(el => el.classList.remove('active'));
+      document.querySelector(`[data-module-id="${moduleId}"]`).classList.add('active');
+
+      const mod = MODULES.find(m => m.id === moduleId);
+      const main = document.getElementById('main-content');
+
+      let html = `
+        <div class="module-header">
+          <h2>${mod.name}</h2>
+          <p>${mod.phase} — ${mod.screens.length} screen${mod.screens.length > 1 ? 's' : ''}</p>
+        </div>
+        <div class="screen-grid">
+      `;
+
+      for (const screen of mod.screens) {
+        const key = mod.id + '/' + screen.file;
+        const exists = screenStatus[key];
+        const path = getFilePath(mod.id, screen.file);
+
+        html += `
+          <div class="screen-card" onclick="previewScreen('${mod.id}', '${screen.file}', '${screen.name.replace(/'/g, "\\'")}')" data-screen="${key}">
+            <div class="screen-preview">
+              <iframe src="${path}" loading="lazy"></iframe>
+            </div>
+            <div class="screen-info">
+              <div class="screen-name">${screen.name}</div>
+              <div class="screen-route">${screen.route}</div>
+              <span class="screen-status status-ready">Ready</span>
+            </div>
+          </div>
+        `;
+      }
+
+      html += '</div>';
+      html += '<div class="preview-panel" id="preview-panel"></div>';
+
+      main.innerHTML = html;
+    }
+
+    function previewScreen(moduleId, fileName, screenName) {
+      document.querySelectorAll('.screen-card').forEach(c => c.classList.remove('active-card'));
+      document.querySelector(`[data-screen="${moduleId}/${fileName}"]`).classList.add('active-card');
+
+      const path = getFilePath(moduleId, fileName);
+      const panel = document.getElementById('preview-panel');
+      panel.className = 'preview-panel visible';
+      panel.innerHTML = `
+        <div class="preview-toolbar">
+          <span class="title">${screenName}</span>
+          <div class="actions">
+            <button onclick="window.open('${path}', '_blank')">Open in New Tab ↗</button>
+            <button class="close-btn" onclick="closePreview()">Close</button>
+          </div>
+        </div>
+        <div class="preview-iframe-wrap">
+          <iframe src="${path}"></iframe>
+        </div>
+      `;
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function closePreview() {
+      const panel = document.getElementById('preview-panel');
+      panel.className = 'preview-panel';
+      panel.innerHTML = '';
+      document.querySelectorAll('.screen-card').forEach(c => c.classList.remove('active-card'));
+    }
+
+    init();
+  </script>
+</body>
+</html>
