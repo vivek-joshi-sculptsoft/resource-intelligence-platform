@@ -1,0 +1,3 @@
+[submodule "submodules/agentic-sdlc-skills-agents"]
+	path = submodules/agentic-sdlc-skills-agents
+	url = https://github.com/Sculptsoft-Private-Limited/agentic-sdlc-skills-agents.git
