@@ -1,0 +1,183 @@
+# Document Dependency Map
+# ========================
+# When a source document changes, dependents may need updating.
+# The CI check uses this file to warn PR authors about potentially stale docs.
+#
+# Structure:
+#   Each entry defines a source file (glob-supported) and its direct dependents.
+#   The checker walks the full transitive graph — if A → B → C, changing A warns about B and C.
+#
+# Glob patterns:
+#   modules/*/SCHEMA.md   — matches all module SCHEMA files
+#   tickets/*.md          — matches all ticket files
+#
+# "why" field is shown in the CI comment so reviewers understand the relationship.
+
+dependencies:
+
+  # ── Layer 1: Product Requirements ──
+  - source: prd/PRD.md
+    dependents:
+      - path: fsd/FSD.md
+        why: "FSD implements PRD requirements — feature changes flow here"
+      - path: shared/ENTITIES.md
+        why: "Entity definitions derive from PRD scope"
+      - path: shared/BUSINESS-RULES.md
+        why: "Calculation rules implement PRD business logic"
+      - path: ROADMAP.md
+        why: "Roadmap reflects PRD scope and phasing"
+
+  # ── Layer 2: Functional Specification ──
+  - source: fsd/FSD.md
+    dependents:
+      - path: shared/ENTITIES.md
+        why: "Entity fields and types defined in FSD"
+      - path: shared/BUSINESS-RULES.md
+        why: "Formulas and calculations specified in FSD"
+      - path: shared/ACCESS-MATRIX.md
+        why: "RBAC rules derived from FSD role definitions"
+      - path: shared/GLOSSARY.md
+        why: "Terms defined in FSD"
+      - path: modules/*/REQUIREMENTS.md
+        why: "Module requirements trace to FSD sections"
+      - path: modules/*/SCHEMA.md
+        why: "Module schemas implement FSD entity definitions"
+      - path: modules/*/API.md
+        why: "API endpoints implement FSD operations"
+
+  # ── Layer 3: Shared Definitions ──
+  - source: shared/ENTITIES.md
+    dependents:
+      - path: modules/*/SCHEMA.md
+        why: "Module schemas must match master entity definitions"
+      - path: modules/*/API.md
+        why: "API request/response shapes derive from entity fields"
+      - path: modules/*/SCREENS.md
+        why: "UI displays entity fields — new/removed fields affect screens"
+
+  - source: shared/BUSINESS-RULES.md
+    dependents:
+      - path: modules/08-financial-engine/REQUIREMENTS.md
+        why: "Financial engine implements business rule formulas"
+      - path: modules/08-financial-engine/SCHEMA.md
+        why: "Calculated fields derive from business rules"
+      - path: modules/07-utilization-dashboards/REQUIREMENTS.md
+        why: "Utilization calculations defined in business rules"
+      - path: modules/10-bench-forecasting/REQUIREMENTS.md
+        why: "Bench forecasting formulas defined in business rules"
+      - path: modules/09-invoicing/REQUIREMENTS.md
+        why: "Invoice calculations reference business rules"
+      - path: modules/05-allocation-tracking/SCHEMA.md
+        why: "Allocation fields feed into business rule calculations"
+
+  - source: shared/ACCESS-MATRIX.md
+    dependents:
+      - path: modules/01-auth-and-roles/SCHEMA.md
+        why: "RolePermission seed data comes from access matrix"
+      - path: modules/01-auth-and-roles/REQUIREMENTS.md
+        why: "Auth module enforces the access matrix"
+      - path: modules/*/API.md
+        why: "Every API endpoint checks access per this matrix"
+      - path: modules/*/SCREENS.md
+        why: "UI field visibility driven by access matrix"
+      - path: techstack/auth.md
+        why: "Auth techstack doc describes RBAC enforcement"
+
+  # ── Layer 4: Module Internals (per-module cross-file) ──
+  - source: modules/*/REQUIREMENTS.md
+    dependents:
+      - path: modules/*/SCHEMA.md
+        why: "Schema implements the requirements"
+      - path: modules/*/API.md
+        why: "API exposes the required operations"
+      - path: modules/*/SCREENS.md
+        why: "Screens visualize the requirements"
+      - path: tickets/*.md
+        why: "Tickets break down the requirements into stories"
+
+  - source: modules/*/SCHEMA.md
+    dependents:
+      - path: modules/*/API.md
+        why: "API request/response shapes match schema fields"
+      - path: modules/*/SCREENS.md
+        why: "Screens display schema fields"
+      - path: tickets/*.md
+        why: "Tickets reference schema fields for acceptance criteria"
+
+  - source: modules/*/API.md
+    dependents:
+      - path: modules/*/SCREENS.md
+        why: "Screens consume API endpoints"
+      - path: tickets/*.md
+        why: "Tickets include API implementation details"
+
+  - source: modules/*/SCREENS.md
+    dependents:
+      - path: tickets/*.md
+        why: "Tickets include UI implementation details"
+
+  - source: modules/*/JOBS.md
+    dependents:
+      - path: tickets/*.md
+        why: "Tickets include background job implementation"
+      - path: techstack/backend.md
+        why: "Backend doc lists scheduled jobs"
+
+  - source: modules/*/DEPENDENCIES.md
+    dependents:
+      - path: ROADMAP.md
+        why: "Module ordering in roadmap follows dependency chain"
+
+  # ── Layer 5: Tech Stack ──
+  - source: techstack/main.md
+    dependents:
+      - path: CLAUDE.md
+        why: "CLAUDE.md tech stack table mirrors main.md"
+
+  # ── Cross-module dependencies (specific) ──
+  - source: modules/01-auth-and-roles/SCHEMA.md
+    dependents:
+      - path: modules/04-resource-management/SCHEMA.md
+        why: "Resource has user_id FK to User"
+      - path: modules/*/API.md
+        why: "All APIs use auth middleware from this module"
+
+  - source: modules/04-resource-management/SCHEMA.md
+    dependents:
+      - path: modules/05-allocation-tracking/SCHEMA.md
+        why: "Assignment references Resource"
+      - path: modules/07-utilization-dashboards/REQUIREMENTS.md
+        why: "Utilization reads Resource data"
+      - path: modules/08-financial-engine/SCHEMA.md
+        why: "Financial engine adds fields to Resource (loaded_cost)"
+      - path: modules/10-bench-forecasting/REQUIREMENTS.md
+        why: "Bench forecasting reads Resource bench status"
+
+  - source: modules/02-client-management/SCHEMA.md
+    dependents:
+      - path: modules/03-project-management/SCHEMA.md
+        why: "Project references Client"
+
+  - source: modules/03-project-management/SCHEMA.md
+    dependents:
+      - path: modules/05-allocation-tracking/SCHEMA.md
+        why: "Assignment references Project"
+      - path: modules/06-non-human-costs/SCHEMA.md
+        why: "NonHumanCost references Project"
+      - path: modules/09-invoicing/SCHEMA.md
+        why: "Milestone and Invoice reference Project"
+      - path: modules/07-utilization-dashboards/REQUIREMENTS.md
+        why: "Utilization reads Project data"
+      - path: modules/12-alerts/REQUIREMENTS.md
+        why: "Alerts check Project contract dates"
+
+  - source: modules/05-allocation-tracking/SCHEMA.md
+    dependents:
+      - path: modules/07-utilization-dashboards/REQUIREMENTS.md
+        why: "Utilization calculated from Assignment data"
+      - path: modules/08-financial-engine/SCHEMA.md
+        why: "Financial engine adds billing_rate to Assignment"
+      - path: modules/11-worklog/SCHEMA.md
+        why: "Worklog references Assignment"
+      - path: modules/10-bench-forecasting/REQUIREMENTS.md
+        why: "Bench status derived from Assignment end dates"
