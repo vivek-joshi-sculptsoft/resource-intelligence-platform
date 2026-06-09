@@ -16,17 +16,21 @@ You are building a **Resource Intelligence & Project Economics Platform** — an
 
 ## Tech Stack
 
-> **Confirm with the team before starting. Update this section once decided.**
+> **Decided 2026-06-09. Full details in `techstack/main.md` and per-layer docs.**
 
 | Layer | Choice | Notes |
 |---|---|---|
-| Frontend | TBD — React/Next.js recommended | |
-| Backend | TBD — Node.js/Express or Python/FastAPI recommended | |
-| Database | TBD — PostgreSQL recommended | |
-| Auth | TBD — JWT or session-based | |
-| Hosting | TBD | |
+| Frontend | React 19 + Vite 6 | shadcn/ui + Tailwind CSS, React Router v7, TanStack Query + Zustand |
+| Backend | Python 3.12 + FastAPI | Pydantic v2, SQLAlchemy 2.0 + Alembic, uvicorn |
+| Database | PostgreSQL 16 (AWS RDS) | db.t4g.micro, UUID PKs, DECIMAL(15,2) for financials |
+| Cache / Broker | Redis 7 (Docker on EC2) | Celery broker + API cache |
+| Background Jobs | Celery 5.4 + celery-beat | 6 scheduled jobs (auto-release, alerts, recurring costs) |
+| Auth | Custom JWT (python-jose + argon2) | httpOnly cookies, 15min access + 7d refresh tokens |
+| Hosting | AWS (EC2 t3.small + RDS + S3/CloudFront) | Docker Compose, ap-south-1 (Mumbai), ~$36/mo |
+| CI/CD | GitHub Actions | Lint → Test → Build → Deploy |
+| Monitoring | Sentry + CloudWatch | Error tracking + infra metrics |
 
-Once the tech stack is decided, update this table and use it as the source of truth throughout the build.
+See `techstack/decisions/` for Architecture Decision Records explaining the reasoning behind each choice.
 
 ---
 

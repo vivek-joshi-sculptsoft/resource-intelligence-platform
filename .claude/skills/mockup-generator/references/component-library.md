@@ -258,6 +258,274 @@ function showTab(name) {
 
 ---
 
+## Index Page
+
+The central hub at `mockups/index.html` for reviewing all module mockups. Self-contained, no external deps. Embed all module/screen data in the JS object at top of script.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{Project Name} — Mockup Review</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; color: #334155; display: flex; flex-direction: column; height: 100vh; }
+
+    /* Top bar */
+    .topbar {
+      background: #0f2b45;
+      color: #fff;
+      padding: 0 24px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+    .topbar-title { font-size: 15px; font-weight: 700; }
+    .topbar-badge {
+      padding: 3px 10px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-html { background: #0d9488; color: #fff; }
+    .badge-figma { background: #7c3aed; color: #fff; }
+    .topbar-meta { margin-left: auto; font-size: 12px; color: #8da4bc; }
+
+    /* Layout */
+    .layout { display: flex; flex: 1; overflow: hidden; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      background: #fff;
+      border-right: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow-y: auto;
+    }
+    .sidebar-header {
+      padding: 16px 20px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #94a3b8;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .module-item {
+      padding: 12px 20px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: background 150ms;
+    }
+    .module-item:hover { background: #f8fafc; }
+    .module-item.active { background: #f0fdfa; border-left-color: #0d9488; }
+    .module-item-name { font-size: 13px; font-weight: 600; color: #1e293b; }
+    .module-item-meta { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+    .module-item.active .module-item-name { color: #0d9488; }
+
+    /* Main */
+    .main { flex: 1; overflow-y: auto; padding: 24px 28px; }
+    .main-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .main-title { font-size: 20px; font-weight: 700; color: #0f2b45; }
+    .btn-open-all {
+      padding: 7px 16px;
+      background: #0d9488;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-open-all:hover { background: #0a7a70; }
+
+    /* Screen grid */
+    .screen-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .screen-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 18px 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: box-shadow 150ms, border-color 150ms;
+    }
+    .screen-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #0d9488; }
+    .screen-icon { font-size: 24px; margin-bottom: 10px; }
+    .screen-name { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+    .screen-desc { font-size: 12px; color: #64748b; line-height: 1.5; margin-bottom: 14px; min-height: 36px; }
+    .btn-open {
+      display: inline-block;
+      padding: 6px 14px;
+      background: #f0fdfa;
+      color: #0d9488;
+      border: 1px solid #0d9488;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .btn-open:hover { background: #0d9488; color: #fff; }
+
+    /* Empty state */
+    .no-module {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 300px;
+      color: #94a3b8;
+      font-size: 14px;
+    }
+    .no-module-icon { font-size: 48px; opacity: 0.3; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-title" id="projectTitle">Project Mockups</div>
+  <span class="topbar-badge badge-html" id="modeBadge">HTML</span>
+  <span class="topbar-badge" id="themeBadge" style="background:#1B3A5C;color:#fff;display:none;"></span>
+  <div class="topbar-meta" id="topbarMeta"></div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-header">Modules</div>
+    <div id="moduleList"></div>
+  </div>
+  <div class="main" id="mainPanel">
+    <div class="no-module">
+      <div class="no-module-icon">📐</div>
+      <div>Select a module to view its screens</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── EDIT THIS DATA BLOCK ──────────────────────────────────────────
+const MOCKUP_DATA = {
+  project: "Resource Management System",
+  theme: "Professional Corporate",    // set to "" for Figma mode
+  mode: "html",                        // "html" or "figma"
+  modules: [
+    {
+      id: "05-allocation-tracking",
+      name: "Allocation Tracking",
+      screens: [
+        {
+          name: "Allocation List",
+          type: "list",
+          description: "Table of all resource allocations with filters and bulk actions",
+          file: "../modules/05-allocation-tracking/mockups/allocation-list.html"
+        },
+        {
+          name: "Add Assignment",
+          type: "form",
+          description: "Form to create a new resource-project assignment",
+          file: "../modules/05-allocation-tracking/mockups/add-assignment.html"
+        }
+      ]
+    }
+    // Add more modules here as they are generated
+  ]
+};
+// ─────────────────────────────────────────────────────────────────
+
+const ICONS = { list: "📋", form: "📝", dashboard: "📊", calendar: "🗓", settings: "⚙️", detail: "🔍", report: "📈" };
+
+function init() {
+  document.getElementById("projectTitle").textContent = MOCKUP_DATA.project + " — Mockup Review";
+  document.title = MOCKUP_DATA.project + " — Mockup Review";
+
+  const modeBadge = document.getElementById("modeBadge");
+  modeBadge.textContent = MOCKUP_DATA.mode.toUpperCase();
+  modeBadge.className = "topbar-badge " + (MOCKUP_DATA.mode === "figma" ? "badge-figma" : "badge-html");
+
+  if (MOCKUP_DATA.theme) {
+    const tb = document.getElementById("themeBadge");
+    tb.textContent = MOCKUP_DATA.theme;
+    tb.style.display = "";
+  }
+
+  const totalScreens = MOCKUP_DATA.modules.reduce((s, m) => s + m.screens.length, 0);
+  document.getElementById("topbarMeta").textContent =
+    `${MOCKUP_DATA.modules.length} modules · ${totalScreens} screens`;
+
+  const list = document.getElementById("moduleList");
+  MOCKUP_DATA.modules.forEach((mod, i) => {
+    const el = document.createElement("div");
+    el.className = "module-item" + (i === 0 ? " active" : "");
+    el.innerHTML = `<div class="module-item-name">${mod.name}</div>
+      <div class="module-item-meta">${mod.screens.length} screen${mod.screens.length !== 1 ? "s" : ""}</div>`;
+    el.onclick = () => selectModule(mod, el);
+    list.appendChild(el);
+  });
+
+  if (MOCKUP_DATA.modules.length > 0) selectModule(MOCKUP_DATA.modules[0], list.firstChild);
+}
+
+function selectModule(mod, itemEl) {
+  document.querySelectorAll(".module-item").forEach(el => el.classList.remove("active"));
+  itemEl.classList.add("active");
+
+  const panel = document.getElementById("mainPanel");
+  panel.innerHTML = `
+    <div class="main-header">
+      <div class="main-title">${mod.name}</div>
+      <button class="btn-open-all" onclick="openAll('${mod.id}')">Open All Screens ↗</button>
+    </div>
+    <div class="screen-grid" id="grid-${mod.id}"></div>`;
+
+  const grid = document.getElementById("grid-" + mod.id);
+  mod.screens.forEach(screen => {
+    const icon = ICONS[screen.type] || "📄";
+    const card = document.createElement("div");
+    card.className = "screen-card";
+    card.innerHTML = `
+      <div class="screen-icon">${icon}</div>
+      <div class="screen-name">${screen.name}</div>
+      <div class="screen-desc">${screen.description}</div>
+      <a class="btn-open" href="${screen.file}" target="_blank">Open →</a>`;
+    grid.appendChild(card);
+  });
+}
+
+function openAll(modId) {
+  const mod = MOCKUP_DATA.modules.find(m => m.id === modId);
+  if (mod) mod.screens.forEach(s => window.open(s.file, "_blank"));
+}
+
+init();
+</script>
+</body>
+</html>
+```
+
+**When generating this file:**
+- Replace `MOCKUP_DATA` with the actual project name, selected theme, mode, and all generated modules/screens
+- Use relative paths from `mockups/` to `modules/{module}/mockups/*.html` (e.g., `../modules/05-allocation-tracking/mockups/screen.html`)
+- Update the file every time a new module batch is generated — add the new module's entry to the `modules` array
+- Apply the selected theme's colors to the sidebar active state and button colors (override the CSS variables at the top of `<style>`)
+
+---
+
 ## Over-Allocation Warning
 
 ```html
