@@ -1,0 +1,215 @@
+# Sprint Plan — Phase 1
+
+## Overview
+
+| Metric | Value |
+|--------|-------|
+| Phase | 1 — Foundation & Visibility |
+| Modules | 8 (auth, resources, clients, projects, allocations, utilization, worklog, audit) |
+| Total Stories | 83 |
+| Sprint Duration | 1 week (5 working days) |
+| Team | 1 developer + Claude Code |
+| Estimated Sprints | 6 (Sprint 0–5) |
+| Target Completion | ~6 weeks |
+
+### Estimation with AI-Assisted Development
+
+Original estimates assume manual development. With Claude Code handling code generation, the effective velocity multiplier is ~2–3x for backend CRUD, schema, and tests; ~1.5–2x for complex business logic and frontend. Adjusted estimates used below.
+
+| Size | Manual Estimate | AI-Adjusted | Story Points |
+|------|----------------|-------------|-------------|
+| S | 1–2 days | 0.5–1 day | 1 |
+| M | 3–5 days | 1–2 days | 2 |
+| L | 5–10 days | 2–4 days | 5 |
+
+---
+
+## Sprint 0 — Project Scaffold & Infrastructure Setup
+**Goal:** Runnable empty project with CI/CD, Docker, database, and seed data.
+
+| # | Story | Module | Size | SP |
+|---|-------|--------|------|---|
+| 1 | Set up monorepo with backend (FastAPI) and frontend (React+Vite) scaffolding | — | M | 2 |
+| 2 | Docker Compose for local dev (PostgreSQL, Redis, API, Celery) | — | M | 2 |
+| 3 | GitHub Actions CI pipeline (lint + test + build) | — | S | 1 |
+| 4 | Create Role, RolePermission, User, SystemConfig schema and migrations | 01-auth | M | 2 |
+| 5 | Create seed script (7 roles, 105 permissions, 7 config keys, admin user) | 01-auth | M | 2 |
+| 6 | Create AuditLog database table | 13-audit | S | 1 |
+| 7 | Build audit logging wrapper function | 13-audit | M | 2 |
+
+**Sprint Points:** 12
+**Deliverable:** `docker-compose up` boots the full stack with seeded database. CI runs on push.
+
+---
+
+## Sprint 1 — Authentication & Access Control
+**Goal:** Login works. RBAC middleware enforced. Users can be managed.
+
+| # | Story | Module | Size | SP |
+|---|-------|--------|------|---|
+| 1 | Implement login and logout endpoints | 01-auth | M | 2 |
+| 2 | Implement GET /api/auth/me | 01-auth | S | 1 |
+| 3 | Build access control middleware (RolePermission check + scope filtering) | 01-auth | L | 5 |
+| 4 | Implement User CRUD API endpoints | 01-auth | M | 2 |
+| 5 | Implement Role and RolePermission read-only API | 01-auth | S | 1 |
+| 6 | Integrate audit logging into Module 01 | 13-audit | S | 1 |
+| 7 | Build Login screen UI | 01-auth | S | 1 |
+| 8 | Build User Management list screen | 01-auth | M | 2 |
+| 9 | Build Create/Edit User form | 01-auth | M | 2 |
+| 10 | Build Role Management screen (read-only permission matrix) | 01-auth | M | 2 |
+| 11 | Write integration tests for auth flow and access control | 01-auth | M | 2 |
+
+**Sprint Points:** 21
+**Deliverable:** Login, user management, role viewer, RBAC enforced on every API call. Foundation for all other modules.
+
+---
+
+## Sprint 2 — Resource & Client Management
+**Goal:** Resources and clients can be created, listed, filtered, and viewed.
+
+| # | Story | Module | Size | SP |
+|---|-------|--------|------|---|
+| 1 | Create Resource and ResourceTag tables | 04-resource | S | 1 |
+| 2 | Implement Resource CRUD API | 04-resource | M | 2 |
+| 3 | Implement access control for Resource endpoints | 04-resource | S | 1 |
+| 4 | Implement Tag Management API | 04-resource | S | 1 |
+| 5 | Implement audit logging for Resource | 04-resource | S | 1 |
+| 6 | Create Client database table | 02-client | S | 1 |
+| 7 | Implement Client CRUD API | 02-client | M | 2 |
+| 8 | Implement access control and deactivation guard for Client | 02-client | S | 1 |
+| 9 | Implement audit logging for Client | 02-client | S | 1 |
+| 10 | Build Resource List screen | 04-resource | M | 2 |
+| 11 | Build Resource Create/Edit form | 04-resource | S | 1 |
+| 12 | Build Client List screen | 02-client | M | 2 |
+| 13 | Build Client Create/Edit form | 02-client | S | 1 |
+| 14 | Write tests for Resource module | 04-resource | M | 2 |
+| 15 | Write tests for Client module | 02-client | S | 1 |
+
+**Sprint Points:** 20
+**Deliverable:** Full resource directory with tags/filters. Client list with CRUD. Both with RBAC and audit.
+
+---
+
+## Sprint 3 — Project Management & Allocations Backend
+**Goal:** Projects with status lifecycle. Assignments with all validations. Auto-release job.
+
+| # | Story | Module | Size | SP |
+|---|-------|--------|------|---|
+| 1 | Create Project database table | 03-project | S | 1 |
+| 2 | Implement Project CRUD API | 03-project | M | 2 |
+| 3 | Implement access control for Project endpoints | 03-project | S | 1 |
+| 4 | Implement project status lifecycle (state machine) | 03-project | M | 2 |
+| 5 | Implement worklog toggle for projects | 03-project | S | 1 |
+| 6 | Implement audit logging for Project | 03-project | S | 1 |
+| 7 | Create Assignment database table | 05-alloc | S | 1 |
+| 8 | Implement Assignment CRUD API with all 7 FSD validations | 05-alloc | L | 5 |
+| 9 | Implement access control for Assignment endpoints | 05-alloc | S | 1 |
+| 10 | Implement manual release of assignments | 05-alloc | S | 1 |
+| 11 | Implement auto-release daily scheduled job | 05-alloc | M | 2 |
+| 12 | Implement recurring model and shadow flagging | 05-alloc | S | 1 |
+| 13 | Implement audit logging for Assignment | 05-alloc | S | 1 |
+| 14 | Integrate audit logging into Modules 02–05 | 13-audit | M | 2 |
+
+**Sprint Points:** 22
+**Deliverable:** Projects with full lifecycle. Assignments with validation, release, auto-release. All audit logged.
+
+---
+
+## Sprint 4 — Project & Allocation UI + Resource Profile
+**Goal:** All CRUD screens for projects and allocations. Resource profile with assignments.
+
+| # | Story | Module | Size | SP |
+|---|-------|--------|------|---|
+| 1 | Build Project List screen | 03-project | M | 2 |
+| 2 | Build Project Create/Edit form with conditional fields | 03-project | M | 2 |
+| 3 | Build Project Detail screen with tabs and status buttons | 03-project | L | 5 |
+| 4 | Build Assignment List UI within Project Detail (Assignments tab) | 05-alloc | M | 2 |
+| 5 | Build Assignment Create/Edit form | 05-alloc | M | 2 |
+| 6 | Build Resource Profile screen (assignments, stats, tags) | 04-resource | L | 5 |
+| 7 | Build Resource Assignments panel within Resource Profile | 05-alloc | S | 1 |
+| 8 | Implement Resource deactivation cascade | 04-resource | S | 1 |
+| 9 | Build Client Detail screen with project list | 02-client | M | 2 |
+
+**Sprint Points:** 22
+**Deliverable:** Full project detail with assignment management. Resource profiles with live allocation data. Client detail page.
+
+---
+
+## Sprint 5 — Dashboards, Worklog & Polish
+**Goal:** Utilization dashboards. Worklog entry. End-to-end testing. Phase 1 complete.
+
+| # | Story | Module | Size | SP |
+|---|-------|--------|------|---|
+| 1 | Implement Company Dashboard aggregation API | 07-util | L | 5 |
+| 2 | Implement DM Dashboard aggregation API | 07-util | M | 2 |
+| 3 | Implement Resource Availability API | 07-util | M | 2 |
+| 4 | Build Company Dashboard screen with widgets | 07-util | L | 5 |
+| 5 | Build Resource Availability screen | 07-util | L | 5 |
+| 6 | Build My Assignments screen (Engineer role) | 07-util | S | 1 |
+| 7 | Create Worklog database table | 11-worklog | S | 1 |
+| 8 | Build worklog CRUD API + validation rules | 11-worklog | M | 2 |
+| 9 | Implement worklog access control | 11-worklog | S | 1 |
+| 10 | Build worklog entry UI for employees | 11-worklog | L | 5 |
+| 11 | Build worklog tab in project detail (manager view) | 11-worklog | M | 2 |
+| 12 | Write tests for Assignment module | 05-alloc | L | 5 |
+| 13 | Write tests for Project module | 03-project | M | 2 |
+| 14 | Write tests for dashboard aggregation | 07-util | M | 2 |
+
+**Sprint Points:** 40
+**Note:** This is an overloaded sprint. If velocity doesn't support it, split into Sprint 5 (dashboards + worklog backend) and Sprint 6 (worklog UI + all remaining tests).
+
+---
+
+## Deferred to Later Sprints (within Phase 1)
+
+These stories exist in the ticket files but are lower priority or depend on Phase 1 stabilization:
+
+| Story | Module | Priority | Reason |
+|-------|--------|----------|--------|
+| Client dashboard aggregation endpoint | 02-client | P2 | Needs allocation data populated first |
+| Project Financials API stub | 07-util | P3 | Phase 2 placeholder |
+| Dashboard performance optimization | 07-util | P2 | Optimize after functional correctness |
+| Manager worklog viewing APIs | 11-worklog | P1 | Can ship after basic worklog works |
+| Personal worklog history page | 11-worklog | P2 | Nice-to-have |
+| Audit log viewer API + UI | 13-audit | P1 | Phase 3 per spec |
+| Point-in-time reconstruction | 13-audit | P2 | Phase 3 per spec |
+| Change history panel for entity views | 13-audit | P2 | Phase 3 per spec |
+
+---
+
+## Sprint Velocity Tracking
+
+| Sprint | Planned SP | Actual SP | Notes |
+|--------|-----------|-----------|-------|
+| 0 | 12 | — | |
+| 1 | 21 | — | |
+| 2 | 20 | — | |
+| 3 | 22 | — | |
+| 4 | 22 | — | |
+| 5 | 40 | — | May need to split |
+
+**Total Phase 1:** ~137 story points across 6 sprints
+
+---
+
+## Key Risks
+
+| Risk | Impact | Mitigation |
+|------|--------|-----------|
+| RBAC middleware complexity | Blocks all modules | Sprint 1 is entirely focused on auth. No parallel work until middleware is proven. |
+| Assignment validation rules (7 FSD rules) | Most complex single story | Allocated as L (5 SP) in Sprint 3 with full sprint focus. |
+| Dashboard aggregation queries | Performance at scale | Ship correct first (Sprint 5), optimize after with real data. |
+| Sprint 5 overload (40 SP) | May not complete in 1 week | Split into 5a/5b if needed. Dashboards and worklog are independent — can parallelize. |
+| Scope creep from Phase 2 dependencies | UI stubs for Phase 2 fields (loaded_cost, billing_rate) | Fields present but disabled/null. No Phase 2 logic in Phase 1 code. |
+
+---
+
+## Definition of Done (per story)
+
+- [ ] Code reviewed (or Claude Code generated + developer verified)
+- [ ] API endpoints match module API.md spec
+- [ ] Access control tested for at least 2 roles (one allowed, one denied)
+- [ ] Audit log entries verified for write operations
+- [ ] Frontend matches SCREENS.md layout and states (including empty state)
+- [ ] No TypeScript/Python type errors
+- [ ] Story-level tests pass

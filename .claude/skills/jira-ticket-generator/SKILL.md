@@ -1,6 +1,6 @@
 ---
 name: jira-ticket-generator
-description: "An agent that reads module-wise requirement files (REQUIREMENTS.md, SCHEMA.md, API.md, SCREENS.md) and generates JIRA-ready tickets with epics, stories, sub-tasks, acceptance criteria, estimates, dependencies, labels, and sprint suggestions. Supports markdown, CSV (JIRA import), and JSON output. Triggers when someone says 'generate JIRA tickets', 'create stories from modules', 'break this into tickets', 'create sprint plan', or wants to convert module specs into actionable development tasks."
+description: "An agent that reads module-wise requirement files (REQUIREMENTS.md, SCHEMA.md, API.md, SCREENS.md) and generates JIRA-ready tickets with epics, stories, sub-tasks, acceptance criteria, estimates, dependencies, labels, and sprint suggestions. Integrates with Jira MCP to create tickets directly in Jira when available. Supports markdown, CSV (JIRA import), and JSON output. Triggers when someone says 'generate JIRA tickets', 'create stories from modules', 'break this into tickets', 'create sprint plan', 'push tickets to Jira', 'create stories in Jira', or wants to convert module specs into actionable development tasks."
 ---
 
 # JIRA Ticket Generator Agent
@@ -18,6 +18,43 @@ You are not a naive line-counter that creates one ticket per bullet point. You u
 **Estimates are honest.** A "simple CRUD" for an entity with 15 fields, 7 validations, 3 state transitions, role-based access, and audit logging is not a Small. Read the actual spec before sizing.
 
 **Labels matter.** A PM filtering by `backend` or `frontend` or `database` should see exactly the tickets relevant to that discipline.
+
+## Jira MCP Integration
+
+This skill integrates with Jira via MCP (Model Context Protocol) tools when available. This enables direct ticket creation in Jira instead of — or alongside — file output.
+
+### Mode Selection
+
+At startup, detect whether Jira MCP tools are available (look for tools with `jira` in the name: `mcp__jira__create_issue`, `jira_create_issue`, etc.).
+
+**If Jira MCP is available**, ask the user:
+```
+I can create these tickets directly in Jira. How would you like to proceed?
+  a) Create in Jira directly [requires your Jira project key]
+  b) Generate files only (markdown/CSV/JSON)
+  c) Both — generate files AND create in Jira
+```
+
+**If Jira MCP is not available**, proceed with file output only.
+
+### Two-Phase Jira Creation
+
+When creating directly in Jira, follow a strict two-phase approach:
+
+**Phase 1 (always runs first):** Create Epics + User Stories.
+- Ask the user the preference questionnaire from `references/jira-mcp-guide.md` BEFORE creating anything.
+- Create epics first, then stories linked to their epics.
+- Present a summary of created tickets when done.
+
+**Phase 2 (runs only when user explicitly asks):** Create Technical Sub-tasks.
+- Triggers when user says: "break into tasks", "create technical tasks", "add sub-tasks", "distribute technical work"
+- Ask which stories to break down (all L/XL, specific stories, or all)
+- Split per the team structure preference collected in Phase 1
+- Create sub-tasks linked to parent stories
+
+Read `references/jira-mcp-guide.md` for the full preference questionnaire, epic/story distribution standards, technical task breakdown patterns, and creation sequence.
+
+---
 
 ## Input
 
@@ -238,6 +275,12 @@ Total: {sum} points
 
 ## Workflow
 
+### Step 0: Mode Detection + Preferences
+1. Check if Jira MCP tools are available.
+2. Ask the user which output mode they want (Jira direct / files / both).
+3. If Jira MCP mode: ask the full preference questionnaire from `references/jira-mcp-guide.md`. Wait for answers before proceeding.
+4. Confirm the setup back to the user before creating anything.
+
 ### Step 1: Read Module Files
 For each module (or the specified module), read all 5 files. Understand:
 - What entities are owned (SCHEMA.md)
@@ -267,15 +310,61 @@ Apply the relevant pattern from `references/story-patterns.md`. For each story:
 ### Step 4: Generate Sprint Plan
 Group stories into sprints respecting dependencies and capacity.
 
-### Step 5: Output
-Generate in the requested format (markdown, CSV, or JSON).
+**Sprint dependency validation (run after initial assignment):**
+
+For every story that has a dependency, enforce:
+```
+dependency.sprint < story.sprint
+```
+
+If a story is assigned to Sprint N but its dependency is in Sprint N or Sprint N+x:
+1. Bump the story to `dependency.sprint + 1`
+2. Re-check all stories that depend on the bumped story (cascade)
+3. Repeat until no violations remain
+
+After validation, report any stories that were moved:
+```
+Sprint Adjustments (dependency enforcement):
+- "Assignment CRUD" moved Sprint 2 → Sprint 3 (blocked by "Resource CRUD" in Sprint 2)
+- "Allocation Dashboard" moved Sprint 3 → Sprint 4 (blocked by "Assignment CRUD" now in Sprint 3)
+```
+
+If a dependency chain causes a story to exceed the last planned sprint, flag it explicitly:
+```
+WARNING: "Invoice PDF generation" cannot fit in Sprint 6 (the last sprint).
+It depends on "Invoice CRUD" which is in Sprint 6. Suggest adding Sprint 7 or deferring to Phase 3.
+```
+
+### Step 5: Output / Jira Creation
+**File output mode:** Generate in the requested format (markdown, CSV, or JSON).
+
+**Jira MCP mode (Phase 1):**
+- Create Epics in Jira per the user's epic grouping preference.
+- Create Stories under each Epic with all fields populated.
+- Set issue links (blocked-by relationships) after all stories exist.
+- Present post-creation summary report (see `references/jira-mcp-guide.md`).
+
+**After Phase 1 completes**, always ask:
+```
+User stories are created. Would you like me to break them into technical tasks now?
+This adds backend/frontend/QA sub-tasks under each L and XL story.
+```
+
+### Step 6: Technical Task Creation (Phase 2, on demand)
+Only runs when user explicitly requests it.
+1. Ask which stories to break down: all L/XL, specific epic, or all.
+2. Read the team structure preference set in Step 0.
+3. Apply the task breakdown pattern from `references/jira-mcp-guide.md`.
+4. Create sub-tasks in Jira linked to their parent stories.
+5. Present sub-task creation summary.
 
 ---
 
 ## Reference Files
 
-| File | Purpose |
-|------|---------|
-| `references/story-patterns.md` | Detailed story breakdown patterns per module type |
-| `references/estimation-guide.md` | Estimation criteria with examples |
-| `references/csv-format.md` | JIRA CSV import column mapping |
+| File | When to Read | Purpose |
+|------|-------------|---------|
+| `references/jira-mcp-guide.md` | Step 0 (always when Jira MCP mode) | Preference questionnaire, epic/story distribution standards, technical task patterns, MCP creation sequence |
+| `references/story-patterns.md` | Step 3 | Detailed story breakdown patterns per module type |
+| `references/estimation-guide.md` | Step 3 | Estimation criteria with examples |
+| `references/csv-format.md` | Step 5 (CSV output only) | JIRA CSV import column mapping |
