@@ -1,6 +1,6 @@
 import pytest
 
-from app.shared.exceptions import AppException
+from app.shared.exceptions import AppError
 
 
 @pytest.mark.asyncio
@@ -9,7 +9,7 @@ async def test_app_exception_returns_json(client):
 
     @app.get("/api/v1/test-error")
     async def trigger_error():
-        raise AppException(message="Test error", status_code=422, field="name")
+        raise AppError(message="Test error", status_code=422, field="name")
 
     response = await client.get("/api/v1/test-error")
     assert response.status_code == 422

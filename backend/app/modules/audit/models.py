@@ -8,7 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.shared.models import Base
 
 
-class AuditAction(str, enum.Enum):
+class AuditAction(enum.StrEnum):
     CREATE = "CREATE"
     UPDATE = "UPDATE"
     DELETE = "DELETE"

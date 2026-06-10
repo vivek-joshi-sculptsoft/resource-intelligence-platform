@@ -1,8 +1,8 @@
 # Sprint 4 — Projects & Allocations Frontend
 
 **Goal:** Full project UI with detail tabs. Assignment management from project detail. Resource profile shows assignments. App shell with sidebar navigation.
-**Capacity:** 27 SP | **Duration:** 1 week
-**Epics:** EP-4 (Project Management — frontend) + EP-5 (Allocation Tracking — frontend)
+**Capacity:** 32 SP | **Duration:** 1 week
+**Epics:** EP-4 (Project Management — frontend) + EP-5 (Allocation Tracking — frontend) + EP-0 (IaC)
 
 ---
 
@@ -281,6 +281,37 @@ As a user, I want breadcrumbs and document titles so that I always know where I 
 
 ---
 
+### S4-12: Infrastructure as Code (Terraform) — AWS provisioning
+**Type:** Story | **Points:** 5 (L) | **Priority:** P2 — Major
+**Labels:** `infra`, `iac`, `phase-1`, `nice-to-have`, `agentic`
+**Depends On:** None (can be worked in parallel)
+**JIRA:** VRIP-79
+
+#### Context (read before starting)
+- `techstack/infra.md` → Target AWS architecture
+- `techstack/cost-estimate.md` → ~$36/mo budget target
+- `docker-compose.dev.yml` → Services to replicate in production
+
+#### Description
+As a developer, I want Terraform configs so that production AWS infrastructure is provisioned repeatably.
+
+#### Acceptance Criteria
+- [ ] `infra/` directory with Terraform modules: VPC, EC2, RDS, S3, CloudFront, security groups, IAM
+- [ ] VPC: public + private subnets in ap-south-1
+- [ ] EC2: t3.small for Docker Compose (API + Celery + Redis)
+- [ ] RDS: db.t4g.micro PostgreSQL 16, private subnet, automated backups
+- [ ] S3 + CloudFront: static frontend hosting with CDN
+- [ ] Security groups: API (80/443), DB (5432 from EC2 only), Redis (6379 internal only)
+- [ ] IAM roles for EC2 → RDS, EC2 → S3 access
+- [ ] Separate tfvars for dev/staging/prod environments
+- [ ] Remote state: S3 backend + DynamoDB locking table
+- [ ] `terraform init && terraform plan` runs without errors
+- [ ] `terraform destroy` cleans up all resources
+- [ ] README with first-time deploy instructions
+- [ ] Estimated cost validates against ~$36/mo target
+
+---
+
 ## Sprint 4 Summary
 
 | Story | Title | SP | Epic | Labels | Priority |
@@ -296,4 +327,5 @@ As a user, I want breadcrumbs and document titles so that I always know where I 
 | S4-09 | Shared UI components | 2 | EP-5 | frontend | P1 |
 | S4-10 | Allocation frontend tests | 2 | EP-5 | testing | P2 |
 | S4-11 | Breadcrumbs + page titles | 2 | — | frontend | P2 |
-| **Total** | | **27** | | | |
+| S4-12 | Terraform IaC — AWS provisioning | 5 | EP-0 | infra | P2 |
+| **Total** | | **32** | | | |

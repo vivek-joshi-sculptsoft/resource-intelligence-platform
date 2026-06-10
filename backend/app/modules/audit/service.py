@@ -19,7 +19,13 @@ async def audit_log(
     """Log an audit entry. For UPDATE, pass changes as {field: (old, new)}."""
     entries: list[AuditLog] = []
 
-    changed_by = user_id if isinstance(user_id, uuid.UUID) else uuid.UUID(user_id) if user_id != "SYSTEM" else uuid.UUID(int=0)
+    changed_by = (
+        user_id
+        if isinstance(user_id, uuid.UUID)
+        else uuid.UUID(user_id)
+        if user_id != "SYSTEM"
+        else uuid.UUID(int=0)
+    )
 
     if action == AuditAction.CREATE:
         entry = AuditLog(

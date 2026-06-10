@@ -25,7 +25,7 @@
 | EP-7: Worklog | 11-worklog | 5 | 6 | 13 |
 | EP-8: Audit History (Phase 1 scope) | 13-audit-history | 0 | 1 | 3 |
 | EP-9: Integration Testing & Polish | — | 5 | 2 | 4 |
-| **Total** | | **6 sprints** | **67** | **173** |
+| **Total** | | **6 sprints** | **68** | **178** |
 
 ## Sprint Plan Summary
 
@@ -35,7 +35,7 @@
 | 1 | Auth & Security | EP-1 | 25 | Login works. RBAC enforced. User management. Role viewer. |
 | 2 | Data Foundation | EP-2, EP-3 | 33 | Resources + Clients: full CRUD with access control and UI. |
 | 3 | Projects & Allocations BE | EP-4, EP-5 (backend) | 30 | Projects with lifecycle. Assignments with 7 validations. Auto-release job. |
-| 4 | Projects & Allocations FE | EP-5 (frontend), EP-4 (UI) | 27 | Full project detail. Assignment management. Resource profile. |
+| 4 | Projects & Allocations FE | EP-5 (frontend), EP-4 (UI), EP-0 (IaC) | 32 | Full project detail. Assignment management. Resource profile. Terraform IaC. |
 | 5 | Dashboards & Worklog | EP-6, EP-7, EP-9 | 35 | Utilization dashboards. Worklog entry. E2E tests. Phase 1 complete. |
 
 ## Ticket Files
@@ -46,9 +46,9 @@
 | [sprint-1-auth.md](sprint-1-auth.md) | Sprint 1 — Auth & Roles | 9 | 25 |
 | [sprint-2-data-foundation.md](sprint-2-data-foundation.md) | Sprint 2 — Resources + Clients | 15 | 33 |
 | [sprint-3-projects-allocations-be.md](sprint-3-projects-allocations-be.md) | Sprint 3 — Projects + Allocations BE | 11 | 30 |
-| [sprint-4-projects-allocations-fe.md](sprint-4-projects-allocations-fe.md) | Sprint 4 — Projects + Allocations FE | 11 | 27 |
+| [sprint-4-projects-allocations-fe.md](sprint-4-projects-allocations-fe.md) | Sprint 4 — Projects + Allocations FE + IaC | 12 | 32 |
 | [sprint-5-dashboards-worklog.md](sprint-5-dashboards-worklog.md) | Sprint 5 — Dashboards + Worklog + Polish | 14 | 35 |
-| **Total** | **6 sprints** | **68** | **170** |
+| **Total** | **6 sprints** | **69** | **175** |
 
 ## Label Taxonomy
 

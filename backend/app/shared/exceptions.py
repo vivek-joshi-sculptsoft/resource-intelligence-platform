@@ -1,4 +1,4 @@
-class AppException(Exception):
+class AppError(Exception):
     def __init__(
         self,
         message: str,
@@ -11,27 +11,27 @@ class AppException(Exception):
         super().__init__(message)
 
 
-class NotFoundException(AppException):
+class NotFoundError(AppError):
     def __init__(self, entity: str, entity_id: str | None = None):
         msg = f"{entity} not found" if not entity_id else f"{entity} with id {entity_id} not found"
         super().__init__(message=msg, status_code=404)
 
 
-class ForbiddenException(AppException):
+class ForbiddenError(AppError):
     def __init__(self, message: str = "You do not have permission to perform this action"):
         super().__init__(message=message, status_code=403)
 
 
-class UnauthorizedException(AppException):
+class UnauthorizedError(AppError):
     def __init__(self, message: str = "Authentication required"):
         super().__init__(message=message, status_code=401)
 
 
-class ConflictException(AppException):
+class ConflictError(AppError):
     def __init__(self, message: str, field: str | None = None):
         super().__init__(message=message, status_code=409, field=field)
 
 
-class ValidationException(AppException):
+class ValidationError(AppError):
     def __init__(self, message: str, field: str | None = None):
         super().__init__(message=message, status_code=422, field=field)

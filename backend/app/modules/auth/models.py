@@ -9,13 +9,13 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.shared.models import Base
 
 
-class AccessLevel(str, enum.Enum):
+class AccessLevel(enum.StrEnum):
     NONE = "NONE"
     VIEW = "VIEW"
     EDIT = "EDIT"
 
 
-class Scope(str, enum.Enum):
+class Scope(enum.StrEnum):
     ALL = "ALL"
     OWN_PORTFOLIO = "OWN_PORTFOLIO"
     SELF_ONLY = "SELF_ONLY"
@@ -39,9 +39,7 @@ class Role(Base):
 
 class RolePermission(Base):
     __tablename__ = "role_permissions"
-    __table_args__ = (
-        UniqueConstraint("role_id", "data_type", name="uq_role_data_type"),
-    )
+    __table_args__ = (UniqueConstraint("role_id", "data_type", name="uq_role_data_type"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     role_id: Mapped[uuid.UUID] = mapped_column(
