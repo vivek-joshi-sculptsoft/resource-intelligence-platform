@@ -36,8 +36,41 @@ See `techstack/decisions/` for Architecture Decision Records explaining the reas
 
 ## Repo Structure
 
+Monorepo — backend and frontend live alongside specs in one repository.
+
 ```
 project/
+├── backend/                          # Python + FastAPI (see techstack/backend.md)
+│   ├── app/
+│   │   ├── main.py                   # FastAPI app factory
+│   │   ├── config.py                 # pydantic-settings
+│   │   ├── database.py               # SQLAlchemy engine + session
+│   │   ├── dependencies.py           # get_db, get_current_user
+│   │   ├── middleware/               # auth.py, rbac.py
+│   │   ├── modules/                  # One package per module
+│   │   │   ├── auth/                 # router, service, schemas, models, seed
+│   │   │   ├── clients/
+│   │   │   ├── projects/
+│   │   │   ├── resources/
+│   │   │   ├── allocations/
+│   │   │   ├── utilization/
+│   │   │   ├── worklogs/
+│   │   │   └── audit/
+│   │   ├── shared/                   # Base models, schemas, exceptions, utils
+│   │   └── jobs/                     # Celery tasks
+│   ├── alembic/                      # Database migrations
+│   ├── tests/                        # pytest test suites
+│   ├── pyproject.toml
+│   ├── Dockerfile
+│   └── .env.example
+├── frontend/                         # React 19 + Vite 6 (see techstack/frontend.md)
+│   ├── src/
+│   │   ├── app/                      # Routes, App.tsx
+│   │   ├── modules/                  # Feature modules (auth, clients, etc.)
+│   │   ├── shared/                   # Reusable components, hooks, lib
+│   │   └── styles/                   # globals.css
+│   ├── package.json
+│   └── vite.config.ts
 ├── prd/PRD.md                        # Product requirements (read-only reference)
 ├── fsd/FSD.md                        # Functional specs (read-only reference)
 ├── shared/                           # Cross-cutting references
@@ -53,8 +86,10 @@ project/
 │       ├── SCREENS.md               # UI views and components
 │       ├── DEPENDENCIES.md          # Upstream and downstream module dependencies
 │       └── JOBS.md                  # Background jobs (only if module has any)
+├── techstack/                        # Architecture decisions and stack docs
 ├── tickets/                          # JIRA-ready story breakdowns per module
-│   └── {module-name}.md
+│   └── phase-1/
+├── docker-compose.dev.yml            # Local dev: api, celery, redis, postgres
 ├── CLAUDE.md                         # This file
 ├── ROADMAP.md                        # Phase-wise build plan with estimates
 └── README.md                         # Project overview and setup guide
