@@ -64,6 +64,7 @@ As a DM, I want my portfolio dashboard API so that I see metrics scoped to my pr
 #### Context (read before starting)
 - `modules/07-utilization-dashboards/API.md` → GET /dashboard/availability
 - `modules/07-utilization-dashboards/SCREENS.md` → Resource Availability View
+- `modules/07-utilization-dashboards/mockups/availability.html` → Visual mockup reference
 
 #### Description
 As any user, I want a resource availability API so that I can find who's available for projects.
@@ -87,6 +88,7 @@ As any user, I want a resource availability API so that I can find who's availab
 
 #### Context (read before starting)
 - `modules/07-utilization-dashboards/SCREENS.md` → Company Dashboard spec
+- `modules/07-utilization-dashboards/mockups/company-dashboard.html` → Visual mockup reference
 
 #### Description
 As a CEO/CTO, I want a visual company dashboard so that I can see the business at a glance.
@@ -113,6 +115,7 @@ As a CEO/CTO, I want a visual company dashboard so that I can see the business a
 
 #### Context (read before starting)
 - `modules/07-utilization-dashboards/SCREENS.md` → Resource Availability View spec
+- `modules/07-utilization-dashboards/mockups/availability.html` → Visual mockup reference
 
 #### Description
 As any user, I want a resource availability page so that I can find available team members.
@@ -234,7 +237,9 @@ As a PM/DM, I want to view worklog entries for my projects and resources.
 
 #### Context (read before starting)
 - `modules/11-worklog/SCREENS.md` → Worklog Entry spec
+- `modules/11-worklog/mockups/worklog-entry.html` → Visual mockup reference
 - `modules/07-utilization-dashboards/SCREENS.md` → My Assignments spec
+- `modules/07-utilization-dashboards/mockups/my-assignments.html` → Visual mockup reference
 
 #### Description
 As an engineer, I want a page where I can see my assignments and log hours.
@@ -263,6 +268,7 @@ As an engineer, I want a page where I can see my assignments and log hours.
 
 #### Context (read before starting)
 - `modules/11-worklog/SCREENS.md` → Worklog Tab spec
+- `modules/11-worklog/mockups/worklog-tab.html` → Visual mockup reference
 
 #### Description
 As a PM/DM, I want to see worklog entries in the project detail so that I can track hours logged.

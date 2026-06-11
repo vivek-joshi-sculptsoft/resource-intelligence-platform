@@ -114,6 +114,7 @@ As a CEO/CTO/HR/DM, I want to add and remove resource tags for skill categorizat
 
 #### Context (read before starting)
 - `modules/04-resource-management/SCREENS.md` → Resource List spec
+- `modules/04-resource-management/mockups/resource-list.html` → Visual mockup reference
 - `shared/ACCESS-MATRIX.md` → role visibility for resource data
 
 #### Description
@@ -142,6 +143,7 @@ As a manager, I want a resource list page so that I can see all team members and
 
 #### Context (read before starting)
 - `modules/04-resource-management/SCREENS.md` → Resource Profile spec
+- `modules/04-resource-management/mockups/resource-profile.html` → Visual mockup reference
 - `shared/ACCESS-MATRIX.md` → field-level restrictions per role
 
 #### Description
@@ -167,6 +169,7 @@ As a manager, I want a resource profile page so that I can see a resource's full
 
 #### Context (read before starting)
 - `modules/04-resource-management/SCREENS.md` → Resource Create/Edit Form spec
+- `modules/04-resource-management/mockups/resource-form.html` → Visual mockup reference
 
 #### Description
 As a CEO/CTO/HR, I want a resource form so that I can add and edit team members.
@@ -289,6 +292,7 @@ As a platform, I want client endpoints role-gated per the access matrix.
 
 #### Context (read before starting)
 - `modules/02-client-management/SCREENS.md` → Client List spec
+- `modules/02-client-management/mockups/client-list.html` → Visual mockup reference
 
 #### Description
 As a manager, I want a client list page so that I can see all client relationships.
@@ -313,6 +317,7 @@ As a manager, I want a client list page so that I can see all client relationshi
 
 #### Context (read before starting)
 - `modules/02-client-management/SCREENS.md` → Client Detail spec
+- `modules/02-client-management/mockups/client-detail.html` → Visual mockup reference
 
 #### Description
 As a manager, I want a client detail page so that I can see client info and their projects.
@@ -337,6 +342,7 @@ As a manager, I want a client detail page so that I can see client info and thei
 
 #### Context (read before starting)
 - `modules/02-client-management/SCREENS.md` → Client Create/Edit Form spec
+- `modules/02-client-management/mockups/client-form.html` → Visual mockup reference
 
 #### Description
 As a CEO/CTO, I want a client form so that I can add and edit client records.

@@ -142,6 +142,7 @@ As a CEO/CTO, I want to view role permissions so that I can understand the acces
 
 #### Context (read before starting)
 - `modules/01-auth-and-roles/SCREENS.md` → Login screen spec
+- `modules/01-auth-and-roles/mockups/login.html` → Visual mockup reference
 - `techstack/frontend.md` → Routing, state management
 
 #### Description
@@ -167,6 +168,7 @@ As a user, I want a login page so that I can authenticate into the platform.
 
 #### Context (read before starting)
 - `modules/01-auth-and-roles/SCREENS.md` → User Management, Create/Edit User Form
+- `modules/01-auth-and-roles/mockups/user-management.html`, `mockups/user-form.html` → Visual mockup references
 - `shared/ACCESS-MATRIX.md` → CEO/CTO only for user management
 
 #### Description
@@ -193,6 +195,7 @@ As a CEO/CTO, I want a user management page so that I can add, edit, and deactiv
 
 #### Context (read before starting)
 - `modules/01-auth-and-roles/SCREENS.md` → Role Management screen
+- `modules/01-auth-and-roles/mockups/role-management.html` → Visual mockup reference
 
 #### Description
 As a CEO/CTO, I want to view the permission matrix per role so that I understand who can see what.

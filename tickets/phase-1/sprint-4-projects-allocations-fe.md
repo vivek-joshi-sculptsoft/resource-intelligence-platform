@@ -42,6 +42,7 @@ As a user, I want a persistent sidebar so that I can navigate between modules.
 
 #### Context (read before starting)
 - `modules/03-project-management/SCREENS.md` → Project List spec
+- `modules/03-project-management/mockups/project-list.html` → Visual mockup reference
 
 #### Description
 As a manager, I want a project list page so that I can see and filter all projects.
@@ -68,7 +69,9 @@ As a manager, I want a project list page so that I can see and filter all projec
 
 #### Context (read before starting)
 - `modules/03-project-management/SCREENS.md` → Project Detail spec
+- `modules/03-project-management/mockups/project-detail.html` → Visual mockup reference
 - `modules/05-allocation-tracking/SCREENS.md` → Assignment List (tab content)
+- `modules/05-allocation-tracking/mockups/assignment-list.html` → Visual mockup reference
 
 #### Description
 As a manager, I want a project detail page with tabs so that I see all project information in one place.
@@ -94,6 +97,7 @@ As a manager, I want a project detail page with tabs so that I see all project i
 
 #### Context (read before starting)
 - `modules/03-project-management/SCREENS.md` → Project Create/Edit Form spec
+- `modules/03-project-management/mockups/project-form.html` → Visual mockup reference
 
 #### Description
 As a CEO/CTO/DM, I want a project form so that I can create and edit projects.
@@ -141,6 +145,7 @@ As a developer, I want frontend component tests for project screens so that UI l
 
 #### Context (read before starting)
 - `modules/05-allocation-tracking/SCREENS.md` → Assignment List spec
+- `modules/05-allocation-tracking/mockups/assignment-list.html` → Visual mockup reference
 - `shared/ACCESS-MATRIX.md` → field restrictions
 
 #### Description
@@ -167,6 +172,7 @@ As a PM/DM, I want an assignments table within the project detail so that I can 
 
 #### Context (read before starting)
 - `modules/05-allocation-tracking/SCREENS.md` → Assignment Create/Edit Form spec
+- `modules/05-allocation-tracking/mockups/assignment-form.html` → Visual mockup reference
 
 #### Description
 As a PM/DM, I want an assignment form so that I can assign resources to projects with proper validation.
@@ -200,7 +206,9 @@ As a PM/DM, I want an assignment form so that I can assign resources to projects
 
 #### Context (read before starting)
 - `modules/05-allocation-tracking/SCREENS.md` → Resource Assignments Panel spec
+- `modules/05-allocation-tracking/mockups/resource-assignments.html` → Visual mockup reference
 - `modules/04-resource-management/SCREENS.md` → Resource Profile (Assignments section)
+- `modules/04-resource-management/mockups/resource-profile.html` → Visual mockup reference
 
 #### Description
 As a user, I want the resource profile to show actual assignment data (not just placeholder) now that the API exists.
