@@ -14,6 +14,10 @@ from app.shared.exceptions import AppError
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     if settings.SENTRY_DSN:
         sentry_sdk.init(dsn=settings.SENTRY_DSN, traces_sample_rate=0.1)
+    if settings.DATABASE_URL.startswith("sqlite"):
+        from app.database import create_tables
+
+        await create_tables()
     yield
 
 

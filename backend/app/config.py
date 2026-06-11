@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "Resource Intelligence Platform"
     DEBUG: bool = False
 
-    DATABASE_URL: str = "postgresql+asyncpg://dev:dev@localhost:5432/ri_platform"
+    DATABASE_URL: str = "sqlite+aiosqlite:///./ri_platform.db"
     DATABASE_ECHO: bool = False
 
     REDIS_URL: str = "redis://localhost:6379/0"

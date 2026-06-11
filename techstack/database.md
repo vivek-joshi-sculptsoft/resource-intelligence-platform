@@ -10,6 +10,31 @@ Chosen for: native UUID support, DECIMAL(15,2) precision for financial calculati
 
 ---
 
+## Local Development — SQLite
+
+For local development, the backend defaults to **SQLite** via `aiosqlite` so developers don't need Docker or PostgreSQL running.
+
+| Setting | Local (SQLite) | Production (PostgreSQL) |
+|---------|---------------|------------------------|
+| Default URL | `sqlite+aiosqlite:///./ri_platform.db` | RDS connection string via `DATABASE_URL` env |
+| Connection pool | No pooling (`check_same_thread=False`) | `pool_size=5, max_overflow=10` |
+| Schema creation | Auto-create via `metadata.create_all()` on startup | Alembic migrations |
+| UUID type | `sqlalchemy.Uuid` (generic) | Same — maps to `UUID` natively |
+| JSON type | `sqlalchemy.JSON` (generic) | Same — maps to `JSONB` on PostgreSQL |
+| File committed? | No — `*.db` in `.gitignore` | N/A |
+
+**Type abstraction rule:** All SQLAlchemy models must use backend-agnostic types (`sqlalchemy.Uuid`, `sqlalchemy.JSON`). Never import from `sqlalchemy.dialects.postgresql`. Alembic migrations may use PostgreSQL-specific types since they only run in production.
+
+**Limitations accepted for local dev:**
+- No timezone-aware timestamps (SQLite stores as text)
+- No `pg_trgm` fuzzy search
+- No `JSONB` operators — basic JSON storage only
+- No connection pooling
+
+These are acceptable trade-offs for local development convenience.
+
+---
+
 ## Schema Approach
 
 ### Migrations

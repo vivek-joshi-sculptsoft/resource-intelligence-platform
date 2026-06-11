@@ -55,7 +55,9 @@ Both share the same codebase and database connection.
 | Framework | FastAPI | API framework |
 | Server | uvicorn | ASGI server |
 | ORM | SQLAlchemy 2.0 | Database ORM with async support |
-| Migrations | Alembic | Schema migrations |
+| DB Driver (local) | aiosqlite | Async SQLite driver for local dev |
+| DB Driver (prod) | asyncpg | Async PostgreSQL driver for production |
+| Migrations | Alembic | Schema migrations (production only) |
 | Validation | Pydantic v2 | Request/response schemas |
 | Auth | python-jose | JWT encoding/decoding |
 | Password | argon2-cffi | Password hashing (OWASP recommended) |

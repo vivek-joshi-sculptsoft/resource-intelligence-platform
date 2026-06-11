@@ -1,7 +1,7 @@
 # Sprint 0 — Project Bootstrap & DevOps
 
 **Goal:** Runnable empty project with CI/CD, Docker, database, seed data, and audit infrastructure.
-**Capacity:** 19 SP | **Duration:** 1 week
+**Capacity:** 22 SP | **Duration:** 1 week
 
 ---
 
@@ -212,6 +212,40 @@ As a developer, I want Celery configured so that scheduled jobs work when module
 
 ---
 
+### S0-09: SQLite support for local development
+**Type:** Story | **Points:** 2 (S) | **Priority:** P1 — Critical
+**Labels:** `backend`, `devops`, `database`, `phase-1`, `must-have`, `agentic`
+**Depends On:** S0-01, S0-05
+
+#### Context (read before starting)
+- `techstack/database.md` → Local Development — SQLite section
+- `techstack/backend.md` → Key Libraries (aiosqlite)
+- `techstack/devops.md` → Local Development → Quick Start section
+- `CLAUDE.md` → Database conventions
+
+#### Description
+As a developer, I want the backend to default to SQLite locally so that I can run the API without Docker or PostgreSQL.
+
+#### Acceptance Criteria
+- [ ] `aiosqlite>=0.20.0` added to `pyproject.toml` and installed
+- [ ] `app/config.py` — `DATABASE_URL` defaults to `sqlite+aiosqlite:///./ri_platform.db` when env var not set
+- [ ] `app/database.py` — detects SQLite vs PostgreSQL URL, applies correct engine kwargs (no pool for SQLite, `check_same_thread=False`)
+- [ ] `app/database.py` — exposes `create_tables()` helper for SQLite auto-schema creation
+- [ ] `app/main.py` — calls `create_tables()` on startup when using SQLite
+- [ ] All SQLAlchemy models use `sqlalchemy.Uuid` instead of `sqlalchemy.dialects.postgresql.UUID`
+- [ ] All SQLAlchemy models use `sqlalchemy.JSON` instead of `sqlalchemy.dialects.postgresql.JSONB`
+- [ ] `*.db` in `.gitignore` — SQLite file never committed
+- [ ] Alembic migrations remain PostgreSQL-specific (production only)
+- [ ] `python -m uvicorn app.main:app --reload` starts successfully with SQLite (no env vars needed)
+- [ ] Existing tests pass with SQLite backend
+- [ ] Health check endpoint returns 200 on SQLite
+
+#### Out of Scope
+- Celery/Redis (still requires Docker for background jobs)
+- Migration auto-generation for SQLite
+
+---
+
 ## Sprint 0 Summary
 
 | Story | Title | SP | Labels |
@@ -224,4 +258,5 @@ As a developer, I want Celery configured so that scheduled jobs work when module
 | S0-06 | Seed script | 2 | database, backend |
 | S0-07 | AuditLog table + wrapper | 3 | database, backend |
 | S0-08 | Celery + Redis setup | 2 | backend, devops |
-| **Total** | | **20** | |
+| S0-09 | SQLite local dev support | 2 | backend, devops, database |
+| **Total** | | **22** | |

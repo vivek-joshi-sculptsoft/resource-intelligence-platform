@@ -161,7 +161,21 @@ Brief (~2-5 second) interruption during container restart. Acceptable for an int
 
 ## Local Development
 
-Docker Compose for the full stack locally:
+### Quick Start (no Docker required)
+
+The backend defaults to SQLite when no `DATABASE_URL` is set, so the simplest local setup is:
+
+```bash
+cd backend
+pip install -e ".[dev]"
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+SQLite database auto-creates on first startup (`ri_platform.db`). No Docker, no PostgreSQL, no Redis needed for basic API development.
+
+### Full Stack (Docker Compose)
+
+For production-parity testing with PostgreSQL, Redis, and Celery:
 
 ```yaml
 # docker-compose.dev.yml
@@ -195,5 +209,7 @@ services:
 volumes:
   pg_data:
 ```
+
+To use PostgreSQL locally, set `DATABASE_URL=postgresql+asyncpg://dev:dev@localhost:5432/ri_platform` in `.env`.
 
 Frontend runs outside Docker via `npm run dev` (Vite dev server with API proxy to localhost:8000).
