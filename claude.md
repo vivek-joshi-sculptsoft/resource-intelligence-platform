@@ -22,15 +22,16 @@ You are building a **Resource Intelligence & Project Economics Platform** — an
 |---|---|---|
 | Frontend | React 19 + Vite 6 | shadcn/ui + Tailwind CSS, React Router v7, TanStack Query + Zustand |
 | Backend | Python 3.12 + FastAPI | Pydantic v2, SQLAlchemy 2.0 + Alembic, uvicorn |
-| Database | PostgreSQL 16 (AWS RDS) | db.t4g.micro, UUID PKs, DECIMAL(15,2) for financials |
+| Database | PostgreSQL 16 (prod/Docker) / SQLite (local dev) | UUID PKs, DECIMAL(15,2) for financials |
 | Cache / Broker | Redis 7 (Docker on EC2) | Celery broker + API cache |
 | Background Jobs | Celery 5.4 + celery-beat | 6 scheduled jobs (auto-release, alerts, recurring costs) |
 | Auth | Custom JWT (python-jose + argon2) | httpOnly cookies, 15min access + 7d refresh tokens |
 | Hosting | AWS (EC2 t3.small + RDS + S3/CloudFront) | Docker Compose, ap-south-1 (Mumbai), ~$36/mo |
-| CI/CD | GitHub Actions | Lint → Test → Build → Deploy |
+| CI/CD | GitHub Actions | `ci.yml` (Lint → Test → Build → Deploy), `traceability-check.yml` |
 | Monitoring | Sentry + CloudWatch | Error tracking + infra metrics |
+| Local Dev | SQLite + uvicorn (no Docker needed) | `DATABASE_URL` defaults to `sqlite+aiosqlite:///./ri_platform.db` |
 
-See `techstack/decisions/` for Architecture Decision Records explaining the reasoning behind each choice.
+See `techstack/decisions/` for Architecture Decision Records (8 ADRs) explaining the reasoning behind each choice.
 
 ---
 
@@ -43,21 +44,24 @@ project/
 ├── backend/                          # Python + FastAPI (see techstack/backend.md)
 │   ├── app/
 │   │   ├── main.py                   # FastAPI app factory
-│   │   ├── config.py                 # pydantic-settings
-│   │   ├── database.py               # SQLAlchemy engine + session
+│   │   ├── config.py                 # pydantic-settings (SQLite default for local dev)
+│   │   ├── database.py               # SQLAlchemy async engine + session
 │   │   ├── dependencies.py           # get_db, get_current_user
-│   │   ├── middleware/               # auth.py, rbac.py
+│   │   ├── middleware/               # (empty — auth/rbac to be built in Sprint 1)
 │   │   ├── modules/                  # One package per module
-│   │   │   ├── auth/                 # router, service, schemas, models, seed
+│   │   │   ├── auth/                 # models.py, seed.py (Sprint 0 scaffold)
 │   │   │   ├── clients/
 │   │   │   ├── projects/
 │   │   │   ├── resources/
 │   │   │   ├── allocations/
 │   │   │   ├── utilization/
 │   │   │   ├── worklogs/
-│   │   │   └── audit/
+│   │   │   ├── audit/
+│   │   │   ├── financial/
+│   │   │   ├── invoicing/
+│   │   │   └── nonhuman_costs/
 │   │   ├── shared/                   # Base models, schemas, exceptions, utils
-│   │   └── jobs/                     # Celery tasks
+│   │   └── jobs/                     # Celery app + tasks
 │   ├── alembic/                      # Database migrations
 │   ├── tests/                        # pytest test suites
 │   ├── pyproject.toml
@@ -65,19 +69,21 @@ project/
 │   └── .env.example
 ├── frontend/                         # React 19 + Vite 6 (see techstack/frontend.md)
 │   ├── src/
-│   │   ├── app/                      # Routes, App.tsx
-│   │   ├── modules/                  # Feature modules (auth, clients, etc.)
-│   │   ├── shared/                   # Reusable components, hooks, lib
+│   │   ├── app/                      # App.tsx + routes/ (file-based routing)
+│   │   ├── modules/                  # Feature modules (auth, clients, projects, etc.)
+│   │   ├── shared/                   # components, hooks, lib, constants, types
 │   │   └── styles/                   # globals.css
 │   ├── package.json
-│   └── vite.config.ts
+│   ├── vite.config.ts
+│   └── vitest.config.ts
 ├── prd/PRD.md                        # Product requirements (read-only reference)
 ├── fsd/FSD.md                        # Functional specs (read-only reference)
 ├── shared/                           # Cross-cutting references
 │   ├── ENTITIES.md                   # Master entity definitions
 │   ├── BUSINESS-RULES.md             # Formulas, calculations, constraints
 │   ├── ACCESS-MATRIX.md              # Who sees/edits what
-│   └── GLOSSARY.md                   # Term definitions
+│   ├── GLOSSARY.md                   # Term definitions
+│   └── TRACEABILITY.yaml             # Requirement-to-ticket traceability matrix
 ├── modules/                          # Module-wise specifications (13 modules)
 │   └── {NN}-{module-name}/
 │       ├── REQUIREMENTS.md           # What this module does + acceptance criteria
@@ -85,13 +91,34 @@ project/
 │       ├── API.md                    # Endpoints
 │       ├── SCREENS.md               # UI views and components
 │       ├── DEPENDENCIES.md          # Upstream and downstream module dependencies
-│       └── JOBS.md                  # Background jobs (only if module has any)
+│       ├── JOBS.md                  # Background jobs (only if module has any)
+│       └── mockups/                 # Interactive HTML mockups per screen (all 13 modules have these)
 ├── techstack/                        # Architecture decisions and stack docs
-├── tickets/                          # JIRA-ready story breakdowns per module
+│   └── decisions/                    # 8 ADRs (001–008)
+├── tickets/                          # JIRA-ready story breakdowns
 │   └── phase-1/
-├── docker-compose.dev.yml            # Local dev: api, celery, redis, postgres
+│       ├── OVERVIEW.md               # Phase 1 sprint plan summary
+│       ├── sprint-0-bootstrap.md
+│       ├── sprint-1-auth.md
+│       ├── sprint-2-data-foundation.md
+│       ├── sprint-3-projects-allocations-be.md
+│       ├── sprint-4-projects-allocations-fe.md
+│       └── sprint-5-dashboards-worklog.md
+├── scripts/                          # Utility scripts
+│   └── check-traceability.py         # CI traceability check
+├── mockups/                          # Theme selection previews (root-level)
+│   ├── index.html                    # Review page for theme options
+│   └── theme-preview-A/B/C.html      # Theme candidates (selected theme applied to module mockups)
+├── submodules/                       # Git submodules
+│   └── agentic-sdlc-skills-agents/   # Shared skills & agent definitions
+├── .github/workflows/                # CI pipelines
+│   ├── ci.yml                        # Lint → Test → Build → Deploy
+│   └── traceability-check.yml        # Requirement coverage gate
+├── .claude/                          # Claude Code config (commands, settings)
+├── docker-compose.dev.yml            # Full stack: api, celery-worker, redis, postgres (no celery-beat yet)
 ├── CLAUDE.md                         # This file
 ├── ROADMAP.md                        # Phase-wise build plan with estimates
+├── SPRINT-PLAN.md                    # Sprint breakdown with JIRA mappings
 └── README.md                         # Project overview and setup guide
 ```
 
@@ -131,22 +158,38 @@ Build in this exact order (each module depends on the previous):
 
 ---
 
+## Current Build Status
+
+> **Update this section as sprints complete.**
+
+| Sprint | Status | What Was Built |
+|---|---|---|
+| Sprint 0 — Bootstrap | **Done** | Repo scaffold, backend/frontend project setup, Docker Compose, CI workflows, SQLite local dev, auth models + seed, shared base models/schemas/exceptions, traceability pipeline, JIRA tickets (80 issues) |
+| Sprint 1 — Auth & Roles | **Next** | VRIP-19 to VRIP-27. Start: S1-01 (login/logout endpoints). Tickets: `tickets/phase-1/sprint-1-auth.md` |
+| Sprints 2–5 | Backlog | See `tickets/phase-1/` and `SPRINT-PLAN.md` |
+
+**JIRA project:** VRIP on sspl-organisation.atlassian.net (80 issues, 10 epics).
+
+---
+
 ## Coding Conventions
 
 ### General
-- Use TypeScript for both frontend and backend (if JS stack)
-- Use Python type hints if Python backend
-- Every function that touches business logic must reference the FSD section number in a comment: `// See FSD §7.3 — Projected Revenue`
+- Backend: Python with type hints everywhere (FastAPI + Pydantic enforce this)
+- Frontend: TypeScript strict mode
+- Every function that touches business logic must reference the FSD section number in a comment: `# See FSD §7.3 — Projected Revenue` (Python) / `// See FSD §7.3 — Projected Revenue` (TS)
 - No hardcoded magic numbers — use SystemConfig entity or environment variables
 - All monetary calculations use the exact formulas from `shared/BUSINESS-RULES.md`
 
 ### Database
-- Use UUID v4 for all primary keys
+- Use UUID v4 for all primary keys (stored as CHAR(36) in SQLite, native UUID in Postgres)
 - All tables have `created_at TIMESTAMP DEFAULT NOW()` and `updated_at TIMESTAMP`
 - Soft delete via `is_active BOOLEAN DEFAULT true` — never hard delete user-facing entities
 - AuditLog is append-only — no UPDATE or DELETE on this table ever
 - Use database-level constraints for ENUMs, foreign keys, and unique constraints
 - Index all foreign keys and status fields
+- Local dev uses SQLite (auto-detected in `database.py`); Docker/prod uses PostgreSQL 16
+- Write SQLAlchemy models that work on both — avoid Postgres-only syntax in models
 
 ### API
 - RESTful endpoints following: `GET /api/{entity}`, `POST /api/{entity}`, `PUT /api/{entity}/:id`, `DELETE /api/{entity}/:id`
@@ -191,13 +234,15 @@ modules/{module-name}/
 ├── API.md             → Know the endpoints to build
 ├── SCREENS.md         → Know the UI components to build
 ├── DEPENDENCIES.md    → Verify prerequisites exist
-└── JOBS.md            → Background jobs to implement (if present)
+├── JOBS.md            → Background jobs to implement (if present)
+└── mockups/*.html     → Interactive HTML mockups for each screen (visual reference)
 ```
 
 Also read:
 - `shared/ENTITIES.md` for any referenced entities from other modules
 - `shared/ACCESS-MATRIX.md` for access control on this module's data
 - `shared/BUSINESS-RULES.md` if this module involves calculations
+- `tickets/phase-1/sprint-N-*.md` for the JIRA story breakdown and acceptance criteria per story
 
 ### Step 2: Build Backend
 1. Database migration for any new tables/columns in SCHEMA.md
@@ -209,7 +254,7 @@ Also read:
 7. Audit logging for all write operations
 
 ### Step 3: Build Frontend
-1. Components from SCREENS.md
+1. Components from SCREENS.md — use the module's `mockups/*.html` files as the visual reference for layout, spacing, and interactions
 2. API integration layer
 3. Form validations (client-side, matching server-side rules)
 4. Empty states, loading states, error states
@@ -280,6 +325,42 @@ Create one admin user with CEO role for initial access.
 - Every state machine transition has a test for allowed and disallowed transitions
 - Every calculation from BUSINESS-RULES.md has a test with known input/output values
 - The auto-release job has tests for: normal release, extension before release, already released
+
+---
+
+## Local Development
+
+### Quick start (no Docker)
+```bash
+# Backend — SQLite, no infra needed
+cd backend && python3 -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Frontend — proxies API to :8000
+cd frontend && npm run dev
+```
+- Backend: http://localhost:8000 | Health: http://localhost:8000/api/v1/health
+- Frontend: http://localhost:5173
+
+### Full stack (Docker)
+```bash
+docker compose -f docker-compose.dev.yml up postgres redis -d   # infra
+cd backend && python3 -m uvicorn app.main:app --reload          # API
+cd frontend && npm run dev                                       # UI
+```
+- PostgreSQL: `localhost:5432` (ri_platform / devuser / devpass)
+- Redis: `localhost:6379`
+
+### Slash commands
+Use `/dev-backend`, `/dev-frontend`, `/dev-infra`, or `/dev-all` to start services via Claude Code.
+
+### Testing
+```bash
+cd backend && python -m pytest        # Backend tests
+cd frontend && npx vitest             # Frontend tests
+```
+
+### Linting
+Use `/lint` or see `.claude/commands/lint.md`.
 
 ---
 
