@@ -24,12 +24,12 @@ If found → offer MCP creation. If not found → fall back to file output only.
 Ask ALL of these before creating anything. Present as a numbered list the user can answer at once.
 
 ```
-Before I create tickets in Jira, I need 5 quick preferences:
+Before I create tickets in Jira, I need a few quick preferences:
 
 1. EPIC GROUPING — How should I group work into Epics?
-   a) One epic per module [RECOMMENDED — best traceability, e.g. "Client Management", "Allocation Tracking"]
-   b) One epic per phase [Good for smaller projects, e.g. "Phase 1 — Core", "Phase 2 — Features"]
-   c) One epic per feature area [Good for cross-cutting work, e.g. "Auth & Security", "Financial Engine"]
+   a) One epic per module [RECOMMENDED — best traceability]
+   b) One epic per phase [Good for smaller projects]
+   c) One epic per feature area [Good for cross-cutting work]
    d) Custom — tell me your grouping preference
 
 2. STORY GRANULARITY — What size should most stories be?
@@ -53,6 +53,19 @@ Before I create tickets in Jira, I need 5 quick preferences:
    b) 2-week sprints, ~20 pts per dev [RECOMMENDED]
    c) 2-week sprints, ~25 pts per dev
    d) Custom — tell me sprint length and velocity
+
+6. DESCRIPTION FORMAT — What format does your Jira project use?
+   a) Markdown [RECOMMENDED — used by team-managed / next-gen projects]
+   b) Jira wiki markup [Used by company-managed / classic projects]
+
+7. NAMING CONVENTION — How should I name epics and stories?
+   a) Plain titles [RECOMMENDED — e.g. "Auth & Roles", "Implement login flow"]
+   b) Numbered — sprint-prefixed stories, numbered epics [e.g. "EP-1: Auth & Roles", "S1-01: Implement login flow"]
+   c) Custom — tell me your naming pattern
+
+8. CUSTOM LABELS — Any project-specific labels to add to all tickets?
+   a) None — use only standard labels (backend, frontend, phase-N, etc.)
+   b) Yes — tell me the labels [e.g. "agentic", "team-alpha", "mvp"]
 ```
 
 After getting answers, confirm the setup before proceeding:
@@ -63,6 +76,9 @@ Got it. Creating tickets with:
 - Team: {team structure}
 - Technical tasks: {split pattern}
 - Sprints: {sprint setup}
+- Description format: {markdown or wiki}
+- Naming: {naming choice}
+- Custom labels: {labels or none}
 
 Shall I proceed?
 ```
@@ -79,15 +95,37 @@ Best for: medium-to-large projects (5+ modules), teams that work module-by-modul
 PROJ-1  [Epic] Auth & Roles
 PROJ-2  [Epic] Client Management
 PROJ-3  [Epic] Project Management
-PROJ-4  [Epic] Resource Management
-PROJ-5  [Epic] Allocation Tracking
-PROJ-6  [Epic] Financial Engine
 ...
 ```
 
-- Epic description = module description from REQUIREMENTS.md
+- Epic description = module summary from REQUIREMENTS.md + metadata block (see below)
 - Epic label = `phase-N` for which phase the module belongs to
 - Stories link to their module's epic
+
+### Epic Description Template
+
+Every epic description should include a summary paragraph followed by a metadata block. This gives PMs and developers a quick snapshot without opening individual stories.
+
+```
+{1-2 sentence module summary from REQUIREMENTS.md}
+
+**Sprint:** {sprint number or range} | **Stories:** {count} | **SP:** {total story points}
+**Spec refs:** {paths to module spec files}
+```
+
+Example:
+```
+Resource CRUD with tags, availability computation, access control, and UI (list / profile / form).
+
+**Sprint:** 2 | **Stories:** 8 | **SP:** 19
+**Spec refs:** modules/04-resource-management/, shared/ENTITIES.md
+```
+
+**Rules:**
+- Summary comes from the module's REQUIREMENTS.md overview section
+- Story count and SP are computed after all stories for the epic are generated
+- Spec refs point to the module folder and any shared files the module heavily uses
+- If using numbered naming convention (question 7b), prefix epic title: `EP-{N}: {Module Name}`
 
 ### Option B: One Epic per Phase
 
@@ -134,19 +172,61 @@ Follow the INVEST criteria:
 
 ### Story Title Format
 
-Use the format: `[Action] [Subject] — [scope qualifier]`
+Base format: `[Action] [Subject] — [scope qualifier]`
 
+Apply the naming convention from the user's preference (question 7):
+
+**Plain (7a — default):**
 ```
 Implement Assignment CRUD — REST API with validations and access control
 Build Allocation List View — sortable, filterable table with pagination
 Set up Auth Middleware — JWT validation and role-based route protection
 ```
 
+**Numbered (7b):**
+```
+S{sprint}-{seq}: Implement Assignment CRUD — REST API with validations and access control
+S{sprint}-{seq}: Build Allocation List View — sortable, filterable table with pagination
+```
+
+Where `{sprint}` = sprint number (0-padded if >9), `{seq}` = sequence within the sprint (01, 02, ...).
+
 Avoid vague titles like "Work on assignments" or "Assignment stuff."
 
 ### Story Body Template (Jira Description)
 
+Use the format matching the user's description format preference (question 6).
+
+**Markdown format (team-managed projects):**
+
 ```
+## Context (read before starting)
+
+* `{path/to/spec-file}` — {what to look for}
+* `{path/to/another-file}` — {relevant section}
+
+**As a {role}**, I want to {capability} so that {benefit}.
+
+## Acceptance Criteria
+
+- [ ] {criterion 1}
+- [ ] {criterion 2}
+- [ ] {criterion 3}
+
+## Out of Scope
+
+* {what this story does NOT include — prevents scope creep}
+
+**Depends On:** {story titles this depends on}
+```
+
+**Wiki markup format (company-managed projects):**
+
+```
+h3. Context (read before starting)
+* {{path/to/spec-file}} — {what to look for}
+* {{path/to/another-file}} — {relevant section}
+
 h2. As a {role}, I want to {capability} so that {benefit}.
 
 h3. Acceptance Criteria
@@ -157,11 +237,31 @@ h3. Acceptance Criteria
 h3. Out of Scope
 * {what this story does NOT include — prevents scope creep}
 
-h3. Technical Notes
-* FSD Reference: §{section}
-* Related entities: {list}
-* Dependencies: {story titles this depends on}
+*Depends On:* {story titles this depends on}
 ```
+
+### Context Derivation Rules
+
+The Context section tells a developer or AI agent exactly which files to read before starting. Derive file references based on the story's labels and content:
+
+| Story labels / type | Files to reference |
+|---|---|
+| `database` (schema/migration) | `modules/{mod}/SCHEMA.md`, `shared/ENTITIES.md` |
+| `backend` (API/logic) | `modules/{mod}/API.md`, `modules/{mod}/REQUIREMENTS.md` |
+| `backend` (business rules/calculations) | `shared/BUSINESS-RULES.md` |
+| `frontend` (UI) | `modules/{mod}/SCREENS.md`, `modules/{mod}/REQUIREMENTS.md` |
+| access control story | `shared/ACCESS-MATRIX.md` |
+| audit/logging story | `CLAUDE.md` → Audit Logging section |
+| testing story | All relevant module files + `CLAUDE.md` → Testing section |
+| scheduled job story | `modules/{mod}/JOBS.md` (if exists) |
+| any story | `CLAUDE.md` → relevant conventions section |
+
+**Rules:**
+- Always include the most specific file first (module file before shared file)
+- Add the relevant section or heading after `→` when pointing to a large file
+- Include `CLAUDE.md` only when pointing to a specific section, not generically
+- If a story touches multiple concerns (e.g., backend + frontend), include files for both
+- Keep to 2-5 file references — enough for context, not a reading list
 
 ### Stories per Epic (Guidance)
 
@@ -227,7 +327,31 @@ QA: Test Allocation module — happy path + edge cases + access control
 
 ### Task Description Template
 
+Use the format matching the user's description format preference (question 6).
+
+**Markdown format:**
 ```
+## Context (read before starting)
+
+* `{path/to/relevant-file}` — {what to look for}
+
+## Scope
+
+{what this task covers — be specific}
+
+## Definition of Done
+
+- [ ] {criterion 1}
+- [ ] {criterion 2}
+
+**Parent story:** {parent story title}
+```
+
+**Wiki markup format:**
+```
+h3. Context (read before starting)
+* {{path/to/relevant-file}} — {what to look for}
+
 h3. Scope
 {what this task covers — be specific}
 
@@ -235,9 +359,7 @@ h3. Definition of Done
 * {criterion 1}
 * {criterion 2}
 
-h3. Notes
-* Linked story: {parent story title}
-* FSD section: §{section}
+*Parent story:* {parent story title}
 ```
 
 ---
@@ -249,19 +371,19 @@ h3. Notes
 ```
 For each module (or grouping):
   1. Create Epic
-     - summary: {module name}
-     - description: {module description}
-     - labels: [phase-N, module-name]
+     - summary: {epic title per naming convention preference}
+     - description: {module summary + metadata block — see Epic Description Template}
+     - labels: [phase-N, module-name] + {custom labels from question 8}
      - priority: based on module priority
 
   2. For each story in the module:
      a. Create Story
-        - summary: {story title}
-        - description: {story body with AC}
+        - summary: {story title per naming convention preference}
+        - description: {story body with Context + AC + Out of Scope — per format preference}
         - epic_link: {epic key from step 1}
         - priority: P0-P4 mapped to Blocker/Critical/Major/Minor/Trivial
         - story_points: 1/2/3/5/8
-        - labels: [backend/frontend/database, phase-N, must-have/nice-to-have]
+        - labels: [backend/frontend/database, phase-N, sprint-N, must-have/nice-to-have] + {custom labels}
         - sprint: {sprint suggestion}
 
   3. After all stories created, set issue links (blocks/is-blocked-by)

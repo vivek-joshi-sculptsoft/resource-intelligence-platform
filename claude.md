@@ -222,6 +222,22 @@ Build in this exact order (each module depends on the previous):
 
 ---
 
+## Implementation Workflow — Jira First
+
+**When asked to implement any ticket, always invoke the `/implement-ticket` skill.** Do not implement tickets manually. The skill handles the full workflow: Jira fetch → context extraction → planning → implementation.
+
+If for any reason the skill is unavailable, follow this fallback sequence:
+
+1. **Fetch the Jira ticket** — Use Atlassian MCP (`getJiraIssue`) with the ticket key (e.g. VRIP-23). Read the full description including the context section.
+2. **Extract implementation pointers** — The ticket description contains: mockup paths, module references, acceptance criteria, and dependencies.
+3. **Read local files referenced by the ticket** — Open the mockup HTML, SCHEMA.md, API.md, SCREENS.md, etc. as pointed to by the ticket.
+4. **Plan implementation** — Based on the Jira ticket + local files, plan the work.
+5. **Implement** — Follow the module build steps below.
+
+**Sprint and ticket context always comes from Jira, not from local `tickets/` files.** The local `tickets/phase-1/sprint-*.md` files are for Jira ticket creation only — never use them as implementation source.
+
+---
+
 ## How to Build a Module
 
 When I say "build module X" or you're working on a module folder, follow this process:
@@ -242,7 +258,8 @@ Also read:
 - `shared/ENTITIES.md` for any referenced entities from other modules
 - `shared/ACCESS-MATRIX.md` for access control on this module's data
 - `shared/BUSINESS-RULES.md` if this module involves calculations
-- `tickets/phase-1/sprint-N-*.md` for the JIRA story breakdown and acceptance criteria per story
+
+**Do NOT use local ticket files (`tickets/phase-1/sprint-*.md`) for implementation context.** Those files exist only as a reference for Jira ticket creation. All implementation context comes from Jira ticket descriptions via the Atlassian MCP.
 
 ### Step 2: Build Backend
 1. Database migration for any new tables/columns in SCHEMA.md
@@ -254,11 +271,13 @@ Also read:
 7. Audit logging for all write operations
 
 ### Step 3: Build Frontend
-1. Components from SCREENS.md — use the module's `mockups/*.html` files as the visual reference for layout, spacing, and interactions
-2. API integration layer
-3. Form validations (client-side, matching server-side rules)
-4. Empty states, loading states, error states
-5. Responsive layout
+1. **Fetch the Jira ticket description first** — use Atlassian MCP (`getJiraIssue`) to read the full ticket. The description has a context section with mockup paths, acceptance criteria, and implementation hints. Do not skip this.
+2. **Open the mockup HTML** — before writing any component, open the mockup file referenced in the Jira ticket description. Extract exact colors, spacing, font sizes, icons, card wrappers, badges, and structural layout. Every component must visually match its mockup — do not approximate with generic Tailwind classes (e.g. `bg-blue-600`) when the mockup uses specific theme colors (e.g. `#FF4B2B`).
+3. Components from SCREENS.md — use the module's `mockups/*.html` files as the pixel-level visual reference for layout, spacing, and interactions
+4. API integration layer
+5. Form validations (client-side, matching server-side rules)
+6. Empty states, loading states, error states
+7. Responsive layout
 
 ### Step 4: Verify
 1. All REQUIREMENTS.md acceptance criteria met

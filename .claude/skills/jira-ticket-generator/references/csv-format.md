@@ -23,21 +23,51 @@ Summary,Issue Type,Description,Priority,Labels,Component,Story Points,Sprint,Epi
 | Epic Link | Epic Link | Epic summary text | Links story to its epic |
 | Depends On | Linked Issues (blocks) | Summary of blocking story | Creates "is blocked by" link |
 
-### Description Format (JIRA Markdown)
+### Description Format
+
+Use the format matching the user's description format preference (question 6 from the preference questionnaire). Team-managed / next-gen Jira projects use markdown; company-managed / classic projects use wiki markup.
+
+**Markdown format (team-managed projects):**
 
 ```
-h3. Description
-{description text}
+## Context (read before starting)
+
+* `modules/{mod}/API.md` — endpoint definitions
+* `modules/{mod}/REQUIREMENTS.md` — validation rules
+
+**As a {role}**, I want to {capability} so that {benefit}.
+
+## Acceptance Criteria
+
+- [ ] {criterion 1}
+- [ ] {criterion 2}
+- [ ] {criterion 3}
+
+## Out of Scope
+
+* {what this story does NOT cover}
+
+**Depends On:** {story titles}
+```
+
+**Wiki markup format (company-managed projects):**
+
+```
+h3. Context (read before starting)
+* {{modules/{mod}/API.md}} — endpoint definitions
+* {{modules/{mod}/REQUIREMENTS.md}} — validation rules
+
+h2. As a {role}, I want to {capability} so that {benefit}.
 
 h3. Acceptance Criteria
 * {criterion 1}
 * {criterion 2}
 * {criterion 3}
 
-h3. Technical Notes
-* FSD Reference: §{section}
-* Related entities: {list}
-* Access control: {rule summary}
+h3. Out of Scope
+* {what this story does NOT cover}
+
+*Depends On:* {story titles}
 ```
 
 ### Priority Mapping
@@ -62,25 +92,33 @@ h3. Technical Notes
 
 ---
 
-## Example CSV Row
+## Example CSV Row (Markdown format)
 
 ```csv
-"Assignment CRUD — create, read, update, release with validations",Story,"h3. Description
-Implement full CRUD API for Assignment entity with all 7 validation rules from FSD §11, role-based access control, and scope filtering.
+"Assignment CRUD — create, read, update, release with validations",Story,"## Context (read before starting)
 
-h3. Acceptance Criteria
-* GET /api/assignments returns paginated list filtered by project, resource, status
-* POST /api/assignments creates with allocation_pct, billability_pct, shadow, dates
-* PUT /api/assignments/:id updates any field with validation
-* Billability cannot exceed allocation (hard block)
-* Shadow assignments must have 0% billability
-* Over-allocation triggers warning (soft, not blocking)
-* All changes logged to AuditLog
+* `modules/05-allocation-tracking/API.md` — endpoint definitions
+* `modules/05-allocation-tracking/REQUIREMENTS.md` — validation rules
+* `shared/ACCESS-MATRIX.md` — role-based access
 
-h3. Technical Notes
-* FSD Reference: §2.7, §11
-* Depends on: Project entity, Resource entity, Auth middleware
-* Access: PM can edit own projects, DM can view portfolio",Critical,"backend,phase-1,must-have",allocation-tracking,5,Sprint 2,"Allocation Tracking","Project CRUD"
+**As a project manager**, I want to create and manage resource assignments so that I can track team allocation across projects.
+
+## Acceptance Criteria
+
+- [ ] GET /api/assignments returns paginated list filtered by project, resource, status
+- [ ] POST /api/assignments creates with allocation_pct, billability_pct, shadow, dates
+- [ ] PUT /api/assignments/:id updates any field with validation
+- [ ] Billability cannot exceed allocation (hard block)
+- [ ] Shadow assignments must have 0% billability
+- [ ] Over-allocation triggers warning (soft, not blocking)
+- [ ] All changes logged to audit log
+
+## Out of Scope
+
+* Financial calculations on assignments (handled by financial module)
+* Bulk assignment operations (Phase 2)
+
+**Depends On:** Project CRUD, Resource CRUD, Auth middleware",Critical,"backend,phase-1,sprint-2,must-have",allocation-tracking,5,Sprint 2,"Allocation Tracking","Project CRUD"
 ```
 
 ---

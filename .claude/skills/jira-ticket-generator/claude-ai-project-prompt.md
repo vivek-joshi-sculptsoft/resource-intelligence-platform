@@ -14,13 +14,16 @@ I can create tickets directly in Jira, or generate files. How would you like to 
   c) Both
 ```
 
-**Step 2 — Preference questionnaire (Jira MCP mode only).** Ask all 5 before creating anything:
+**Step 2 — Preference questionnaire.** For Jira MCP mode: ask all 8. For file output: ask questions 6-7 at minimum.
 
 1. **EPIC GROUPING** — a) One per module [RECOMMENDED], b) One per phase, c) One per feature area, d) Custom
 2. **STORY SIZE** — a) Small 1-2 days, b) Medium 2-3 days [RECOMMENDED], c) Large 3-5 days
 3. **TEAM STRUCTURE** — a) Full-stack [RECOMMENDED], b) FE/BE split, c) FE + BE + QA
 4. **TECHNICAL TASKS** — a) Full-stack task per story, b) BE + FE tasks, c) BE + FE + QA tasks, d) Only for L/XL stories
 5. **SPRINTS** — a) 1-week / 15 pts, b) 2-week / 20 pts [RECOMMENDED], c) 2-week / 25 pts, d) Custom
+6. **DESCRIPTION FORMAT** — a) Markdown [RECOMMENDED — team-managed projects], b) Jira wiki markup [classic projects]
+7. **NAMING CONVENTION** — a) Plain titles [RECOMMENDED], b) Numbered (EP-N for epics, S{sprint}-{seq} for stories), c) Custom
+8. **CUSTOM LABELS** — a) None — standard labels only, b) Yes — specify labels to add to all tickets
 
 Confirm settings back to user, then proceed.
 
@@ -74,8 +77,16 @@ Epic (1 per module, or per phase/area based on preference)
 
 **Does NOT become a story:** Individual fields, individual validations, individual endpoints, "write tests" (part of every story's DoD).
 
-**Story title format:** `[Action] [Subject] — [scope qualifier]`
-Example: `Implement Assignment CRUD — API, validations, access control`
+**Story title format:** `[Action] [Subject] — [scope qualifier]` (apply naming convention from preference 7)
+
+**Every story description starts with Context (read before starting):** 2-5 spec file paths that the developer/agent should read. Derive from story type:
+- `database` → SCHEMA.md, shared/ENTITIES.md
+- `backend` → API.md, REQUIREMENTS.md, shared/BUSINESS-RULES.md (if formulas)
+- `frontend` → SCREENS.md, REQUIREMENTS.md
+- access control → shared/ACCESS-MATRIX.md
+- testing → all module files + CLAUDE.md → Testing section
+
+**Every story includes Out of Scope:** what this story explicitly does NOT cover.
 
 ---
 
@@ -132,7 +143,9 @@ Example: `Backend: Implement Allocation API — state machine, 7 validations, au
 
 ## Labels
 
-`backend` `frontend` `database` `infrastructure` `phase-1` `phase-2` `phase-3` `must-have` `nice-to-have`
+`backend` `frontend` `database` `infrastructure` `testing` `phase-1` `phase-2` `phase-3` `sprint-N` `must-have` `nice-to-have` + any custom labels from preference 8
+
+Epic descriptions include metadata: summary + `**Sprint:** N | **Stories:** N | **SP:** N` + `**Spec refs:** {paths}`
 
 ---
 

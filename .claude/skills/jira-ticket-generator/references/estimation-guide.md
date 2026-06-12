@@ -58,33 +58,33 @@ Every story is sized based on three dimensions: scope, complexity, and uncertain
 
 ## Example Estimations
 
-### Example: Assignment CRUD (module 05)
-- 14 fields including 2 FKs, 2 date fields, computed designation
+### Example: Entity CRUD with state machine
+- 14 fields including 2 FKs, 2 date fields, computed fields
 - 7 validation rules
-- State machine (ACTIVE/RELEASED/AUTO_RELEASED)
+- State machine (3+ states with transitions)
 - Role-based access with field restrictions
 - Audit logging
 - **Assessment:** High scope, Complex, Clear requirements
 - **Size: L (5 points, 3-5 days)**
 
-### Example: Client CRUD (module 02)
+### Example: Simple entity CRUD
 - 9 fields, no state machine
-- 1 validation (can't deactivate with active projects)
+- 1-2 validations (e.g., can't deactivate with active references)
 - Simple access control
 - **Assessment:** Low-Medium scope, Simple, Clear
 - **Size: M (3 points, 2-3 days)** — bumped from S because it includes list + detail + form UI
 
-### Example: Company Dashboard (module 07)
+### Example: Dashboard with multiple widgets
 - 7 widgets with aggregation queries
 - Role-scoped data
 - No write operations
 - **Assessment:** High scope (many widgets), Moderate complexity, Clear
 - **Size: L (5 points, 3-5 days)**
 
-### Example: Auto-release scheduled job (module 05)
-- Processes assignments daily
+### Example: Scheduled job with side effects
+- Processes records on a schedule (daily/weekly)
 - State change + alert creation + audit logging
 - Idempotency needed
-- Edge case: extension on release day
+- Edge cases: concurrent runs, records modified during execution
 - **Assessment:** Medium scope, Complex, Clear
 - **Size: M (3 points, 2-3 days)**

@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import JSON, BigInteger, DateTime, Enum, String, Text, Uuid, func
+from sqlalchemy import JSON, DateTime, Enum, Integer, String, Text, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.models import Base
@@ -18,7 +18,7 @@ class AuditLog(Base):
 
     __tablename__ = "audit_logs"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     entity_type: Mapped[str] = mapped_column(String(50), nullable=False)
     entity_id: Mapped[str] = mapped_column(Uuid, nullable=False)
     action: Mapped[AuditAction] = mapped_column(

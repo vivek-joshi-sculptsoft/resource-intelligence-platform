@@ -115,3 +115,28 @@ CEO and CTO only.
 
 ### Access Restrictions
 CEO and CTO only.
+
+---
+
+## Component: User Profile Dropdown
+**Location:** App header — top-right user avatar/name area
+**Audience:** All authenticated users
+**Layout:** Clickable user profile area that opens a dropdown menu below it.
+
+### Trigger
+Click on the user avatar or name in the app header.
+
+### Dropdown Contents
+- User name (display only)
+- User email (display only)
+- User role (display only)
+- Divider
+- Logout action
+
+### Actions
+- Click user avatar/name → toggle dropdown open/close
+- Click outside dropdown → close dropdown
+- Click "Logout" → POST /api/auth/logout → redirect to /login
+
+### Access Restrictions
+Visible to all authenticated users. Dropdown shows the current user's own info only.

@@ -175,23 +175,31 @@ Read `references/claude-md-template.md` for the full template.
 - Link to PRD and FSD
 
 #### tickets/{module-name}.md
-For each module, generate JIRA-ready stories:
+For each module, generate JIRA-ready stories using the format from `references/ticket-patterns.md`:
 ```markdown
 ## Story: [Title]
-**Type:** Feature / Task / Bug
+**Type:** Feature / Task / Enhancement
 **Phase:** 1 / 2 / 3
 **Module:** {module-name}
-**Priority:** High / Medium / Low
-**Estimate:** S / M / L
-**Dependencies:** [list of stories this depends on]
+**Priority:** P0 (Blocker) / P1 (Critical) / P2 (Major) / P3 (Minor) / P4 (Trivial)
+**Estimate:** XS (1 pt) / S (2 pts) / M (3 pts) / L (5 pts) / XL (8 pts)
+**Depends On:** [list of stories this depends on]
+**Labels:** backend, frontend, database, infrastructure, testing
 
-**Description:**
-What needs to be built.
+### Context (read before starting)
+- `{path/to/spec-file}` — {what to look for}
+- `{path/to/another-file}` — {relevant section}
 
-**Acceptance Criteria:**
+### Description
+What needs to be built and why.
+
+### Acceptance Criteria
 - [ ] Criterion 1
 - [ ] Criterion 2
 - [ ] Criterion 3
+
+### Out of Scope
+- What this story does NOT cover
 ```
 
 Story breakdown pattern per module:

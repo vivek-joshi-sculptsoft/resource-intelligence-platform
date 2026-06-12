@@ -106,7 +106,7 @@ Epic (1 per module)
 ```
 
 ### Epic
-One epic per module. The epic title is the module name. The epic description summarizes what the module delivers.
+One epic per module (default — user can choose per-phase or per-feature-area grouping). The epic title follows the naming convention preference. The epic description includes a module summary plus a metadata block with story count, total story points, and spec file references. See `references/jira-mcp-guide.md` → Epic Description Template.
 
 ### Story
 A complete, demoable unit of work. A developer should be able to:
@@ -203,9 +203,12 @@ Cap at XL. If something is bigger than XL, split it.
 | `frontend` | Story involves UI components |
 | `database` | Story involves schema migration |
 | `infrastructure` | Scheduled jobs, middleware, auth setup |
+| `testing` | Integration tests, E2E tests, test infrastructure |
 | `phase-1` / `phase-2` / `phase-3` | Which build phase |
+| `sprint-N` | Which sprint the story is assigned to (e.g., `sprint-1`, `sprint-2`) |
 | `must-have` | Core functionality, blocks other work |
 | `nice-to-have` | Can ship without this |
+| `{custom}` | Any project-specific labels from user preferences |
 
 ### Components (map to modules)
 
@@ -278,8 +281,9 @@ Total: {sum} points
 ### Step 0: Mode Detection + Preferences
 1. Check if Jira MCP tools are available.
 2. Ask the user which output mode they want (Jira direct / files / both).
-3. If Jira MCP mode: ask the full preference questionnaire from `references/jira-mcp-guide.md`. Wait for answers before proceeding.
-4. Confirm the setup back to the user before creating anything.
+3. If Jira MCP mode: ask the full preference questionnaire (8 questions) from `references/jira-mcp-guide.md`. Wait for answers before proceeding.
+4. If file output mode: still ask questions 6-7 (description format, naming convention) — these affect file output too.
+5. Confirm the setup back to the user before creating anything.
 
 ### Step 1: Read Module Files
 For each module (or the specified module), read all 5 files. Understand:
@@ -299,13 +303,15 @@ Determine which pattern applies:
 
 ### Step 3: Generate Stories
 Apply the relevant pattern from `references/story-patterns.md`. For each story:
-1. Write a clear title (action-oriented: "Implement...", "Create...", "Build...")
-2. Write a 2-3 sentence description
-3. List acceptance criteria (from REQUIREMENTS.md features)
-4. Estimate size (using complexity multipliers)
-5. Assign priority
-6. Assign labels
-7. Map dependencies
+1. Write a clear title (action-oriented: "Implement...", "Create...", "Build..."), applying the naming convention preference
+2. Derive the Context section — list 2-5 spec file paths the developer/agent should read before starting (see context derivation rules in `references/jira-mcp-guide.md`)
+3. Write the user story line ("As a {role}, I want...")
+4. List acceptance criteria (from REQUIREMENTS.md features)
+5. List Out of Scope items (what this story explicitly does NOT cover)
+6. Estimate size (using complexity multipliers)
+7. Assign priority
+8. Assign labels (including `sprint-N` label matching the sprint assignment, plus any custom labels from preferences)
+9. Map dependencies
 
 ### Step 4: Generate Sprint Plan
 Group stories into sprints respecting dependencies and capacity.
@@ -364,7 +370,7 @@ Only runs when user explicitly requests it.
 
 | File | When to Read | Purpose |
 |------|-------------|---------|
-| `references/jira-mcp-guide.md` | Step 0 (always when Jira MCP mode) | Preference questionnaire, epic/story distribution standards, technical task patterns, MCP creation sequence |
+| `references/jira-mcp-guide.md` | Step 0 (always when Jira MCP mode), Step 3 (context derivation rules) | Preference questionnaire, epic/story distribution standards, context derivation, technical task patterns, MCP creation sequence |
 | `references/story-patterns.md` | Step 3 | Detailed story breakdown patterns per module type |
 | `references/estimation-guide.md` | Step 3 | Estimation criteria with examples |
 | `references/csv-format.md` | Step 5 (CSV output only) | JIRA CSV import column mapping |
