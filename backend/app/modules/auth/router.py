@@ -105,9 +105,9 @@ async def refresh(
 
     try:
         payload = decode_refresh_token(token)
-    except JWTError:
+    except JWTError as err:
         _clear_token_cookies(response)
-        raise UnauthorizedError("Invalid refresh token")
+        raise UnauthorizedError("Invalid refresh token") from err
 
     user = await get_active_user_by_id(db, uuid.UUID(payload["sub"]))
 
@@ -129,8 +129,8 @@ async def me(
 
     try:
         payload = decode_access_token(token)
-    except JWTError:
-        raise UnauthorizedError("Invalid or expired token")
+    except JWTError as err:
+        raise UnauthorizedError("Invalid or expired token") from err
 
     user = await get_active_user_by_id(db, uuid.UUID(payload["sub"]))
     return _build_user_response(user)

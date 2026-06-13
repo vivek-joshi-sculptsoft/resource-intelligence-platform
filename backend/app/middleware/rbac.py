@@ -1,9 +1,10 @@
 """RBAC middleware — See FSD §10, shared/ACCESS-MATRIX.md"""
+
 import uuid
 from dataclasses import dataclass
 from typing import Any
 
-from fastapi import Depends, Request
+from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,9 +21,7 @@ class Permission:
     is_configurable: bool
 
 
-async def get_permission(
-    db: AsyncSession, role_id: uuid.UUID, data_type: str
-) -> Permission:
+async def get_permission(db: AsyncSession, role_id: uuid.UUID, data_type: str) -> Permission:
     result = await db.execute(
         select(RolePermission).where(
             RolePermission.role_id == role_id,
@@ -118,7 +117,10 @@ def null_restricted_fields(
     data: dict[str, Any],
     role_code: str,
 ) -> dict[str, Any]:
-    """Set sensitive fields to null for unauthorized roles. See FSD §10 — Field-Level Restrictions."""
+    """Set sensitive fields to null for unauthorized roles.
+
+    See FSD §10 — Field-Level Restrictions.
+    """
     for field, allowed_roles in SENSITIVE_FIELD_VISIBLE_ROLES.items():
         if field in data and role_code not in allowed_roles:
             data[field] = None

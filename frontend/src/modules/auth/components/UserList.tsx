@@ -173,7 +173,11 @@ export function UserList() {
                     </td>
                     <td className="whitespace-nowrap px-4 py-[13px]">
                       {user.resource_id ? (
-                        <span className="cursor-pointer font-medium hover:underline" style={{ color: '#4A5BB5' }}>
+                        <span
+                          className="cursor-pointer font-medium hover:underline"
+                          style={{ color: '#4A5BB5' }}
+                          onClick={(e) => { e.stopPropagation(); navigate(`/resources/${user.resource_id}`) }}
+                        >
                           {user.name}
                         </span>
                       ) : (

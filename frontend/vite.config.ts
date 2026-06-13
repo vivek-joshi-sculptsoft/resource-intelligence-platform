@@ -8,6 +8,19 @@ export default defineConfig({
   resolve: {
     alias: { '@': path.resolve(__dirname, './src') },
   },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-router',
+      'axios',
+      'zustand',
+      '@tanstack/react-query',
+      'sonner',
+      'lucide-react',
+      'react-hook-form',
+    ],
+  },
   server: {
     port: 5173,
     proxy: {

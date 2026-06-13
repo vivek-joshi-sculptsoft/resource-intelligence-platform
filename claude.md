@@ -67,6 +67,11 @@ project/
 │   ├── pyproject.toml
 │   ├── Dockerfile
 │   └── .env.example
+├── e2e/                              # Playwright E2E tests (ticket-wise, sprint-organized)
+│   ├── playwright.config.ts          # Config: webServer auto-starts BE+FE, smoke project
+│   ├── fixtures/auth.ts              # loginAs(role) fixture for all 7 roles
+│   ├── utils/                        # API helpers, constants
+│   └── tests/sprint-N/              # VRIP-XX-slug.spec.ts — one file per Jira ticket
 ├── frontend/                         # React 19 + Vite 6 (see techstack/frontend.md)
 │   ├── src/
 │   │   ├── app/                      # App.tsx + routes/ (file-based routing)
@@ -165,8 +170,9 @@ Build in this exact order (each module depends on the previous):
 | Sprint | Status | What Was Built |
 |---|---|---|
 | Sprint 0 — Bootstrap | **Done** | Repo scaffold, backend/frontend project setup, Docker Compose, CI workflows, SQLite local dev, auth models + seed, shared base models/schemas/exceptions, traceability pipeline, JIRA tickets (80 issues) |
-| Sprint 1 — Auth & Roles | **Next** | VRIP-19 to VRIP-27. Start: S1-01 (login/logout endpoints). Tickets: `tickets/phase-1/sprint-1-auth.md` |
-| Sprints 2–5 | Backlog | See `tickets/phase-1/` and `SPRINT-PLAN.md` |
+| Sprint 1 — Auth & Roles | **Done** | Login/logout, JWT auth, user CRUD, role management, protected routes, sidebar layout |
+| Sprint 2 — Data Foundation | **Done** | Resource CRUD + access control + tags, Client CRUD + access control, shared access control utility, 31 integration tests, Resource List/Profile/Form UI, Client List/Detail/Form UI |
+| Sprints 3–5 | Backlog | See `tickets/phase-1/` and `SPRINT-PLAN.md` |
 
 **JIRA project:** VRIP on sspl-organisation.atlassian.net (80 issues, 10 epics).
 
@@ -270,6 +276,25 @@ Also read:
 6. Background jobs from JOBS.md (if present) — scheduled and event-triggered
 7. Audit logging for all write operations
 
+### Step 2.5: Write & Run Backend Tests (MANDATORY — do NOT skip)
+
+**Tests must pass before moving to frontend.** Write pytest integration tests for every endpoint built in Step 2. Place tests in `backend/tests/test_{module}/`.
+
+Every endpoint must have tests covering:
+
+1. **Happy path** — CRUD succeeds with valid data, returns correct shape
+2. **Relationships** — Create/update with every FK populated AND with FK null. If entity has relationships (e.g. `reporting_manager_id`, `resource_id`, `dm_id`), test:
+   - Create with relationship set
+   - Update to add relationship
+   - Update to change relationship
+   - Update to remove relationship (set null)
+   - Response includes nested relationship data (not just the FK ID)
+3. **Access control** — Authorized role succeeds, unauthorized role gets 403, scope filtering returns correct subset
+4. **Validation errors** — Missing required fields, duplicate unique fields, invalid FK references, self-referential violations (e.g. resource can't be own manager)
+5. **Edge cases** — Empty lists, pagination boundaries, filter combinations, soft-delete behavior
+
+**Run all tests:** `cd backend && python -m pytest` — all must pass before proceeding.
+
 ### Step 3: Build Frontend
 1. **Fetch the Jira ticket description first** — use Atlassian MCP (`getJiraIssue`) to read the full ticket. The description has a context section with mockup paths, acceptance criteria, and implementation hints. Do not skip this.
 2. **Open the mockup HTML** — before writing any component, open the mockup file referenced in the Jira ticket description. Extract exact colors, spacing, font sizes, icons, card wrappers, badges, and structural layout. Every component must visually match its mockup — do not approximate with generic Tailwind classes (e.g. `bg-blue-600`) when the mockup uses specific theme colors (e.g. `#FF4B2B`).
@@ -345,6 +370,42 @@ Create one admin user with CEO role for initial access.
 - Every calculation from BUSINESS-RULES.md has a test with known input/output values
 - The auto-release job has tests for: normal release, extension before release, already released
 
+### Relationship & Serialization Tests (CRITICAL)
+The most common class of bug in this codebase is: an endpoint works for simple cases but crashes when relationships are involved (e.g. async SQLAlchemy lazy-load errors, missing eager loads, null FK serialization). **Every entity with a FK must have tests that exercise the relationship through the full API round-trip:**
+
+- **Create with FK set** → verify response includes nested object (not just FK ID)
+- **Update to set FK** → verify response includes nested object
+- **Update to null FK** → verify response has null (not crash)
+- **GET detail with FK set** → verify nested object present
+- **GET list with mixed FK values** → verify items with and without FK both serialize correctly
+- **Invalid FK** → verify 400/404, not 500
+
+If any test returns a 500, that is a test failure — 500s are never acceptable in tested code paths.
+
+### E2E Tests (Playwright) — 3 Tiers
+
+E2E tests live in `e2e/` at the repo root. Three tiers:
+
+| Tier | Directory | Purpose | Runs in CI |
+|------|-----------|---------|------------|
+| **Ticket tests** | `e2e/tests/tickets/sprint-N/` | One spec per Jira ticket, one `test()` per AC item | Manual |
+| **Integration tests** | `e2e/tests/integration/` | Cross-module flows (create→view→edit→deactivate, cross-role) | Manual |
+| **Smoke tests** | `e2e/tests/smoke/` | Fast critical-path checks (<10s each) | Every push/PR |
+
+**Generating tests:** Use the `/e2e-test-ticket` skill — it fetches the Jira ticket, reads AC, generates all 3 tiers. Example: `e2e VRIP-31` or `e2e sprint 2`.
+
+**Running locally:**
+```bash
+cd e2e && npx playwright test                        # All tiers
+cd e2e && npx playwright test --project=smoke        # Smoke only
+cd e2e && npx playwright test --project=tickets      # Ticket tests only
+cd e2e && npx playwright test --project=integration  # Integration only
+cd e2e && npx playwright test tests/tickets/sprint-2/  # One sprint
+cd e2e && npx playwright test --ui                   # Interactive UI
+```
+
+**CI:** Smoke tests run on every push/PR. Other tiers can be triggered via workflow_dispatch with `test_scope: tickets | integration | all`.
+
 ---
 
 ## Local Development
@@ -376,6 +437,10 @@ Use `/dev-backend`, `/dev-frontend`, `/dev-infra`, or `/dev-all` to start servic
 ```bash
 cd backend && python -m pytest        # Backend tests
 cd frontend && npx vitest             # Frontend tests
+cd e2e && npx playwright test                        # All E2E tiers
+cd e2e && npx playwright test --project=smoke        # Smoke only (runs in CI)
+cd e2e && npx playwright test --project=tickets      # Ticket tests
+cd e2e && npx playwright test --project=integration  # Integration tests
 ```
 
 ### Linting

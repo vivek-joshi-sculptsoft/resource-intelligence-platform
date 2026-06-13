@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from jose import JWTError, jwt
 
@@ -12,7 +12,7 @@ def create_access_token(
     role_id: uuid.UUID,
     resource_id: uuid.UUID | None,
 ) -> str:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "sub": str(user_id),
         "role": role_code,
@@ -26,7 +26,7 @@ def create_access_token(
 
 
 def create_refresh_token(user_id: uuid.UUID) -> str:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "sub": str(user_id),
         "iat": now,

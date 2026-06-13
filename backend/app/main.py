@@ -58,10 +58,14 @@ def create_app() -> FastAPI:
     from app.modules.auth.role_router import router as role_router
     from app.modules.auth.router import router as auth_router
     from app.modules.auth.user_router import router as user_router
+    from app.modules.clients.router import router as client_router
+    from app.modules.resources.router import router as resource_router
 
     app.include_router(auth_router)
     app.include_router(user_router)
     app.include_router(role_router)
+    app.include_router(resource_router)
+    app.include_router(client_router)
 
     @app.get("/api/v1/health")
     async def health_check() -> dict:

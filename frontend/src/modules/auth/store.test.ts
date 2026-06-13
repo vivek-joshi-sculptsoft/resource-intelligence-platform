@@ -21,7 +21,7 @@ describe('useAuthStore', () => {
       id: '1',
       email: 'ceo@test.com',
       name: 'Test CEO',
-      role: { code: 'CEO', name: 'CEO', permission_level: 100 },
+      role: { id: 'role-1', code: 'CEO', name: 'CEO', permission_level: 100 },
       resource_id: null,
     }
     useAuthStore.getState().setUser(mockUser)
@@ -37,7 +37,7 @@ describe('useAuthStore', () => {
       id: '1',
       email: 'ceo@test.com',
       name: 'Test CEO',
-      role: { code: 'CEO', name: 'CEO', permission_level: 100 },
+      role: { id: 'role-1', code: 'CEO', name: 'CEO', permission_level: 100 },
       resource_id: null,
     })
     useAuthStore.getState().clearUser()

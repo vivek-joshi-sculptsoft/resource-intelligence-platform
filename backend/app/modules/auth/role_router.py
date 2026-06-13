@@ -5,8 +5,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_user, get_db
 from app.modules.auth.models import User
-from app.modules.auth.schemas import PermissionResponse, RoleDetailResponse
-from app.modules.auth.service import get_role_by_id, get_role_permissions, get_roles_with_permissions
+from app.modules.auth.service import (
+    get_role_by_id,
+    get_role_permissions,
+    get_roles_with_permissions,
+)
 from app.shared.exceptions import ForbiddenError, NotFoundError
 
 router = APIRouter(prefix="/api/v1/roles", tags=["roles"])

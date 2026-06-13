@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router'
 import { useAuthStore } from '../../modules/auth/store'
 
-const NAV_ITEMS = [
+const NAV_ITEMS: { label: string; to: string; icon: React.ReactNode; hiddenForRoles?: string[] }[] = [
   {
     label: 'Dashboard',
     to: '/dashboard',
@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   {
     label: 'Clients',
     to: '/clients',
+    hiddenForRoles: ['ENGINEER'],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -79,11 +80,6 @@ const NAV_ITEMS = [
       </svg>
     ),
   },
-]
-
-const SETTINGS_ITEMS = [
-  { label: 'Users', to: '/admin/users' },
-  { label: 'Roles', to: '/admin/roles' },
 ]
 
 export function RootLayout() {
@@ -225,7 +221,7 @@ export function RootLayout() {
           <div className="px-5 pb-1.5 text-[10.5px] font-bold uppercase tracking-[0.08em]" style={{ color: '#7C85C0' }}>
             Main
           </div>
-          {NAV_ITEMS.map((item) => (
+          {NAV_ITEMS.filter((item) => !item.hiddenForRoles || !user?.role?.code || !item.hiddenForRoles.includes(user.role.code)).map((item) => (
             <NavLink
               key={item.to}
               to={item.to}

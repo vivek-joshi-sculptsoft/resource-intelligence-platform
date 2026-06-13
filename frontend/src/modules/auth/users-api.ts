@@ -1,5 +1,5 @@
 import api from '../../shared/lib/axios'
-import type { Role, User } from './api'
+import type { Role } from './api'
 
 export interface UserListItem {
   id: string

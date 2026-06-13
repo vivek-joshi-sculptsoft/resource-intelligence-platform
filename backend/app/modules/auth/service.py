@@ -34,8 +34,8 @@ async def authenticate_user(db: AsyncSession, email: str, password: str) -> User
 
     try:
         ph.verify(user.password_hash, password)
-    except VerifyMismatchError:
-        raise UnauthorizedError("Invalid email or password")
+    except VerifyMismatchError as err:
+        raise UnauthorizedError("Invalid email or password") from err
 
     if ph.check_needs_rehash(user.password_hash):
         user.password_hash = ph.hash(password)
@@ -199,9 +199,7 @@ async def update_user(
 
 
 async def _check_last_admin(db: AsyncSession, user: User) -> None:
-    admin_roles = await db.execute(
-        select(Role.id).where(Role.code.in_(["CEO", "CTO"]))
-    )
+    admin_roles = await db.execute(select(Role.id).where(Role.code.in_(["CEO", "CTO"])))
     admin_role_ids = [r.id for r in admin_roles.all()]
 
     active_admins = await db.execute(
@@ -235,14 +233,10 @@ async def get_role_by_id(db: AsyncSession, role_id: uuid.UUID) -> Role | None:
     return result.scalar_one_or_none()
 
 
-async def get_role_permissions(
-    db: AsyncSession, role_id: uuid.UUID
-) -> list[RolePermission]:
+async def get_role_permissions(db: AsyncSession, role_id: uuid.UUID) -> list[RolePermission]:
     role = await db.execute(select(Role).where(Role.id == role_id))
     if role.scalar_one_or_none() is None:
         raise NotFoundError("Role", str(role_id))
 
-    result = await db.execute(
-        select(RolePermission).where(RolePermission.role_id == role_id)
-    )
+    result = await db.execute(select(RolePermission).where(RolePermission.role_id == role_id))
     return list(result.scalars().all())

@@ -32,7 +32,7 @@ async def get_current_user(
 
     try:
         payload = decode_access_token(token)
-    except JWTError:
-        raise UnauthorizedError("Invalid or expired token")
+    except JWTError as err:
+        raise UnauthorizedError("Invalid or expired token") from err
 
     return await get_active_user_by_id(db, uuid.UUID(payload["sub"]))

@@ -1,8 +1,9 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { createUser, fetchRoles, fetchUser, updateUser } from '../users-api'
+import { fetchResourcesDropdown } from '../../resources/api'
 
 function EyeOpenIcon() {
   return (
@@ -54,6 +55,122 @@ function blurInput(e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) {
   e.target.style.boxShadow = 'none'
 }
 
+function ResourceSearchSelect({
+  resources,
+  value,
+  onChange,
+}: {
+  resources: { id: string; name: string; employee_id: string }[]
+  value: string
+  onChange: (id: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const selected = resources.find((r) => r.id === value)
+  const filtered = resources.filter(
+    (r) =>
+      r.name.toLowerCase().includes(search.toLowerCase()) ||
+      r.employee_id.toLowerCase().includes(search.toLowerCase()),
+  )
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+        setSearch('')
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => { setOpen(!open); setSearch('') }}
+        style={{
+          ...inputStyle,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          cursor: 'pointer',
+          textAlign: 'left',
+          color: selected ? '#1e1b4b' : '#9ca3af',
+        }}
+      >
+        <span className="truncate">
+          {selected ? `${selected.name} (${selected.employee_id})` : 'None (no resource link)'}
+        </span>
+        <div className="flex items-center gap-1.5">
+          {selected && (
+            <span
+              onClick={(e) => { e.stopPropagation(); onChange(''); setOpen(false) }}
+              className="flex items-center justify-center rounded-full transition-colors hover:bg-[#E8EAF6]"
+              style={{ width: 18, height: 18, color: '#7C85C0', cursor: 'pointer' }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </span>
+          )}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </div>
+      </button>
+
+      {open && (
+        <div
+          className="absolute left-0 right-0 z-50 mt-1 overflow-hidden rounded-lg"
+          style={{ background: '#fff', border: '1.5px solid #D6DAF0', boxShadow: '0 4px 16px rgba(43,57,144,0.12)' }}
+        >
+          <div className="p-2">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name or ID..."
+              autoFocus
+              style={{ ...inputStyle, fontSize: '13px', padding: '8px 12px' }}
+              onFocus={focusInput}
+              onBlur={blurInput}
+            />
+          </div>
+          <div className="max-h-[200px] overflow-y-auto">
+            <button
+              type="button"
+              onClick={() => { onChange(''); setOpen(false); setSearch('') }}
+              className="w-full border-none px-3 py-2 text-left text-[13px] transition-colors hover:bg-[#F0F1FA]"
+              style={{ background: !value ? '#EEF0FF' : 'transparent', color: '#6b7280', cursor: 'pointer' }}
+            >
+              None (no resource link)
+            </button>
+            {filtered.map((r) => (
+              <button
+                type="button"
+                key={r.id}
+                onClick={() => { onChange(r.id); setOpen(false); setSearch('') }}
+                className="w-full border-none px-3 py-2 text-left text-[13px] transition-colors hover:bg-[#F0F1FA]"
+                style={{ background: r.id === value ? '#EEF0FF' : 'transparent', color: '#1e1b4b', cursor: 'pointer' }}
+              >
+                {r.name} <span style={{ color: '#7C85C0' }}>({r.employee_id})</span>
+              </button>
+            ))}
+            {filtered.length === 0 && (
+              <div className="px-3 py-3 text-center text-[13px]" style={{ color: '#7C85C0' }}>
+                No resources found
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function UserForm() {
   const { id } = useParams<{ id: string }>()
   const isEdit = Boolean(id)
@@ -64,6 +181,7 @@ export function UserForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [roleId, setRoleId] = useState('')
+  const [resourceId, setResourceId] = useState<string>('')
   const [isActive, setIsActive] = useState(true)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -72,6 +190,11 @@ export function UserForm() {
   const { data: rolesData } = useQuery({
     queryKey: ['roles'],
     queryFn: fetchRoles,
+  })
+
+  const { data: resources = [] } = useQuery({
+    queryKey: ['resources-dropdown'],
+    queryFn: fetchResourcesDropdown,
   })
 
   const { data: existingUser } = useQuery({
@@ -85,6 +208,7 @@ export function UserForm() {
       setName(existingUser.name)
       setEmail(existingUser.email)
       setRoleId(existingUser.role.id)
+      setResourceId(existingUser.resource_id ?? '')
       setIsActive(existingUser.is_active)
     }
   }, [existingUser])
@@ -101,12 +225,13 @@ export function UserForm() {
         await updateUser(id!, {
           name,
           role_id: roleId,
+          resource_id: resourceId || null,
           is_active: isActive,
           ...(password ? { password } : {}),
         })
         toast.success('User updated successfully')
       } else {
-        await createUser({ email, name, password, role_id: roleId })
+        await createUser({ email, name, password, role_id: roleId, resource_id: resourceId || null })
         toast.success('User created successfully')
       }
       queryClient.invalidateQueries({ queryKey: ['users'] })
@@ -231,18 +356,16 @@ export function UserForm() {
             </select>
           </div>
 
-          {/* Link to Resource (optional) */}
+          {/* Link to Resource (optional, searchable) */}
           <div className="mb-[22px]">
             <label className="mb-1.5 flex items-center gap-1.5 text-[13.5px] font-semibold" style={{ color: '#1e1b4b' }}>
               Link to Resource
             </label>
-            <select
-              style={selectStyle}
-              onFocus={focusInput as any}
-              onBlur={blurInput as any}
-            >
-              <option value="">None (no resource link)</option>
-            </select>
+            <ResourceSearchSelect
+              resources={resources}
+              value={resourceId}
+              onChange={setResourceId}
+            />
             <div className="mt-1.5 text-[12px]" style={{ color: '#7C85C0' }}>Optional. Links this login to a resource profile.</div>
           </div>
 
