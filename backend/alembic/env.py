@@ -8,6 +8,10 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from app.config import settings
 from app.shared.models import Base
 from app.modules.auth.models import Role, RolePermission, User, SystemConfig  # noqa: F401
+from app.modules.clients.models import Client  # noqa: F401
+from app.modules.resources.models import Resource, ResourceTag  # noqa: F401
+from app.modules.projects.models import Project  # noqa: F401
+from app.modules.allocations.models import Assignment  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)

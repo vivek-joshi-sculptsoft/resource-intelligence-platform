@@ -1,6 +1,6 @@
 ---
 name: implement-ticket
-description: "Pre-implementation gate that updates JIRA ticket statuses before coding begins. Fetches ticket details and available transitions from Jira, confirms status changes with the user, optionally assigns tickets, then transitions them and hands off to implementation. Triggers on: 'implement PROJ-123', 'start working on PROJ-123', 'pick up ticket', 'work on this ticket', 'implement these tickets', 'start PROJ-123 PROJ-456', 'start sprint N', 'execute sprint N', 'begin sprint N', 'start executing sprint N', 'run sprint N', 'kick off sprint N', or any request to begin implementation of one or more JIRA tickets or an entire sprint. Also auto-detects when a user describes work that maps to a specific ticket. Supports stories, tasks, and sub-tasks — not epics or bugs."
+description: "Pre-implementation gate that updates JIRA ticket statuses before coding begins. Fetches ticket details and available transitions from Jira, confirms status changes with the user, optionally assigns tickets, then transitions them and hands off to implementation. Triggers on: 'implement PROJ-123', 'start working on PROJ-123', 'pick up ticket', 'work on this ticket', 'implement these tickets', 'start PROJ-123 PROJ-456', or any request to begin implementation of one or more JIRA tickets. Also auto-detects when a user describes work that maps to a specific ticket. Supports stories, tasks, and sub-tasks — not epics or bugs. For sprint-level implementation, use /implement-sprint instead."
 ---
 
 # Implement Ticket Skill
@@ -11,13 +11,15 @@ You are not a ticket manager or a project planner. You handle the narrow but cri
 
 ## Core Principles
 
-**No silent status changes.** Always show the user what you intend to change and wait for confirmation. Different Jira projects have different workflows — never assume what the statuses are.
+**No silent status changes.** Always show the user what you intend to change and wait for confirmation — unless called from `/implement-sprint` which already confirmed the plan.
 
 **Discover, don't assume.** Fetch available transitions from Jira at runtime. Never hardcode status names like "In Progress" or "To Do" — workflows vary across projects and issue types.
 
 **Batch-friendly.** When implementing multiple tickets, fetch all statuses, present one consolidated confirmation, and apply the same target status to all tickets.
 
 **Scope: stories, tasks, and sub-tasks only.** Do not transition epics or bugs through this skill. If a user provides an epic key, explain that this skill handles stories/tasks/sub-tasks and suggest they specify the child tickets instead.
+
+**Sprint-aware.** When called from `/implement-sprint`, workflow context (transition IDs, assignment, cloudId) is already known. Skip redundant discovery and confirmation steps — go straight to execution and implementation.
 
 ---
 
@@ -37,13 +39,31 @@ Then try again.
 
 ---
 
-## Workflow
+## Two Modes of Operation
+
+### Mode 1: Standalone (user invokes directly)
+
+The user says "implement VRIP-43" or similar. Full workflow: discover → confirm → transition → implement.
+
+### Mode 2: Called from /implement-sprint
+
+The sprint orchestrator has already:
+- Discovered the cloudId
+- Fetched all ticket details (key, summary, type, status, assignee)
+- Discovered available transitions for all tickets
+- Confirmed the sprint plan with the user (including implementation order)
+- Assigned all tickets to the user
+- Transitioned the current ticket to "In Progress"
+
+**When in sprint mode:** skip Steps 0–4 entirely. Jump straight to Step 5 (implementation). The sprint orchestrator passes the ticket key as an argument — use it directly.
+
+**How to detect sprint mode:** If the conversation context shows that `/implement-sprint` is orchestrating (sprint progress headers, sprint plan already confirmed, ticket already transitioned to In Progress), you are in sprint mode. Do not re-ask for confirmation or re-fetch transitions.
+
+---
+
+## Workflow (Standalone Mode)
 
 ### Step 0: Identify Tickets
-
-There are two paths into this step: **ticket-level** and **sprint-level**.
-
-#### Path A: Ticket Keys Provided
 
 Extract ticket keys from the user's message. Ticket keys follow the pattern `{PROJECT}-{NUMBER}` (e.g., `PROJ-123`, `ENG-45`).
 
@@ -51,41 +71,16 @@ Extract ticket keys from the user's message. Ticket keys follow the pattern `{PR
 
 **If multiple tickets:** collect all keys and process them as a batch.
 
-#### Path B: Sprint-Level Command
-
-Detect sprint-level commands: `start sprint N`, `execute sprint N`, `begin sprint N`, `start executing sprint N`, `run sprint N`, `kick off sprint N`, or similar phrasing that references a sprint number.
-
-When a sprint-level command is detected:
-
-1. **Locate sprint ticket file.** Read `tickets/phase-1/` (or `tickets/phase-2/`, etc.) to find the sprint file matching the number. Sprint files follow the pattern `sprint-N-*.md` (e.g., `sprint-1-auth.md`, `sprint-2-data-foundation.md`).
-
-2. **Extract ticket keys from the sprint file.** Sprint files contain story headers like `### S1-01: Title` with JIRA ticket keys in the content. Look for JIRA project keys (e.g., `VRIP-19`). If ticket keys aren't directly in the sprint file, use the story identifiers (e.g., `S1-01`) and cross-reference with `shared/TRACEABILITY.yaml` or search JIRA via JQL: `project = {PROJECT} AND sprint = {sprint_name}`.
-
-3. **If no JIRA keys found in files:** query JIRA directly using `searchJiraIssuesUsingJql` with JQL like `project = VRIP AND sprint in openSprints()` or `project = VRIP AND sprint = "Sprint 1"` to find all tickets in that sprint.
-
-4. **Present the full ticket list** to the user for confirmation before proceeding:
-   ```
-   Found {N} tickets in Sprint {X}:
-
-   | # | Ticket | Title | Type | Status |
-   |---|--------|-------|------|--------|
-   | 1 | PROJ-19 | Login/logout API | Story | To Do |
-   | 2 | PROJ-20 | Token refresh | Story | To Do |
-   ...
-
-   Implement all {N} tickets in order? Or specify which ones to start with.
-   ```
-
-5. **User can narrow scope:** If the user says "just the first 3" or "only backend tickets", filter accordingly.
-
-6. Proceed to Step 1 with the confirmed ticket list.
-
-#### Path C: No Tickets or Sprint Identified
-
-**If no ticket keys found and no sprint reference, but user describes work:** ask the user for the specific ticket key(s):
+**If sprint-level command detected** (e.g., "start sprint N", "implement sprint N"): redirect the user to `/implement-sprint` which handles sprint-level orchestration:
 ```
-Which ticket(s) should I update before starting? Provide the JIRA key(s) — e.g., PROJ-123 or PROJ-123, PROJ-124, PROJ-125.
-Or specify a sprint: "start sprint 1"
+For sprint-level implementation, use /implement-sprint instead.
+It handles ticket discovery, ordering, workflow transitions, and progress tracking across the full sprint.
+```
+
+**If no ticket keys found:** ask the user for the specific ticket key(s):
+```
+Which ticket(s) should I implement? Provide the JIRA key(s) — e.g., PROJ-123 or PROJ-123, PROJ-124, PROJ-125.
+For a full sprint, use /implement-sprint.
 ```
 
 ### Step 1: Fetch Ticket Details
@@ -96,6 +91,7 @@ For each ticket key, fetch the issue from Jira using `getJiraIssue`. Collect:
 - Issue type (story, task, sub-task, epic, bug, etc.)
 - Current status
 - Current assignee (if any)
+- Full description and acceptance criteria
 
 **Filter by type:** Only proceed with stories, tasks, and sub-tasks. If any ticket is an epic or bug, flag it:
 ```
@@ -109,7 +105,14 @@ If ALL tickets are filtered out, stop.
 
 For each valid ticket, call `getTransitionsForJiraIssue` to get the list of available transitions from the current status.
 
-**If transitions are returned:** identify the most likely "in progress" transition. Look for transition names containing (case-insensitive): `in progress`, `in development`, `start`, `begin`, `active`, `working`. If multiple candidates exist, present all options.
+**Identify two transitions:**
+
+1. **Start-work transition** — names containing (case-insensitive): `in progress`, `in development`, `start`, `begin`, `active`, `working`
+2. **Done/review transition** — names containing: `done`, `review`, `resolved`, `closed`, `complete`, `code complete`
+
+Record both transition IDs for later use (start-work in Step 4, done/review in Step 5).
+
+**If multiple candidates exist for either:** present all options to the user.
 
 **If no transitions are returned or the call fails:** ask the user what status to move the ticket to:
 ```
@@ -148,7 +151,7 @@ Proceed with these status changes? (y/n)
 
 For each confirmed ticket:
 
-1. Call `transitionJiraIssue` with the confirmed transition ID.
+1. Call `transitionJiraIssue` with the confirmed start-work transition ID.
 2. If assignment was requested, call `editJiraIssue` to set the `assignee` field.
 3. Report success or failure per ticket:
 
@@ -162,23 +165,19 @@ For each confirmed ticket:
 
 If any transition fails, report the error and ask if the user wants to retry or skip that ticket.
 
-### Step 5: Hand Off to Implementation
+### Step 5: Implement
 
-After all transitions are applied, read each ticket's full description and acceptance criteria from Jira (already fetched in Step 1). Present the implementation brief:
+**This is the entry point when called from /implement-sprint.** In sprint mode, Steps 0–4 are already done — the ticket is In Progress, assigned, and the user confirmed the plan.
+
+Read each ticket's full description and acceptance criteria from Jira (already fetched in Step 1, or available from sprint context). Present the implementation brief:
 
 ```
 ## Ready to Implement
 
 ### PROJ-123: {Title}
-**Description:** {description summary}
 **Acceptance Criteria:**
 - {criterion 1}
 - {criterion 2}
-
-### PROJ-124: {Title}
-**Description:** {description summary}
-**Acceptance Criteria:**
-- {criterion 1}
 
 Starting implementation...
 ```
@@ -191,10 +190,11 @@ Then begin the actual implementation work:
 4. Run tests if test infrastructure exists.
 5. Run linter if configured.
 
-After implementation is complete for each ticket, ask:
+After implementation is complete for each ticket, offer to transition to done/review using the done transition discovered in Step 2 (or re-fetch transitions if in sprint mode):
+
 ```
-Implementation complete for {KEY}. Should I transition it to done/review?
-  a) Yes — move to {discovered "done" or "in review" status}
+Implementation complete for {KEY}. Transition to done/review?
+  a) Yes — move to {done/review status name}
   b) No — leave as In Progress
 ```
 
@@ -202,20 +202,22 @@ Implementation complete for {KEY}. Should I transition it to done/review?
 
 ## Multi-Ticket Implementation Order
 
-When implementing multiple tickets:
+When implementing multiple tickets in standalone mode:
 
 1. Check for dependencies between the tickets (look at ticket links, `blocked by` relationships).
 2. Implement in dependency order — prerequisites first.
 3. If no dependencies, implement in the order the user provided them.
 4. Complete each ticket fully before starting the next.
-5. Transition each ticket's status after its implementation is done (with user confirmation per step 5).
+5. Transition each ticket's status after its implementation is done (with user confirmation per Step 5).
+
+When called from `/implement-sprint`, the sprint orchestrator controls the order and progress tracking.
 
 ---
 
 ## Edge Cases
 
 ### Ticket already in target status
-If a ticket is already "In Progress" (or equivalent), note it and skip:
+If a ticket is already "In Progress" (or equivalent), note it and skip the transition:
 ```
 PROJ-123 is already "In Progress" — no transition needed.
 ```
@@ -235,11 +237,20 @@ Check with your Jira admin or transition the ticket manually, then tell me to pr
 ```
 
 ### Cloud ID discovery
-The Jira MCP tools require a `cloudId`. On first use:
+The Jira MCP tools require a `cloudId`. On first use in standalone mode:
 1. Call `getAccessibleAtlassianResources` to list available Jira sites.
 2. If exactly one site: use it automatically.
 3. If multiple sites: ask the user which site to use.
 4. Cache the cloudId for the rest of the session.
+
+In sprint mode, the cloudId is already known from the sprint orchestrator's context.
+
+### Sprint-level commands
+If the user says "start sprint N", "implement sprint 3", "execute sprint N", or similar:
+```
+For sprint-level implementation, use /implement-sprint.
+It handles ticket discovery, dependency ordering, workflow transitions, and progress tracking.
+```
 
 ---
 

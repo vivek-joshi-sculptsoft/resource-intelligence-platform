@@ -55,10 +55,12 @@ def create_app() -> FastAPI:
             content={"error": True, "message": exc.message, "field": exc.field},
         )
 
+    from app.modules.allocations.router import router as allocation_router
     from app.modules.auth.role_router import router as role_router
     from app.modules.auth.router import router as auth_router
     from app.modules.auth.user_router import router as user_router
     from app.modules.clients.router import router as client_router
+    from app.modules.projects.router import router as project_router
     from app.modules.resources.router import router as resource_router
 
     app.include_router(auth_router)
@@ -66,6 +68,8 @@ def create_app() -> FastAPI:
     app.include_router(role_router)
     app.include_router(resource_router)
     app.include_router(client_router)
+    app.include_router(project_router)
+    app.include_router(allocation_router)
 
     @app.get("/api/v1/health")
     async def health_check() -> dict:

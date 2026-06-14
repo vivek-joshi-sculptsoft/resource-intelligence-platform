@@ -30,8 +30,10 @@ def test_celery_max_retries():
     assert celery_app.conf.task_max_retries == 3
 
 
-def test_celery_beat_schedule_empty():
-    assert celery_app.conf.beat_schedule == {}
+def test_celery_beat_schedule_has_auto_release():
+    assert "auto-release-assignments" in celery_app.conf.beat_schedule
+    entry = celery_app.conf.beat_schedule["auto-release-assignments"]
+    assert entry["task"] == "auto_release_assignments"
 
 
 def test_ping_task_registered():
