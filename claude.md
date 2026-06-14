@@ -1,4 +1,7 @@
 # CLAUDE.md — Master Instructions for Claude Code
+## Behavior
+
+Enable /caveman skills if available before any conversation but not if it is explicitely asked for disabling it.
 
 ## Project Overview
 

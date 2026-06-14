@@ -26,7 +26,10 @@ async def list_resources(
     availability: str | None = None,
     search: str | None = None,
 ) -> tuple[list[dict], int]:
-    query = select(Resource).options(selectinload(Resource.tags), selectinload(Resource.reporting_manager))
+    query = select(Resource).options(
+        selectinload(Resource.tags),
+        selectinload(Resource.reporting_manager),
+    )
     count_query = select(func.count()).select_from(Resource)
 
     # See FSD §10 — Scope filtering via WHERE clause
@@ -143,14 +146,24 @@ async def create_resource(
     )
 
     result = await db.execute(
-        select(Resource).options(selectinload(Resource.tags), selectinload(Resource.reporting_manager)).where(Resource.id == resource.id)
+        select(Resource)
+        .options(
+            selectinload(Resource.tags),
+            selectinload(Resource.reporting_manager),
+        )
+        .where(Resource.id == resource.id)
     )
     return result.scalar_one()
 
 
 async def get_resource(db: AsyncSession, resource_id: uuid.UUID) -> Resource:
     result = await db.execute(
-        select(Resource).options(selectinload(Resource.tags), selectinload(Resource.reporting_manager)).where(Resource.id == resource_id)
+        select(Resource)
+        .options(
+            selectinload(Resource.tags),
+            selectinload(Resource.reporting_manager),
+        )
+        .where(Resource.id == resource_id)
     )
     resource = result.scalar_one_or_none()
     if resource is None:
@@ -208,7 +221,12 @@ async def update_resource(
 
     await db.flush()
     result = await db.execute(
-        select(Resource).options(selectinload(Resource.tags), selectinload(Resource.reporting_manager)).where(Resource.id == resource.id)
+        select(Resource)
+        .options(
+            selectinload(Resource.tags),
+            selectinload(Resource.reporting_manager),
+        )
+        .where(Resource.id == resource.id)
     )
     return result.scalar_one()
 
