@@ -12,6 +12,9 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 COPY app/ app/
 COPY alembic/ alembic/
 COPY alembic.ini .
+COPY startup.sh .
+RUN chmod +x startup.sh
 
 EXPOSE 8000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+ENTRYPOINT ["./startup.sh"]
+CMD ["api"]
