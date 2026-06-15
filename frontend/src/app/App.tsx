@@ -17,6 +17,9 @@ import { ResourceFormPage } from './routes/resources/form'
 import { ClientsPage } from './routes/clients/index'
 import { ClientDetailPage } from './routes/clients/detail'
 import { ClientFormPage } from './routes/clients/form'
+import { ProjectsPage } from './routes/projects/index'
+import { ProjectDetailPage } from './routes/projects/detail'
+import { ProjectFormPage } from './routes/projects/form'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -95,6 +98,16 @@ function AppRoutes() {
         <Route path="/clients/:id" element={<ClientDetailPage />} />
         <Route path="/clients/:id/edit" element={
           <RoleGuard allowedRoles={['CEO', 'CTO']}><ClientFormPage /></RoleGuard>
+        } />
+
+        {/* Projects */}
+        <Route path="/projects" element={<ProjectsPage />} />
+        <Route path="/projects/:id" element={<ProjectDetailPage />} />
+        <Route path="/projects/new" element={
+          <RoleGuard allowedRoles={['CEO', 'CTO', 'DM']}><ProjectFormPage /></RoleGuard>
+        } />
+        <Route path="/projects/:id/edit" element={
+          <RoleGuard allowedRoles={['CEO', 'CTO', 'DM', 'PM']}><ProjectFormPage /></RoleGuard>
         } />
 
         <Route path="/" element={<Navigate to="/dashboard" replace />} />

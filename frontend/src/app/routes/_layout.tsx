@@ -1,92 +1,96 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router'
 import { useAuthStore } from '../../modules/auth/store'
+import {
+  LayoutDashboard,
+  Users,
+  FolderOpen,
+  UserCog,
+  Building2,
+  CalendarRange,
+  BarChart3,
+  Clock,
+  Settings,
+  UserPlus,
+  ChevronDown,
+  LogOut,
+  Bell,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from 'lucide-react'
 
-const NAV_ITEMS: { label: string; to: string; icon: React.ReactNode; hiddenForRoles?: string[] }[] = [
-  {
-    label: 'Dashboard',
-    to: '/dashboard',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="7" height="7" rx="1" />
-        <rect x="14" y="3" width="7" height="7" rx="1" />
-        <rect x="3" y="14" width="7" height="7" rx="1" />
-        <rect x="14" y="14" width="7" height="7" rx="1" />
-      </svg>
-    ),
-  },
+interface NavItem {
+  label: string
+  to: string
+  icon: React.ReactNode
+  allowedRoles?: string[]
+}
+
+const MAIN_NAV: NavItem[] = [
+  { label: 'Dashboard', to: '/dashboard', icon: <LayoutDashboard size={18} /> },
+  { label: 'Resources', to: '/resources', icon: <Users size={18} /> },
   {
     label: 'Clients',
     to: '/clients',
-    hiddenForRoles: ['ENGINEER'],
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-        <circle cx="12" cy="7" r="4" />
-      </svg>
-    ),
+    icon: <Building2 size={18} />,
+    allowedRoles: ['CEO', 'CTO', 'DM', 'PM', 'FINANCE', 'HR'],
   },
   {
     label: 'Projects',
     to: '/projects',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-      </svg>
-    ),
-  },
-  {
-    label: 'Resources',
-    to: '/resources',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-        <circle cx="9" cy="7" r="4" />
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-      </svg>
-    ),
+    icon: <FolderOpen size={18} />,
+    allowedRoles: ['CEO', 'CTO', 'DM', 'PM', 'FINANCE', 'HR'],
   },
   {
     label: 'Allocations',
     to: '/allocations',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-        <line x1="16" y1="2" x2="16" y2="6" />
-        <line x1="8" y1="2" x2="8" y2="6" />
-        <line x1="3" y1="10" x2="21" y2="10" />
-      </svg>
-    ),
+    icon: <CalendarRange size={18} />,
+    allowedRoles: ['CEO', 'CTO', 'DM', 'PM', 'FINANCE', 'HR'],
   },
   {
     label: 'Dashboards',
     to: '/utilization',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="18" y1="20" x2="18" y2="10" />
-        <line x1="12" y1="20" x2="12" y2="4" />
-        <line x1="6" y1="20" x2="6" y2="14" />
-      </svg>
-    ),
+    icon: <BarChart3 size={18} />,
+    allowedRoles: ['CEO', 'CTO', 'DM', 'PM', 'FINANCE', 'HR'],
   },
   {
     label: 'Worklogs',
     to: '/worklogs',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <polyline points="12 6 12 12 16 14" />
-      </svg>
-    ),
+    icon: <Clock size={18} />,
+    allowedRoles: ['CEO', 'CTO', 'DM', 'PM', 'FINANCE', 'HR'],
   },
 ]
+
+const ADMIN_NAV: NavItem[] = [
+  {
+    label: 'Users',
+    to: '/admin/users',
+    icon: <UserPlus size={18} />,
+    allowedRoles: ['CEO', 'CTO'],
+  },
+  {
+    label: 'Roles',
+    to: '/admin/roles',
+    icon: <Settings size={18} />,
+    allowedRoles: ['CEO', 'CTO'],
+  },
+]
+
+function filterByRole(items: NavItem[], roleCode: string | undefined): NavItem[] {
+  if (!roleCode) return []
+  return items.filter((item) => !item.allowedRoles || item.allowedRoles.includes(roleCode))
+}
 
 export function RootLayout() {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  const roleCode = user?.role?.code
+  const visibleMain = filterByRole(MAIN_NAV, roleCode)
+  const visibleAdmin = filterByRole(ADMIN_NAV, roleCode)
 
   const initials = user?.name
     ?.split(' ')
@@ -127,24 +131,21 @@ export function RootLayout() {
           >
             RI
           </div>
-          <div className="text-[16px] font-bold tracking-tight" style={{ color: '#1B2B65' }}>
-            Resource Intelligence <span style={{ color: '#FF4B2B' }}>Platform</span>
-          </div>
+          {!collapsed && (
+            <div className="text-[16px] font-bold tracking-tight" style={{ color: '#1B2B65' }}>
+              Resource Intelligence <span style={{ color: '#FF4B2B' }}>Platform</span>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-[18px]">
-          {/* Notification bell */}
           <button
             className="relative flex h-9 w-9 items-center justify-center rounded-lg border-none transition-colors"
             style={{ background: '#F0F1FA' }}
           >
-            <svg className="h-5 w-5" style={{ color: '#6b7280' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-            </svg>
+            <Bell size={20} style={{ color: '#6b7280' }} />
           </button>
 
-          {/* User profile dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -167,9 +168,14 @@ export function RootLayout() {
               >
                 {initials}
               </div>
-              <svg className="h-4 w-4" style={{ color: '#7C85C0', transform: dropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
+              <ChevronDown
+                size={16}
+                style={{
+                  color: '#7C85C0',
+                  transform: dropdownOpen ? 'rotate(180deg)' : 'none',
+                  transition: 'transform 0.2s',
+                }}
+              />
             </button>
 
             {dropdownOpen && (
@@ -197,11 +203,7 @@ export function RootLayout() {
                     onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#fef2f2' }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
                   >
-                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                      <polyline points="16 17 21 12 16 7" />
-                      <line x1="21" y1="12" x2="9" y2="12" />
-                    </svg>
+                    <LogOut size={16} />
                     Logout
                   </button>
                 </div>
@@ -215,22 +217,39 @@ export function RootLayout() {
       <div className="flex min-h-0 flex-1">
         {/* Sidebar */}
         <nav
-          className="flex w-[240px] shrink-0 flex-col overflow-y-auto py-5"
-          style={{ background: '#F5F6FC', borderRight: '1px solid #E8EAF6' }}
+          className="flex shrink-0 flex-col overflow-y-auto py-5 transition-all duration-200"
+          style={{
+            width: collapsed ? '64px' : '240px',
+            background: '#F5F6FC',
+            borderRight: '1px solid #E8EAF6',
+          }}
         >
-          <div className="px-5 pb-1.5 text-[10.5px] font-bold uppercase tracking-[0.08em]" style={{ color: '#7C85C0' }}>
-            Main
-          </div>
-          {NAV_ITEMS.filter((item) => !item.hiddenForRoles || !user?.role?.code || !item.hiddenForRoles.includes(user.role.code)).map((item) => (
+          {/* Collapse toggle */}
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="mx-auto mb-3 flex h-8 w-8 items-center justify-center rounded-lg border-none transition-colors"
+            style={{ background: 'transparent', color: '#7C85C0', cursor: 'pointer' }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#E8EAF6' }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+          </button>
+
+          {!collapsed && (
+            <div className="px-5 pb-1.5 text-[10.5px] font-bold uppercase tracking-[0.08em]" style={{ color: '#7C85C0' }}>
+              Main
+            </div>
+          )}
+          {visibleMain.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
+              title={collapsed ? item.label : undefined}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 border-l-[3px] px-5 py-[9px] text-[13.5px] font-medium no-underline transition-all ${
-                  isActive
-                    ? 'font-semibold'
-                    : 'border-transparent'
-                }`
+                `flex items-center border-l-[3px] text-[13.5px] font-medium no-underline transition-all ${
+                  isActive ? 'font-semibold' : 'border-transparent'
+                } ${collapsed ? 'justify-center px-0 py-[9px]' : 'gap-2.5 px-5 py-[9px]'}`
               }
               style={({ isActive }) => ({
                 color: isActive ? '#2B3990' : '#6b7280',
@@ -238,61 +257,46 @@ export function RootLayout() {
                 borderLeftColor: isActive ? '#FF4B2B' : 'transparent',
               })}
             >
-              <span className="h-[18px] w-[18px] shrink-0">{item.icon}</span>
-              {item.label}
+              <span className="shrink-0">{item.icon}</span>
+              {!collapsed && item.label}
             </NavLink>
           ))}
 
-          <div className="mx-4 my-2 h-px" style={{ background: '#E8EAF6' }} />
-
-          <div className="px-5 pb-1.5 text-[10.5px] font-bold uppercase tracking-[0.08em]" style={{ color: '#7C85C0' }}>
-            Settings
-          </div>
-          <NavLink
-            to="/admin/users"
-            end={false}
-            className={({ isActive }) =>
-              `flex items-center gap-2.5 border-l-[3px] px-5 py-[9px] text-[13.5px] font-medium no-underline transition-all ${
-                isActive ? 'font-semibold' : 'border-transparent'
-              }`
-            }
-            style={({ isActive }) => ({
-              color: isActive ? '#2B3990' : '#6b7280',
-              background: isActive ? 'rgba(43,57,144,0.06)' : 'transparent',
-              borderLeftColor: isActive ? '#2B3990' : 'transparent',
-            })}
-          >
-            <svg className="h-[18px] w-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <line x1="19" y1="8" x2="19" y2="14" />
-              <line x1="22" y1="11" x2="16" y2="11" />
-            </svg>
-            Users
-          </NavLink>
-          <NavLink
-            to="/admin/roles"
-            className={({ isActive }) =>
-              `flex items-center gap-2.5 border-l-[3px] px-5 py-[9px] text-[13.5px] font-medium no-underline transition-all ${
-                isActive ? 'font-semibold' : 'border-transparent'
-              }`
-            }
-            style={({ isActive }) => ({
-              color: isActive ? '#2B3990' : '#6b7280',
-              background: isActive ? 'rgba(43,57,144,0.06)' : 'transparent',
-              borderLeftColor: isActive ? '#2B3990' : 'transparent',
-            })}
-          >
-            <svg className="h-[18px] w-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="3" />
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-            </svg>
-            Roles
-          </NavLink>
+          {visibleAdmin.length > 0 && (
+            <>
+              <div className="mx-4 my-2 h-px" style={{ background: '#E8EAF6' }} />
+              {!collapsed && (
+                <div className="px-5 pb-1.5 text-[10.5px] font-bold uppercase tracking-[0.08em]" style={{ color: '#7C85C0' }}>
+                  Settings
+                </div>
+              )}
+              {visibleAdmin.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={false}
+                  title={collapsed ? item.label : undefined}
+                  className={({ isActive }) =>
+                    `flex items-center border-l-[3px] text-[13.5px] font-medium no-underline transition-all ${
+                      isActive ? 'font-semibold' : 'border-transparent'
+                    } ${collapsed ? 'justify-center px-0 py-[9px]' : 'gap-2.5 px-5 py-[9px]'}`
+                  }
+                  style={({ isActive }) => ({
+                    color: isActive ? '#2B3990' : '#6b7280',
+                    background: isActive ? 'rgba(43,57,144,0.06)' : 'transparent',
+                    borderLeftColor: isActive ? '#2B3990' : 'transparent',
+                  })}
+                >
+                  <span className="shrink-0">{item.icon}</span>
+                  {!collapsed && item.label}
+                </NavLink>
+              ))}
+            </>
+          )}
         </nav>
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto p-7" style={{ padding: '28px 36px' }}>
+        <main className="flex-1 overflow-y-auto" style={{ padding: '28px 36px' }}>
           <Outlet />
         </main>
       </div>

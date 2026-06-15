@@ -4,6 +4,8 @@ import { useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { useAuthStore } from '../../auth/store'
 import { fetchClient, deleteClient } from '../api'
+import { Breadcrumb } from '../../../shared/components'
+import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle'
 
 export function ClientDetail() {
   const { id } = useParams<{ id: string }>()
@@ -26,18 +28,15 @@ export function ClientDetail() {
     onError: (e: any) => toast.error(e.response?.data?.message || 'Failed to deactivate'),
   })
 
-  if (isLoading) return <div className="py-8 text-center text-[13.5px]" style={{ color: '#7C85C0' }}>Loading...</div>
-
   const c = data?.data
+  useDocumentTitle(c?.name)
+
+  if (isLoading) return <div className="py-8 text-center text-[13.5px]" style={{ color: '#7C85C0' }}>Loading...</div>
   if (!c) return <div className="py-8 text-center text-[14px]" style={{ color: '#ef4444' }}>Client not found</div>
 
   return (
     <div>
-      <div className="mb-1 text-[13px]" style={{ color: '#7C85C0' }}>
-        <span className="cursor-pointer hover:underline" onClick={() => navigate('/clients')}>Clients</span>
-        <span style={{ color: '#6b7280' }}> &rsaquo; </span>
-        <span style={{ color: '#6b7280' }}>{c.name}</span>
-      </div>
+      <Breadcrumb items={[{ label: 'Clients', to: '/clients' }, { label: c.name }]} />
 
       {/* Header Card */}
       <div className="mb-5 rounded-xl p-6" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04)' }}>

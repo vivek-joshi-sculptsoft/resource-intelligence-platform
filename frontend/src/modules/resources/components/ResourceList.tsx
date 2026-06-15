@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import { useAuthStore } from '../../auth/store'
 import { fetchResources, type ResourceListItem } from '../api'
+import { Breadcrumb } from '../../../shared/components'
+import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle'
 
 function AvailabilityBadge({ pct }: { pct: number }) {
   if (pct === 0) return <span className="inline-block rounded-full px-2.5 py-[3px] text-[11px] font-semibold" style={{ background: '#fef3c7', color: '#92400e' }}>Bench</span>
@@ -35,11 +37,11 @@ export function ResourceList() {
   const resources = data?.data ?? []
   const meta = data?.meta
 
+  useDocumentTitle('Resources')
+
   return (
     <div>
-      <div className="mb-1 text-[13px]" style={{ color: '#7C85C0' }}>
-        Resources
-      </div>
+      <Breadcrumb items={[{ label: 'Resources' }]} />
 
       <div className="mb-5 flex items-center justify-between">
         <div>

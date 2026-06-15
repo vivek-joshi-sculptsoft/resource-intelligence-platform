@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import { useAuthStore } from '../../auth/store'
 import { fetchClients, type ClientListItem } from '../api'
+import { Breadcrumb } from '../../../shared/components'
+import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle'
 
 export function ClientList() {
   const navigate = useNavigate()
@@ -25,9 +27,11 @@ export function ClientList() {
   const clients = data?.data ?? []
   const meta = data?.meta
 
+  useDocumentTitle('Clients')
+
   return (
     <div>
-      <div className="mb-1 text-[13px]" style={{ color: '#7C85C0' }}>Clients</div>
+      <Breadcrumb items={[{ label: 'Clients' }]} />
 
       <div className="mb-5 flex items-center justify-between">
         <div>
