@@ -165,6 +165,8 @@ def _assignment_detail_dict(a: Assignment, role_code: str) -> dict:
         "name": project.name,
         "type": project.type,
         "status": project.status,
+        "worklog_enabled": project.worklog_enabled,
+        "client_name": project.client.name if project.client else None,
     } if project else None
     return d
 

@@ -7,10 +7,20 @@ export interface AssignmentResource {
   technical_expertise: string | null
 }
 
+export interface AssignmentProject {
+  id: string
+  name: string
+  type: string
+  status: string
+  worklog_enabled: boolean
+  client_name: string | null
+}
+
 export interface AssignmentListItem {
   id: string
   project_id: string
   resource: AssignmentResource | null
+  project?: AssignmentProject | null
   effective_designation: string | null
   effective_expertise: string | null
   allocation_pct: number

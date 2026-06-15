@@ -9,6 +9,7 @@ import { StatusBadge, TypeBadge, Breadcrumb, ConfirmDialog } from '../../../shar
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle'
 import { AssignmentList } from '../../allocations/components/AssignmentList'
 import { AssignmentFormModal } from '../../allocations/components/AssignmentFormModal'
+import { WorklogTab } from '../../worklogs/components/WorklogTab'
 import type { AssignmentListItem } from '../../allocations/api'
 
 // See FSD §10 — valid status transitions
@@ -169,18 +170,7 @@ export function ProjectDetail() {
           onEditAssignment={(a) => { setEditingAssignment(a); setAssignmentModalOpen(true) }}
         />
       )}
-      {activeTab === 'worklogs' && (
-        <div
-          className="flex items-center justify-center rounded-xl py-16 text-center"
-          style={{ background: '#fff', boxShadow: '0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04)' }}
-        >
-          <div>
-            <div className="mb-2 text-[48px] opacity-60">{'\u{1F4DD}'}</div>
-            <p className="text-[15px] font-medium" style={{ color: '#1e1b4b' }}>Worklogs</p>
-            <p className="text-[13px]" style={{ color: '#6b7280' }}>Worklog tracking — Phase 1 Sprint 5</p>
-          </div>
-        </div>
-      )}
+      {activeTab === 'worklogs' && <WorklogTab projectId={id!} />}
       {activeTab === 'financials' && (
         <div
           className="flex items-center justify-center rounded-xl py-16 text-center"

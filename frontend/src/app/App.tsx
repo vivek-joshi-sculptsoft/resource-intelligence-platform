@@ -20,6 +20,8 @@ import { ClientFormPage } from './routes/clients/form'
 import { ProjectsPage } from './routes/projects/index'
 import { ProjectDetailPage } from './routes/projects/detail'
 import { ProjectFormPage } from './routes/projects/form'
+import { AvailabilityPage } from './routes/availability'
+import { MyAssignmentsRoute } from './routes/my-assignments'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -99,6 +101,12 @@ function AppRoutes() {
         <Route path="/clients/:id/edit" element={
           <RoleGuard allowedRoles={['CEO', 'CTO']}><ClientFormPage /></RoleGuard>
         } />
+
+        {/* Availability */}
+        <Route path="/availability" element={<AvailabilityPage />} />
+
+        {/* My Assignments (Engineer worklog entry) */}
+        <Route path="/my-assignments" element={<MyAssignmentsRoute />} />
 
         {/* Projects */}
         <Route path="/projects" element={<ProjectsPage />} />

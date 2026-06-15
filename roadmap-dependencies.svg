@@ -1,0 +1,255 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#1E293B"/>
+    </linearGradient>
+    <linearGradient id="phase1" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#60A5FA"/>
+    </linearGradient>
+    <linearGradient id="phase2" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#FBBF24"/>
+    </linearGradient>
+    <linearGradient id="phase3" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#EF4444"/>
+      <stop offset="100%" stop-color="#F87171"/>
+    </linearGradient>
+    <linearGradient id="arrowBlue" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#60A5FA"/>
+      <stop offset="100%" stop-color="#FBBF24"/>
+    </linearGradient>
+    <linearGradient id="arrowAmber" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#FBBF24"/>
+      <stop offset="100%" stop-color="#F87171"/>
+    </linearGradient>
+    <linearGradient id="arrowFull" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#60A5FA"/>
+      <stop offset="50%" stop-color="#FBBF24"/>
+      <stop offset="100%" stop-color="#F87171"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+    <marker id="arrowHead1" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#FBBF24"/>
+    </marker>
+    <marker id="arrowHead2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#F87171"/>
+    </marker>
+    <marker id="arrowHead3" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#60A5FA"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="720" fill="url(#bgGrad)" rx="12"/>
+
+  <!-- Title -->
+  <text x="600" y="48" text-anchor="middle" fill="#F8FAFC" font-size="22" font-weight="700" letter-spacing="0.5">Key Dependencies Between Phases</text>
+  <text x="600" y="72" text-anchor="middle" fill="#64748B" font-size="13">Resource Intelligence Platform — Build Roadmap</text>
+
+  <!-- Phase column headers -->
+  <rect x="40" y="90" width="340" height="36" rx="6" fill="#3B82F6" opacity="0.15"/>
+  <text x="210" y="114" text-anchor="middle" fill="#60A5FA" font-size="14" font-weight="700">PHASE 1 — Foundation</text>
+
+  <rect x="430" y="90" width="310" height="36" rx="6" fill="#F59E0B" opacity="0.15"/>
+  <text x="585" y="114" text-anchor="middle" fill="#FBBF24" font-size="14" font-weight="700">PHASE 2 — Financial</text>
+
+  <rect x="790" y="90" width="370" height="36" rx="6" fill="#EF4444" opacity="0.15"/>
+  <text x="975" y="114" text-anchor="middle" fill="#F87171" font-size="14" font-weight="700">PHASE 3 — Intelligence</text>
+
+  <!-- Vertical dividers -->
+  <line x1="410" y1="90" x2="410" y2="680" stroke="#334155" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="770" y1="90" x2="770" y2="680" stroke="#334155" stroke-width="1" stroke-dasharray="4,4"/>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- PHASE 1 NODES -->
+  <!-- ════════════════════════════════════════ -->
+
+  <!-- 01-auth -->
+  <rect x="60" y="148" width="180" height="50" rx="8" fill="#1E3A5F" stroke="#3B82F6" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="86" y="170" fill="#93C5FD" font-size="10" font-weight="600">01</text>
+  <text x="104" y="170" fill="#E2E8F0" font-size="13" font-weight="600">Auth &amp; Roles</text>
+  <text x="150" y="186" fill="#64748B" font-size="10" text-anchor="middle">Sprint 1 · JWT · RBAC</text>
+
+  <!-- 04-resource -->
+  <rect x="60" y="220" width="180" height="50" rx="8" fill="#1E3A5F" stroke="#3B82F6" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="86" y="242" fill="#93C5FD" font-size="10" font-weight="600">04</text>
+  <text x="104" y="242" fill="#E2E8F0" font-size="13" font-weight="600">Resources</text>
+  <text x="150" y="258" fill="#64748B" font-size="10" text-anchor="middle">Sprint 2 · CRUD · Tags</text>
+
+  <!-- 02-client -->
+  <rect x="60" y="292" width="180" height="50" rx="8" fill="#1E3A5F" stroke="#3B82F6" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="86" y="314" fill="#93C5FD" font-size="10" font-weight="600">02</text>
+  <text x="104" y="314" fill="#E2E8F0" font-size="13" font-weight="600">Clients</text>
+  <text x="150" y="330" fill="#64748B" font-size="10" text-anchor="middle">Sprint 2 · CRUD · Filter</text>
+
+  <!-- 03-project -->
+  <rect x="60" y="364" width="180" height="50" rx="8" fill="#1E3A5F" stroke="#3B82F6" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="86" y="386" fill="#93C5FD" font-size="10" font-weight="600">03</text>
+  <text x="104" y="386" fill="#E2E8F0" font-size="13" font-weight="600">Projects</text>
+  <text x="150" y="402" fill="#64748B" font-size="10" text-anchor="middle">Sprint 3–4 · Lifecycle</text>
+
+  <!-- 05-allocation -->
+  <rect x="60" y="436" width="180" height="50" rx="8" fill="#1E3A5F" stroke="#3B82F6" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="86" y="458" fill="#93C5FD" font-size="10" font-weight="600">05</text>
+  <text x="104" y="458" fill="#E2E8F0" font-size="13" font-weight="600">Allocations</text>
+  <text x="150" y="474" fill="#64748B" font-size="10" text-anchor="middle">Sprint 3–4 · Assignments</text>
+
+  <!-- 07-utilization (P1) -->
+  <rect x="60" y="508" width="180" height="50" rx="8" fill="#1E3A5F" stroke="#3B82F6" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="86" y="530" fill="#93C5FD" font-size="10" font-weight="600">07</text>
+  <text x="104" y="530" fill="#E2E8F0" font-size="13" font-weight="600">Dashboards v1</text>
+  <text x="150" y="546" fill="#64748B" font-size="10" text-anchor="middle">Sprint 5 · Utilization</text>
+
+  <!-- 11-worklog -->
+  <rect x="60" y="580" width="180" height="50" rx="8" fill="#1E3A5F" stroke="#3B82F6" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="86" y="602" fill="#93C5FD" font-size="10" font-weight="600">11</text>
+  <text x="104" y="602" fill="#E2E8F0" font-size="13" font-weight="600">Worklogs</text>
+  <text x="150" y="618" fill="#64748B" font-size="10" text-anchor="middle">Sprint 5 · Daily hours</text>
+
+  <!-- 13-audit (infra) -->
+  <rect x="60" y="652" width="180" height="50" rx="8" fill="#1E3A5F" stroke="#3B82F6" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="86" y="674" fill="#93C5FD" font-size="10" font-weight="600">13</text>
+  <text x="104" y="674" fill="#E2E8F0" font-size="13" font-weight="600">Audit (infra)</text>
+  <text x="150" y="690" fill="#64748B" font-size="10" text-anchor="middle">Sprint 0 · Append-only</text>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- PHASE 2 NODES -->
+  <!-- ════════════════════════════════════════ -->
+
+  <!-- 08-financial -->
+  <rect x="450" y="220" width="270" height="50" rx="8" fill="#3D2E0A" stroke="#F59E0B" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="476" y="242" fill="#FCD34D" font-size="10" font-weight="600">08</text>
+  <text x="494" y="242" fill="#E2E8F0" font-size="13" font-weight="600">Financial Engine</text>
+  <text x="585" y="258" fill="#64748B" font-size="10" text-anchor="middle">loaded_cost · billing_rate · margins</text>
+
+  <!-- 06-non-human-costs -->
+  <rect x="450" y="364" width="270" height="50" rx="8" fill="#3D2E0A" stroke="#F59E0B" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="476" y="386" fill="#FCD34D" font-size="10" font-weight="600">06</text>
+  <text x="494" y="386" fill="#E2E8F0" font-size="13" font-weight="600">Non-Human Costs</text>
+  <text x="585" y="402" fill="#64748B" font-size="10" text-anchor="middle">Recurring · Multi-currency · INR</text>
+
+  <!-- 09-invoicing -->
+  <rect x="450" y="436" width="270" height="50" rx="8" fill="#3D2E0A" stroke="#F59E0B" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="476" y="458" fill="#FCD34D" font-size="10" font-weight="600">09</text>
+  <text x="494" y="458" fill="#E2E8F0" font-size="13" font-weight="600">Invoicing</text>
+  <text x="585" y="474" fill="#64748B" font-size="10" text-anchor="middle">Milestones · Invoices · Lifecycle</text>
+
+  <!-- 10-bench-forecasting -->
+  <rect x="450" y="508" width="270" height="50" rx="8" fill="#3D2E0A" stroke="#F59E0B" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="476" y="530" fill="#FCD34D" font-size="10" font-weight="600">10</text>
+  <text x="494" y="530" fill="#E2E8F0" font-size="13" font-weight="600">Bench Forecasting</text>
+  <text x="585" y="546" fill="#64748B" font-size="10" text-anchor="middle">30/60/90d availability · Bench cost</text>
+
+  <!-- 07-dashboards (update) -->
+  <rect x="450" y="580" width="270" height="50" rx="8" fill="#3D2E0A" stroke="#F59E0B" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="476" y="602" fill="#FCD34D" font-size="10" font-weight="600">07</text>
+  <text x="494" y="602" fill="#E2E8F0" font-size="13" font-weight="600">Dashboards v2</text>
+  <text x="585" y="618" fill="#64748B" font-size="10" text-anchor="middle">+ Revenue · Cost · Margin charts</text>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- PHASE 3 NODES -->
+  <!-- ════════════════════════════════════════ -->
+
+  <!-- 12-alerts -->
+  <rect x="810" y="364" width="350" height="56" rx="8" fill="#3D1414" stroke="#EF4444" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="836" y="388" fill="#FCA5A5" font-size="10" font-weight="600">12</text>
+  <text x="854" y="388" fill="#E2E8F0" font-size="13" font-weight="600">Alerts &amp; Notifications</text>
+  <text x="985" y="406" fill="#64748B" font-size="10" text-anchor="middle">Contract expiry · Bench · Milestone · Utilization</text>
+
+  <!-- 13-audit (UI) -->
+  <rect x="810" y="508" width="350" height="50" rx="8" fill="#3D1414" stroke="#EF4444" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="836" y="530" fill="#FCA5A5" font-size="10" font-weight="600">13</text>
+  <text x="854" y="530" fill="#E2E8F0" font-size="13" font-weight="600">Audit History (UI)</text>
+  <text x="985" y="546" fill="#64748B" font-size="10" text-anchor="middle">Change viewer · Point-in-time reconstruction</text>
+
+  <!-- 17-rbac config -->
+  <rect x="810" y="580" width="350" height="50" rx="8" fill="#3D1414" stroke="#EF4444" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="836" y="602" fill="#FCA5A5" font-size="10" font-weight="600">17</text>
+  <text x="854" y="602" fill="#E2E8F0" font-size="13" font-weight="600">RBAC Config UI</text>
+  <text x="985" y="618" fill="#64748B" font-size="10" text-anchor="middle">Optional · Per-user permission overrides</text>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- DEPENDENCY ARROWS  Phase 1 → Phase 2 -->
+  <!-- ════════════════════════════════════════ -->
+
+  <!-- 04-resource → 08-financial -->
+  <path d="M240,245 Q345,245 450,245" fill="none" stroke="url(#arrowBlue)" stroke-width="2" marker-end="url(#arrowHead1)" opacity="0.8"/>
+  <rect x="310" y="232" width="90" height="16" rx="4" fill="#1E293B" stroke="#475569" stroke-width="0.5"/>
+  <text x="355" y="243" text-anchor="middle" fill="#94A3B8" font-size="9">loaded_cost</text>
+
+  <!-- 05-allocation → 08-financial -->
+  <path d="M240,455 C340,455 380,250 450,250" fill="none" stroke="url(#arrowBlue)" stroke-width="2" marker-end="url(#arrowHead1)" opacity="0.8"/>
+  <rect x="310" y="366" width="85" height="16" rx="4" fill="#1E293B" stroke="#475569" stroke-width="0.5"/>
+  <text x="352" y="377" text-anchor="middle" fill="#94A3B8" font-size="9">billing_rate</text>
+
+  <!-- 03-project → 06-non-human-costs -->
+  <path d="M240,389 Q345,389 450,389" fill="none" stroke="url(#arrowBlue)" stroke-width="2" marker-end="url(#arrowHead1)" opacity="0.8"/>
+
+  <!-- 03-project → 09-invoicing -->
+  <path d="M240,397 C340,420 380,455 450,458" fill="none" stroke="url(#arrowBlue)" stroke-width="2" marker-end="url(#arrowHead1)" opacity="0.8"/>
+
+  <!-- 04+05 → 10-bench-forecasting (via 08) -->
+  <path d="M240,240 C310,240 360,530 450,533" fill="none" stroke="url(#arrowBlue)" stroke-width="1.5" marker-end="url(#arrowHead1)" opacity="0.5" stroke-dasharray="6,3"/>
+
+  <!-- 08 → 10-bench -->
+  <path d="M585,270 L585,508" fill="none" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#arrowHead1)" opacity="0.6"/>
+
+  <!-- 08 + 06 + 09 → 07-dashboards v2 -->
+  <path d="M585,270 C600,310 570,560 585,580" fill="none" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#arrowHead1)" opacity="0.5" stroke-dasharray="6,3"/>
+  <path d="M585,414 L585,580" fill="none" stroke="#F59E0B" stroke-width="1.5" opacity="0.4" stroke-dasharray="4,4"/>
+  <path d="M585,486 L585,580" fill="none" stroke="#F59E0B" stroke-width="1.5" opacity="0.4" stroke-dasharray="4,4"/>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- DEPENDENCY ARROWS  Phase 2 → Phase 3 -->
+  <!-- ════════════════════════════════════════ -->
+
+  <!-- All P1+P2 → 12-alerts -->
+  <path d="M720,392 L810,392" fill="none" stroke="url(#arrowAmber)" stroke-width="2.5" marker-end="url(#arrowHead2)" opacity="0.8"/>
+  <rect x="730" y="373" width="68" height="16" rx="4" fill="#1E293B" stroke="#475569" stroke-width="0.5"/>
+  <text x="764" y="384" text-anchor="middle" fill="#94A3B8" font-size="9">all P1 + P2</text>
+
+  <!-- 13-audit infra → 13-audit UI (spans all phases) -->
+  <path d="M240,677 Q525,677 810,533" fill="none" stroke="url(#arrowFull)" stroke-width="2" marker-end="url(#arrowHead2)" opacity="0.7"/>
+  <rect x="488" y="660" width="90" height="16" rx="4" fill="#1E293B" stroke="#475569" stroke-width="0.5"/>
+  <text x="533" y="671" text-anchor="middle" fill="#94A3B8" font-size="9">infra → UI</text>
+
+  <!-- 01-auth → all (spans full width) -->
+  <path d="M240,173 L1150,173" fill="none" stroke="url(#arrowFull)" stroke-width="2" marker-end="url(#arrowHead2)" opacity="0.5" stroke-dasharray="8,4" filter="url(#glow)"/>
+  <rect x="606" y="156" width="85" height="16" rx="4" fill="#1E293B" stroke="#475569" stroke-width="0.5"/>
+  <text x="648" y="167" text-anchor="middle" fill="#94A3B8" font-size="9">all modules</text>
+
+  <!-- 01-auth → RBAC config UI -->
+  <path d="M240,180 C400,190 700,600 810,605" fill="none" stroke="url(#arrowFull)" stroke-width="1.5" marker-end="url(#arrowHead2)" opacity="0.4" stroke-dasharray="4,4"/>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- LEGEND -->
+  <!-- ════════════════════════════════════════ -->
+  <rect x="40" y="683" width="1120" height="1" fill="#334155"/>
+
+  <circle cx="75" cy="706" r="5" fill="#3B82F6"/>
+  <text x="86" y="710" fill="#94A3B8" font-size="11">Phase 1</text>
+
+  <circle cx="175" cy="706" r="5" fill="#F59E0B"/>
+  <text x="186" y="710" fill="#94A3B8" font-size="11">Phase 2</text>
+
+  <circle cx="275" cy="706" r="5" fill="#EF4444"/>
+  <text x="286" y="710" fill="#94A3B8" font-size="11">Phase 3</text>
+
+  <line x1="400" y1="706" x2="440" y2="706" stroke="#60A5FA" stroke-width="2"/>
+  <text x="448" y="710" fill="#94A3B8" font-size="11">Direct dependency</text>
+
+  <line x1="600" y1="706" x2="640" y2="706" stroke="#FBBF24" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="648" y="710" fill="#94A3B8" font-size="11">Indirect / via</text>
+
+  <line x1="800" y1="706" x2="860" y2="706" stroke="url(#arrowFull)" stroke-width="2" stroke-dasharray="8,4"/>
+  <text x="868" y="710" fill="#94A3B8" font-size="11">Cross-phase span</text>
+
+</svg>
