@@ -11,12 +11,12 @@ from app.modules.projects.schemas import (
     ProjectUpdateRequest,
 )
 from app.modules.projects.service import (
+    _project_to_detail,
     create_project,
     get_project,
     list_projects,
     transition_project_status,
     update_project,
-    _project_to_detail,
 )
 from app.shared.access_control import check_access
 from app.shared.exceptions import ForbiddenError
@@ -33,8 +33,7 @@ def _check_portfolio_scope(project, permission, current_user: User) -> None:
     if not permission.is_own_portfolio:
         return
     if current_user.resource_id and (
-        project.dm_id == current_user.resource_id
-        or project.pm_id == current_user.resource_id
+        project.dm_id == current_user.resource_id or project.pm_id == current_user.resource_id
     ):
         return
     raise ForbiddenError()
@@ -80,7 +79,7 @@ async def create_project_endpoint(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    permission = await check_access(db, current_user, "project_details", require_edit=True)
+    await check_access(db, current_user, "project_details", require_edit=True)
     role_code = current_user.role.code
 
     # See VRIP-46 — PM cannot create projects
@@ -142,9 +141,7 @@ async def update_project_endpoint(
     if role_code == "PM":
         disallowed = set(fields.keys()) - PM_EDITABLE_FIELDS
         if disallowed:
-            raise ForbiddenError(
-                f"PM cannot edit fields: {', '.join(sorted(disallowed))}"
-            )
+            raise ForbiddenError(f"PM cannot edit fields: {', '.join(sorted(disallowed))}")
 
     project = await update_project(
         db,

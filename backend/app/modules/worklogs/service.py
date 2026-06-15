@@ -2,7 +2,6 @@
 
 import uuid
 from datetime import date
-from decimal import Decimal
 
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,7 +16,6 @@ from app.modules.worklogs.schemas import (
     WorklogResponse,
     WorklogUpdateRequest,
 )
-from app.shared.access_control import Permission
 from app.shared.exceptions import AppError, ConflictError, ForbiddenError, NotFoundError
 
 
@@ -52,6 +50,7 @@ async def list_my_worklogs(
         query = query.where(Worklog.log_date <= end_date)
 
     from sqlalchemy import func
+
     count_q = select(func.count()).select_from(query.subquery())
     total = (await db.execute(count_q)).scalar() or 0
 
@@ -72,26 +71,28 @@ async def create_worklog(
         raise AppError("Cannot log hours for a future date", status_code=422, field="log_date")
 
     # Validation 1: project worklog_enabled
-    project = (await db.execute(
-        select(Project).where(Project.id == body.project_id)
-    )).scalar_one_or_none()
+    project = (
+        await db.execute(select(Project).where(Project.id == body.project_id))
+    ).scalar_one_or_none()
     if not project:
         raise NotFoundError("Project", str(body.project_id))
     if not project.worklog_enabled:
-        raise AppError("Worklog is not enabled for this project", status_code=422, field="project_id")
+        raise AppError(
+            "Worklog is not enabled for this project", status_code=422, field="project_id"
+        )
 
     # Validation 2: active assignment covering log_date
-    assignment = (await db.execute(
-        select(Assignment).where(
-            Assignment.resource_id == resource_id,
-            Assignment.project_id == body.project_id,
-            Assignment.status == "ACTIVE",
-            Assignment.start_date <= body.log_date,
-            and_(
-                Assignment.end_date.is_(None) | (Assignment.end_date >= body.log_date)
-            ),
+    assignment = (
+        await db.execute(
+            select(Assignment).where(
+                Assignment.resource_id == resource_id,
+                Assignment.project_id == body.project_id,
+                Assignment.status == "ACTIVE",
+                Assignment.start_date <= body.log_date,
+                and_(Assignment.end_date.is_(None) | (Assignment.end_date >= body.log_date)),
+            )
         )
-    )).scalar_one_or_none()
+    ).scalar_one_or_none()
     if not assignment:
         raise AppError(
             "No active assignment found covering this date",
@@ -100,15 +101,19 @@ async def create_worklog(
         )
 
     # Validation 5: unique per resource+project+day
-    existing = (await db.execute(
-        select(Worklog).where(
-            Worklog.resource_id == resource_id,
-            Worklog.project_id == body.project_id,
-            Worklog.log_date == body.log_date,
+    existing = (
+        await db.execute(
+            select(Worklog).where(
+                Worklog.resource_id == resource_id,
+                Worklog.project_id == body.project_id,
+                Worklog.log_date == body.log_date,
+            )
         )
-    )).scalar_one_or_none()
+    ).scalar_one_or_none()
     if existing:
-        raise ConflictError("Worklog entry already exists for this project and date", field="log_date")
+        raise ConflictError(
+            "Worklog entry already exists for this project and date", field="log_date"
+        )
 
     worklog = Worklog(
         id=uuid.uuid4(),
@@ -121,9 +126,7 @@ async def create_worklog(
     db.add(worklog)
     await db.flush()
 
-    refreshed = (await db.execute(
-        select(Worklog).where(Worklog.id == worklog.id)
-    )).scalar_one()
+    refreshed = (await db.execute(select(Worklog).where(Worklog.id == worklog.id))).scalar_one()
     return _to_response(refreshed)
 
 
@@ -133,9 +136,9 @@ async def update_worklog(
     resource_id: uuid.UUID,
     body: WorklogUpdateRequest,
 ) -> WorklogResponse:
-    worklog = (await db.execute(
-        select(Worklog).where(Worklog.id == worklog_id)
-    )).scalar_one_or_none()
+    worklog = (
+        await db.execute(select(Worklog).where(Worklog.id == worklog_id))
+    ).scalar_one_or_none()
     if not worklog:
         raise NotFoundError("Worklog", str(worklog_id))
     if worklog.resource_id != resource_id:
@@ -155,9 +158,9 @@ async def delete_worklog(
     worklog_id: uuid.UUID,
     resource_id: uuid.UUID,
 ) -> None:
-    worklog = (await db.execute(
-        select(Worklog).where(Worklog.id == worklog_id)
-    )).scalar_one_or_none()
+    worklog = (
+        await db.execute(select(Worklog).where(Worklog.id == worklog_id))
+    ).scalar_one_or_none()
     if not worklog:
         raise NotFoundError("Worklog", str(worklog_id))
     if worklog.resource_id != resource_id:
@@ -186,6 +189,7 @@ async def list_project_worklogs(
         query = query.where(Worklog.log_date <= end_date)
 
     from sqlalchemy import func
+
     count_q = select(func.count()).select_from(query.subquery())
     total = (await db.execute(count_q)).scalar() or 0
 
@@ -215,6 +219,7 @@ async def list_resource_worklogs(
         query = query.where(Worklog.log_date <= end_date)
 
     from sqlalchemy import func
+
     count_q = select(func.count()).select_from(query.subquery())
     total = (await db.execute(count_q)).scalar() or 0
 

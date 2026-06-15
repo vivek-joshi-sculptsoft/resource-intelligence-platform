@@ -1,8 +1,8 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -14,7 +14,6 @@ from app.modules.projects.models import Project
 from app.modules.resources.models import Resource
 from app.shared.access_control import Permission
 from app.shared.exceptions import AppError, NotFoundError, ValidationError
-
 
 VALID_TYPES = {"FIXED_PRICE", "TIME_AND_MATERIAL", "CLIENT_ONBOARDING"}
 VALID_STATUSES = {"ACTIVE", "COMPLETED", "ON_HOLD", "CANCELLED"}
@@ -39,9 +38,7 @@ async def _validate_client(db: AsyncSession, client_id: uuid.UUID) -> None:
         raise ValidationError("Client is not active", field="client_id")
 
 
-async def _validate_resource(
-    db: AsyncSession, resource_id: uuid.UUID, field_name: str
-) -> None:
+async def _validate_resource(db: AsyncSession, resource_id: uuid.UUID, field_name: str) -> None:
     result = await db.execute(select(Resource).where(Resource.id == resource_id))
     resource = result.scalar_one_or_none()
     if resource is None:
@@ -329,7 +326,7 @@ async def _auto_release_assignments(
         )
     )
     assignments = list(result.scalars().all())
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     for assignment in assignments:
         old_status = assignment.status

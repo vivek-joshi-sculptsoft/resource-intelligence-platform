@@ -1,7 +1,7 @@
 """See FSD §2.7, §6.1, §8, §11 — Assignment CRUD with 7 validations."""
 
 import uuid
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from typing import Any
 
 from sqlalchemy import func, select
@@ -15,7 +15,7 @@ from app.modules.auth.models import User
 from app.modules.projects.models import Project
 from app.modules.resources.models import Resource
 from app.shared.access_control import Permission, can_see_field
-from app.shared.exceptions import AppError, NotFoundError, ValidationError
+from app.shared.exceptions import NotFoundError, ValidationError
 
 
 def _validate_assignment_rules(
@@ -140,11 +140,17 @@ def _assignment_to_dict(
             "name": resource.name,
             "designation": resource.designation,
             "technical_expertise": resource.technical_expertise,
-        } if resource else None,
-        "effective_designation": a.project_designation or (resource.designation if resource else None),
-        "effective_expertise": a.project_expertise or (resource.technical_expertise if resource else None),
+        }
+        if resource
+        else None,
+        "effective_designation": a.project_designation
+        or (resource.designation if resource else None),
+        "effective_expertise": a.project_expertise
+        or (resource.technical_expertise if resource else None),
         "allocation_pct": a.allocation_pct,
-        "billability_pct": a.billability_pct if can_see_field(role_code, "billability_pct") else None,
+        "billability_pct": a.billability_pct
+        if can_see_field(role_code, "billability_pct")
+        else None,
         "is_shadow": a.is_shadow if can_see_field(role_code, "is_shadow") else None,
         "billing_rate": a.billing_rate if can_see_field(role_code, "billing_rate") else None,
         "project_designation": a.project_designation,
@@ -160,14 +166,18 @@ def _assignment_to_dict(
 def _assignment_detail_dict(a: Assignment, role_code: str) -> dict:
     d = _assignment_to_dict(a, role_code)
     project = a.project
-    d["project"] = {
-        "id": project.id,
-        "name": project.name,
-        "type": project.type,
-        "status": project.status,
-        "worklog_enabled": project.worklog_enabled,
-        "client_name": project.client.name if project.client else None,
-    } if project else None
+    d["project"] = (
+        {
+            "id": project.id,
+            "name": project.name,
+            "type": project.type,
+            "status": project.status,
+            "worklog_enabled": project.worklog_enabled,
+            "client_name": project.client.name if project.client else None,
+        }
+        if project
+        else None
+    )
     return d
 
 
@@ -357,7 +367,7 @@ async def release_assignment(
     if assignment.status != "ACTIVE":
         raise ValidationError("Only ACTIVE assignments can be released", field="status")
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     old_status = assignment.status
     assignment.status = "RELEASED"
     assignment.released_at = now

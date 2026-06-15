@@ -32,12 +32,8 @@ class Assignment(Base):
     __tablename__ = "assignments"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    project_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("projects.id"), nullable=False
-    )
-    resource_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("resources.id"), nullable=False
-    )
+    project_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("projects.id"), nullable=False)
+    resource_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("resources.id"), nullable=False)
     allocation_pct: Mapped[int] = mapped_column(Integer, nullable=False)
     billability_pct: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     is_shadow: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
@@ -47,9 +43,7 @@ class Assignment(Base):
     start_date: Mapped[date] = mapped_column(Date, nullable=False)
     end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="ACTIVE")
-    released_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    released_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -62,8 +56,12 @@ class Assignment(Base):
         Index("ix_assignments_resource_id", "resource_id"),
         Index("ix_assignments_status", "status"),
         Index("ix_assignments_end_date", "end_date"),
-        CheckConstraint("allocation_pct >= 1 AND allocation_pct <= 100", name="ck_allocation_pct_range"),
-        CheckConstraint("billability_pct >= 0 AND billability_pct <= 100", name="ck_billability_pct_range"),
+        CheckConstraint(
+            "allocation_pct >= 1 AND allocation_pct <= 100", name="ck_allocation_pct_range"
+        ),
+        CheckConstraint(
+            "billability_pct >= 0 AND billability_pct <= 100", name="ck_billability_pct_range"
+        ),
     )
 
     project: Mapped["Project"] = relationship(lazy="selectin")

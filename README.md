@@ -25,8 +25,14 @@ project/
 │   │   ├── database.py         # SQLAlchemy async engine + session
 │   │   ├── dependencies.py     # get_db, get_current_user
 │   │   ├── modules/            # One package per module
-│   │   │   ├── auth/           # models, seed, schemas, service, router
-│   │   │   └── audit/          # models, service (append-only audit log)
+│   │   │   ├── auth/           # JWT auth, roles, users
+│   │   │   ├── clients/        # Client CRUD
+│   │   │   ├── projects/       # Project lifecycle + transitions
+│   │   │   ├── resources/      # Resource profiles + tags
+│   │   │   ├── allocations/    # Assignments + auto-release job
+│   │   │   ├── utilization/    # Dashboard APIs (company, DM, availability)
+│   │   │   ├── worklogs/       # Daily worklog CRUD
+│   │   │   └── audit/          # Append-only audit log
 │   │   ├── shared/             # Base models, schemas, exceptions, utils
 │   │   └── jobs/               # Celery app + tasks
 │   ├── alembic/                # Database migrations
@@ -64,18 +70,15 @@ project/
 - Node.js 22+
 - Docker & Docker Compose
 
-### Local Development
+### Local Development (no Docker needed)
 
 ```bash
-# Start infrastructure (PostgreSQL + Redis)
-docker compose -f docker-compose.dev.yml up postgres redis -d
-
-# Backend
+# Backend — uses SQLite by default
 cd backend
 pip install -e ".[dev]"
-python3 -m uvicorn app.main:app --reload --port 8000
+python3 -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-# Frontend (new terminal)
+# Frontend (new terminal) — proxies API to :8000
 cd frontend
 npm install
 npm run dev
@@ -83,6 +86,17 @@ npm run dev
 
 - Backend: http://localhost:8000 (API docs at `/docs`)
 - Frontend: http://localhost:5173
+
+### Full Stack (Docker)
+
+```bash
+docker compose -f docker-compose.dev.yml up postgres redis -d   # infra
+cd backend && python3 -m uvicorn app.main:app --reload          # API
+cd frontend && npm run dev                                       # UI
+```
+
+- PostgreSQL: `localhost:5432` (ri_platform / dev / dev)
+- Redis: `localhost:6379`
 
 ### Claude Code Commands
 
@@ -101,11 +115,15 @@ npm run dev
 ### Running Tests
 
 ```bash
-# Backend (74 tests)
-cd backend && python3 -m pytest tests/ -v
+# Backend (377 tests)
+cd backend && python -m pytest
 
 # Frontend
 cd frontend && npx vitest run
+
+# E2E (Playwright)
+cd e2e && npx playwright test --project=smoke       # Smoke only
+cd e2e && npx playwright test                        # All tiers
 ```
 
 ## Modules
@@ -140,17 +158,19 @@ cd frontend && npx vitest run
 
 ## Build Progress
 
-### Phase 1 — Foundation & Visibility (Sprints 0–5)
+### Phase 1 — Foundation & Visibility (Sprints 0–5) ✅ Complete
 
-- [x] Sprint 0: Bootstrap & DevOps (8 stories — backend scaffold, frontend scaffold, Docker, CI, auth schema, seed data, audit log, Celery)
-- [ ] Sprint 1: Auth & Roles
-- [ ] Sprint 2: Data Foundation (Resources + Clients)
-- [ ] Sprint 3: Projects & Allocations BE
-- [ ] Sprint 4: Projects & Allocations FE + Terraform IaC
-- [ ] Sprint 5: Dashboards & Worklog
+- [x] Sprint 0: Bootstrap & DevOps — repo scaffold, Docker, CI, auth schema, seed data, Celery
+- [x] Sprint 1: Auth & Roles — login/logout, JWT, user CRUD, role management, protected routes
+- [x] Sprint 2: Data Foundation — Resource CRUD + tags, Client CRUD, access control, 31 tests
+- [x] Sprint 3: Projects & Allocations BE — Project CRUD + transitions, Assignment CRUD + auto-release
+- [x] Sprint 4: Projects & Allocations FE — Project list/detail/form, Assignment UI, My Assignments
+- [x] Sprint 5: Dashboards & Worklog — Company/DM/Availability dashboards, Worklog CRUD + UI, E2E smoke tests
 
-### Phase 2 — Financial Engine
-### Phase 3 — Intelligence & Alerts
+**46 API endpoints | 377 backend tests | 7 roles × 15 data types access matrix**
+
+### Phase 2 — Financial Engine (upcoming)
+### Phase 3 — Intelligence & Alerts (upcoming)
 
 ## Key Documents
 

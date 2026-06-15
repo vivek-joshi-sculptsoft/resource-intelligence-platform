@@ -1,17 +1,17 @@
 import uuid
 from datetime import date, datetime
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 
-class ProjectType(str, Enum):
+class ProjectType(StrEnum):
     FIXED_PRICE = "FIXED_PRICE"
     TIME_AND_MATERIAL = "TIME_AND_MATERIAL"
     CLIENT_ONBOARDING = "CLIENT_ONBOARDING"
 
 
-class ProjectStatus(str, Enum):
+class ProjectStatus(StrEnum):
     ACTIVE = "ACTIVE"
     COMPLETED = "COMPLETED"
     ON_HOLD = "ON_HOLD"

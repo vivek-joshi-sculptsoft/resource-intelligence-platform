@@ -32,9 +32,7 @@ class Project(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    client_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("clients.id"), nullable=False
-    )
+    client_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("clients.id"), nullable=False)
     type: Mapped[str] = mapped_column(String(50), nullable=False, default="TIME_AND_MATERIAL")
     billing_currency: Mapped[str] = mapped_column(String(3), nullable=False, default="INR")
     contract_value: Mapped[float | None] = mapped_column(Numeric(15, 2), nullable=True)

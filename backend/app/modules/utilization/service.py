@@ -3,13 +3,12 @@
 from datetime import date, timedelta
 from decimal import Decimal
 
-from sqlalchemy import case, func, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.allocations.models import Assignment
 from app.modules.projects.models import Project
-from app.modules.resources.models import Resource
-from app.modules.resources.models import ResourceTag
+from app.modules.resources.models import Resource, ResourceTag
 from app.modules.utilization.schemas import (
     AvailabilityBenchResource,
     AvailabilityFullyAllocated,
@@ -24,17 +23,23 @@ from app.modules.utilization.schemas import (
 
 
 async def get_company_dashboard(db: AsyncSession) -> CompanyDashboardResponse:
-    """See FSD §7.1 — Company Utilization = SUM(all billable alloc) / (active_resource_count * 100) * 100%."""
+    """See FSD §7.1 — Company Utilization formula."""
 
-    active_resources = (await db.execute(
-        select(Resource).where(Resource.is_active == True)  # noqa: E712
-    )).scalars().all()
+    active_resources = (
+        (
+            await db.execute(
+                select(Resource).where(Resource.is_active == True)  # noqa: E712
+            )
+        )
+        .scalars()
+        .all()
+    )
     total_active_resources = len(active_resources)
 
     # See BUSINESS-RULES.md §7.1 — Billable Allocation per resource
-    active_assignments = (await db.execute(
-        select(Assignment).where(Assignment.status == "ACTIVE")
-    )).scalars().all()
+    active_assignments = (
+        (await db.execute(select(Assignment).where(Assignment.status == "ACTIVE"))).scalars().all()
+    )
 
     resource_alloc: dict[str, int] = {}
     resource_billable: dict[str, int] = {}
@@ -53,9 +58,9 @@ async def get_company_dashboard(db: AsyncSession) -> CompanyDashboardResponse:
     # See BUSINESS-RULES.md §7.1 — Company Utilization
     total_billable = sum(resource_billable.values())
     if total_active_resources > 0:
-        billable_utilization_pct = Decimal(str(
-            round(total_billable / (total_active_resources * 100) * 100, 2)
-        ))
+        billable_utilization_pct = Decimal(
+            str(round(total_billable / (total_active_resources * 100) * 100, 2))
+        )
     else:
         billable_utilization_pct = Decimal("0")
 
@@ -67,31 +72,39 @@ async def get_company_dashboard(db: AsyncSession) -> CompanyDashboardResponse:
     for r in active_resources:
         rid = str(r.id)
         if rid not in allocated_resource_ids:
-            last_release = (await db.execute(
-                select(func.max(Assignment.released_at)).where(
-                    Assignment.resource_id == r.id,
-                    Assignment.released_at.isnot(None),
+            last_release = (
+                await db.execute(
+                    select(func.max(Assignment.released_at)).where(
+                        Assignment.resource_id == r.id,
+                        Assignment.released_at.isnot(None),
+                    )
                 )
-            )).scalar()
+            ).scalar()
             if last_release:
-                bench_start = last_release.date() if hasattr(last_release, 'date') else last_release
+                bench_start = last_release.date() if hasattr(last_release, "date") else last_release
             else:
                 bench_start = r.date_of_joining or today
             days_on_bench = (today - bench_start).days
-            bench_resources_list.append(BenchResource(
-                id=r.id,
-                name=r.name,
-                designation=r.designation,
-                days_on_bench=max(days_on_bench, 0),
-            ))
+            bench_resources_list.append(
+                BenchResource(
+                    id=r.id,
+                    name=r.name,
+                    designation=r.designation,
+                    days_on_bench=max(days_on_bench, 0),
+                )
+            )
 
     # Active projects by type
-    project_rows = (await db.execute(
-        select(Project.type, func.count(Project.id)).where(
-            Project.status == "ACTIVE",
-            Project.is_active == True,  # noqa: E712
-        ).group_by(Project.type)
-    )).all()
+    project_rows = (
+        await db.execute(
+            select(Project.type, func.count(Project.id))
+            .where(
+                Project.status == "ACTIVE",
+                Project.is_active == True,  # noqa: E712
+            )
+            .group_by(Project.type)
+        )
+    ).all()
     active_projects_by_type: dict[str, int] = {}
     active_project_count = 0
     for ptype, cnt in project_rows:
@@ -100,23 +113,31 @@ async def get_company_dashboard(db: AsyncSession) -> CompanyDashboardResponse:
 
     # Upcoming releases within 30 days
     window_end = today + timedelta(days=30)
-    upcoming = (await db.execute(
-        select(Assignment).where(
-            Assignment.status == "ACTIVE",
-            Assignment.end_date.isnot(None),
-            Assignment.end_date >= today,
-            Assignment.end_date <= window_end,
+    upcoming = (
+        (
+            await db.execute(
+                select(Assignment).where(
+                    Assignment.status == "ACTIVE",
+                    Assignment.end_date.isnot(None),
+                    Assignment.end_date >= today,
+                    Assignment.end_date <= window_end,
+                )
+            )
         )
-    )).scalars().all()
+        .scalars()
+        .all()
+    )
 
     upcoming_releases: list[UpcomingRelease] = []
     for a in upcoming:
-        upcoming_releases.append(UpcomingRelease(
-            resource_name=a.resource.name,
-            project_name=a.project.name,
-            end_date=a.end_date,
-            days_remaining=(a.end_date - today).days,
-        ))
+        upcoming_releases.append(
+            UpcomingRelease(
+                resource_name=a.resource.name,
+                project_name=a.project.name,
+                end_date=a.end_date,
+                days_remaining=(a.end_date - today).days,
+            )
+        )
 
     return CompanyDashboardResponse(
         billable_utilization_pct=billable_utilization_pct,
@@ -145,13 +166,19 @@ async def get_dm_dashboard(
     else:
         project_filter = True  # noqa: E712 — all projects for CEO/CTO
 
-    portfolio_projects = (await db.execute(
-        select(Project).where(
-            Project.status == "ACTIVE",
-            Project.is_active == True,  # noqa: E712
-            project_filter,
+    portfolio_projects = (
+        (
+            await db.execute(
+                select(Project).where(
+                    Project.status == "ACTIVE",
+                    Project.is_active == True,  # noqa: E712
+                    project_filter,
+                )
+            )
         )
-    )).scalars().all()
+        .scalars()
+        .all()
+    )
     active_project_count = len(portfolio_projects)
     portfolio_pids = {p.id for p in portfolio_projects}
 
@@ -165,12 +192,18 @@ async def get_dm_dashboard(
             upcoming_releases_30d=[],
         )
 
-    portfolio_assignments = (await db.execute(
-        select(Assignment).where(
-            Assignment.status == "ACTIVE",
-            Assignment.project_id.in_(portfolio_pids),
+    portfolio_assignments = (
+        (
+            await db.execute(
+                select(Assignment).where(
+                    Assignment.status == "ACTIVE",
+                    Assignment.project_id.in_(portfolio_pids),
+                )
+            )
         )
-    )).scalars().all()
+        .scalars()
+        .all()
+    )
 
     # Unique resources on portfolio projects
     portfolio_resource_ids: set[str] = set()
@@ -186,57 +219,83 @@ async def get_dm_dashboard(
     # See BUSINESS-RULES.md §7.1 — Portfolio utilization (scoped)
     total_billable = sum(resource_billable.values())
     if resource_count > 0:
-        portfolio_utilization_pct = Decimal(str(
-            round(total_billable / (resource_count * 100) * 100, 2)
-        ))
+        portfolio_utilization_pct = Decimal(
+            str(round(total_billable / (resource_count * 100) * 100, 2))
+        )
     else:
         portfolio_utilization_pct = Decimal("0")
 
-    # Bench: resources that had assignments on portfolio projects but now have 0 ACTIVE assignments globally
-    all_past_resource_ids_result = (await db.execute(
-        select(Assignment.resource_id).where(
-            Assignment.project_id.in_(portfolio_pids),
-        ).distinct()
-    )).scalars().all()
+    # Bench: portfolio resources with 0 ACTIVE assignments globally
+    all_past_resource_ids_result = (
+        (
+            await db.execute(
+                select(Assignment.resource_id)
+                .where(
+                    Assignment.project_id.in_(portfolio_pids),
+                )
+                .distinct()
+            )
+        )
+        .scalars()
+        .all()
+    )
 
     # Get globally allocated resource IDs
-    globally_allocated = (await db.execute(
-        select(Assignment.resource_id).where(
-            Assignment.status == "ACTIVE",
-        ).distinct()
-    )).scalars().all()
+    globally_allocated = (
+        (
+            await db.execute(
+                select(Assignment.resource_id)
+                .where(
+                    Assignment.status == "ACTIVE",
+                )
+                .distinct()
+            )
+        )
+        .scalars()
+        .all()
+    )
     globally_allocated_set = {str(rid) for rid in globally_allocated}
 
     bench_count = 0
     for rid in all_past_resource_ids_result:
         if str(rid) not in globally_allocated_set:
             # Confirm resource is still active
-            res = (await db.execute(
-                select(Resource).where(Resource.id == rid, Resource.is_active == True)  # noqa: E712
-            )).scalar_one_or_none()
+            res = (
+                await db.execute(
+                    select(Resource).where(Resource.id == rid, Resource.is_active == True)  # noqa: E712
+                )
+            ).scalar_one_or_none()
             if res:
                 bench_count += 1
 
     # Upcoming releases within 30 days on portfolio projects
     window_end = today + timedelta(days=30)
-    upcoming = (await db.execute(
-        select(Assignment).where(
-            Assignment.status == "ACTIVE",
-            Assignment.project_id.in_(portfolio_pids),
-            Assignment.end_date.isnot(None),
-            Assignment.end_date >= today,
-            Assignment.end_date <= window_end,
+    upcoming = (
+        (
+            await db.execute(
+                select(Assignment).where(
+                    Assignment.status == "ACTIVE",
+                    Assignment.project_id.in_(portfolio_pids),
+                    Assignment.end_date.isnot(None),
+                    Assignment.end_date >= today,
+                    Assignment.end_date <= window_end,
+                )
+            )
         )
-    )).scalars().all()
+        .scalars()
+        .all()
+    )
 
     upcoming_releases: list[UpcomingRelease] = []
     for a in upcoming:
-        upcoming_releases.append(UpcomingRelease(
-            resource_name=a.resource.name,
-            project_name=a.project.name,
-            end_date=a.end_date,
-            days_remaining=(a.end_date - today).days,
-        ))
+        upcoming_releases.append(
+            UpcomingRelease(
+                resource_name=a.resource.name,
+                project_name=a.project.name,
+                end_date=a.end_date,
+                days_remaining=(a.end_date - today).days,
+            )
+        )
 
     return DMDashboardResponse(
         portfolio_utilization_pct=portfolio_utilization_pct,
@@ -248,17 +307,23 @@ async def get_dm_dashboard(
 
 
 async def get_availability(db: AsyncSession, window: int = 30) -> AvailabilityResponse:
-    """See API.md §GET /dashboard/availability — 4 buckets: bench, partial, releasing_soon, fully_allocated."""
+    """See API.md — 4 buckets: bench, partial, releasing_soon, fully_allocated."""
 
     today = date.today()
 
-    active_resources = (await db.execute(
-        select(Resource).where(Resource.is_active == True)  # noqa: E712
-    )).scalars().all()
+    active_resources = (
+        (
+            await db.execute(
+                select(Resource).where(Resource.is_active == True)  # noqa: E712
+            )
+        )
+        .scalars()
+        .all()
+    )
 
-    active_assignments = (await db.execute(
-        select(Assignment).where(Assignment.status == "ACTIVE")
-    )).scalars().all()
+    active_assignments = (
+        (await db.execute(select(Assignment).where(Assignment.status == "ACTIVE"))).scalars().all()
+    )
 
     # Build per-resource allocation totals and project lists
     resource_alloc: dict[str, int] = {}
@@ -280,70 +345,88 @@ async def get_availability(db: AsyncSession, window: int = 30) -> AvailabilityRe
 
         if total_pct == 0:
             # Bench — 0 active assignments
-            last_release = (await db.execute(
-                select(func.max(Assignment.released_at)).where(
-                    Assignment.resource_id == r.id,
-                    Assignment.released_at.isnot(None),
+            last_release = (
+                await db.execute(
+                    select(func.max(Assignment.released_at)).where(
+                        Assignment.resource_id == r.id,
+                        Assignment.released_at.isnot(None),
+                    )
                 )
-            )).scalar()
+            ).scalar()
             if last_release:
-                bench_start = last_release.date() if hasattr(last_release, 'date') else last_release
+                bench_start = last_release.date() if hasattr(last_release, "date") else last_release
             else:
                 bench_start = r.date_of_joining or today
             days_on_bench = max((today - bench_start).days, 0)
 
-            tags_result = (await db.execute(
-                select(ResourceTag.tag).where(ResourceTag.resource_id == r.id)
-            )).scalars().all()
+            tags_result = (
+                (await db.execute(select(ResourceTag.tag).where(ResourceTag.resource_id == r.id)))
+                .scalars()
+                .all()
+            )
 
-            bench.append(AvailabilityBenchResource(
-                id=r.id,
-                name=r.name,
-                designation=r.designation,
-                technical_expertise=r.technical_expertise,
-                days_on_bench=days_on_bench,
-                tags=list(tags_result),
-            ))
+            bench.append(
+                AvailabilityBenchResource(
+                    id=r.id,
+                    name=r.name,
+                    designation=r.designation,
+                    technical_expertise=r.technical_expertise,
+                    days_on_bench=days_on_bench,
+                    tags=list(tags_result),
+                )
+            )
         elif total_pct < 100:
-            partial.append(AvailabilityPartialResource(
-                id=r.id,
-                name=r.name,
-                designation=r.designation,
-                total_allocation_pct=total_pct,
-                spare_capacity_pct=100 - total_pct,
-                projects=resource_projects.get(rid, []),
-            ))
+            partial.append(
+                AvailabilityPartialResource(
+                    id=r.id,
+                    name=r.name,
+                    designation=r.designation,
+                    total_allocation_pct=total_pct,
+                    spare_capacity_pct=100 - total_pct,
+                    projects=resource_projects.get(rid, []),
+                )
+            )
         else:
-            fully_allocated.append(AvailabilityFullyAllocated(
-                id=r.id,
-                name=r.name,
-                designation=r.designation,
-                total_allocation_pct=total_pct,
-                projects=resource_projects.get(rid, []),
-            ))
+            fully_allocated.append(
+                AvailabilityFullyAllocated(
+                    id=r.id,
+                    name=r.name,
+                    designation=r.designation,
+                    total_allocation_pct=total_pct,
+                    projects=resource_projects.get(rid, []),
+                )
+            )
 
     # Releasing soon — ACTIVE assignments with end_date within window
     window_end = today + timedelta(days=window)
-    upcoming = (await db.execute(
-        select(Assignment).where(
-            Assignment.status == "ACTIVE",
-            Assignment.end_date.isnot(None),
-            Assignment.end_date >= today,
-            Assignment.end_date <= window_end,
+    upcoming = (
+        (
+            await db.execute(
+                select(Assignment).where(
+                    Assignment.status == "ACTIVE",
+                    Assignment.end_date.isnot(None),
+                    Assignment.end_date >= today,
+                    Assignment.end_date <= window_end,
+                )
+            )
         )
-    )).scalars().all()
+        .scalars()
+        .all()
+    )
 
     releasing_soon: list[AvailabilityReleasingSoon] = []
     for a in upcoming:
-        releasing_soon.append(AvailabilityReleasingSoon(
-            resource_id=a.resource_id,
-            name=a.resource.name,
-            designation=a.resource.designation,
-            project_name=a.project.name,
-            allocation_pct=a.allocation_pct,
-            end_date=a.end_date,
-            days_remaining=(a.end_date - today).days,
-        ))
+        releasing_soon.append(
+            AvailabilityReleasingSoon(
+                resource_id=a.resource_id,
+                name=a.resource.name,
+                designation=a.resource.designation,
+                project_name=a.project.name,
+                allocation_pct=a.allocation_pct,
+                end_date=a.end_date,
+                days_remaining=(a.end_date - today).days,
+            )
+        )
 
     return AvailabilityResponse(
         bench=bench,

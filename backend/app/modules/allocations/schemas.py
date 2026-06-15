@@ -2,12 +2,12 @@
 
 import uuid
 from datetime import date
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 
-class AssignmentStatus(str, Enum):
+class AssignmentStatus(StrEnum):
     ACTIVE = "ACTIVE"
     RELEASED = "RELEASED"
     AUTO_RELEASED = "AUTO_RELEASED"

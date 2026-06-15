@@ -4,15 +4,14 @@ import uuid
 from datetime import date
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_user, get_db
 from app.modules.auth.models import User
-from app.modules.worklogs.schemas import WorklogCreateRequest, WorklogUpdateRequest
 from app.modules.projects.models import Project
 from app.modules.resources.models import Resource
+from app.modules.worklogs.schemas import WorklogCreateRequest, WorklogUpdateRequest
 from app.modules.worklogs.service import (
     create_worklog,
     delete_worklog,
@@ -44,7 +43,9 @@ async def get_my_worklogs(
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     resource_id = _require_resource_id(current_user)
-    items, total = await list_my_worklogs(db, resource_id, project_id, start_date, end_date, page, limit)
+    items, total = await list_my_worklogs(
+        db, resource_id, project_id, start_date, end_date, page, limit
+    )
     return {
         "data": [i.model_dump() for i in items],
         "total": total,
@@ -104,9 +105,9 @@ async def get_project_worklogs(
     if permission.is_self_only:
         raise ForbiddenError()
 
-    project = (await db.execute(
-        select(Project).where(Project.id == project_id)
-    )).scalar_one_or_none()
+    project = (
+        await db.execute(select(Project).where(Project.id == project_id))
+    ).scalar_one_or_none()
     if not project:
         raise NotFoundError("Project", str(project_id))
 
@@ -141,28 +142,34 @@ async def get_resource_worklogs(
 ) -> dict:
     permission = await check_access(db, current_user, "worklogs")
 
-    target = (await db.execute(
-        select(Resource).where(Resource.id == resource_id)
-    )).scalar_one_or_none()
+    target = (
+        await db.execute(select(Resource).where(Resource.id == resource_id))
+    ).scalar_one_or_none()
     if not target:
         raise NotFoundError("Resource", str(resource_id))
 
     # See FSD §10 — SELF_ONLY: Engineer can only see own worklogs
-    if permission.is_self_only:
-        if current_user.resource_id != resource_id:
-            raise ForbiddenError()
+    if permission.is_self_only and current_user.resource_id != resource_id:
+        raise ForbiddenError()
 
     # See FSD §10 — OWN_PORTFOLIO: DM/PM sees only resources on their projects
     if permission.is_own_portfolio:
         if not current_user.resource_id:
             raise ForbiddenError()
         from app.modules.allocations.models import Assignment
-        has_overlap = (await db.execute(
-            select(Assignment.id).join(Project).where(
-                Assignment.resource_id == resource_id,
-                (Project.dm_id == current_user.resource_id) | (Project.pm_id == current_user.resource_id),
-            ).limit(1)
-        )).scalar_one_or_none()
+
+        has_overlap = (
+            await db.execute(
+                select(Assignment.id)
+                .join(Project)
+                .where(
+                    Assignment.resource_id == resource_id,
+                    (Project.dm_id == current_user.resource_id)
+                    | (Project.pm_id == current_user.resource_id),
+                )
+                .limit(1)
+            )
+        ).scalar_one_or_none()
         if not has_overlap:
             raise ForbiddenError()
 

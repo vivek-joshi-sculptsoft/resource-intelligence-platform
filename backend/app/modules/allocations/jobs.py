@@ -2,7 +2,7 @@
 
 import logging
 import uuid
-from datetime import datetime, time, timezone
+from datetime import UTC, datetime, time
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +11,6 @@ from sqlalchemy.orm import selectinload
 from app.modules.allocations.models import Assignment
 from app.modules.audit.models import AuditAction
 from app.modules.audit.service import audit_log
-from app.modules.projects.models import Project
 
 logger = logging.getLogger(__name__)
 
@@ -38,9 +37,7 @@ async def run_auto_release(db: AsyncSession) -> list[dict]:
 
     for assignment in candidates:
         try:
-            released_at = datetime.combine(
-                assignment.end_date, time(23, 59, 59), tzinfo=timezone.utc
-            )
+            released_at = datetime.combine(assignment.end_date, time(23, 59, 59), tzinfo=UTC)
             old_status = assignment.status
             assignment.status = "AUTO_RELEASED"
             assignment.released_at = released_at
@@ -60,15 +57,19 @@ async def run_auto_release(db: AsyncSession) -> list[dict]:
             resource_name = assignment.resource.name if assignment.resource else "Unknown"
             project_name = assignment.project.name if assignment.project else "Unknown"
 
-            released.append({
-                "id": str(assignment.id),
-                "resource_name": resource_name,
-                "project_name": project_name,
-            })
+            released.append(
+                {
+                    "id": str(assignment.id),
+                    "resource_name": resource_name,
+                    "project_name": project_name,
+                }
+            )
 
             logger.info(
                 "Auto-released assignment %s: %s from %s",
-                assignment.id, resource_name, project_name,
+                assignment.id,
+                resource_name,
+                project_name,
             )
 
         except Exception:

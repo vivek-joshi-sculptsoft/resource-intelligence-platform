@@ -6,8 +6,8 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_user, get_db
-from app.modules.allocations.schemas import AssignmentCreateRequest, AssignmentUpdateRequest
 from app.modules.allocations.jobs import run_auto_release
+from app.modules.allocations.schemas import AssignmentCreateRequest, AssignmentUpdateRequest
 from app.modules.allocations.service import (
     create_assignment,
     get_assignment,
@@ -29,8 +29,7 @@ def _check_portfolio_scope_for_project(project, permission, current_user: User) 
     if not permission.is_own_portfolio:
         return
     if current_user.resource_id and (
-        project.dm_id == current_user.resource_id
-        or project.pm_id == current_user.resource_id
+        project.dm_id == current_user.resource_id or project.pm_id == current_user.resource_id
     ):
         return
     raise ForbiddenError()
@@ -92,9 +91,11 @@ async def get_assignment_endpoint(
     data = await get_assignment(db, assignment_id, role_code=current_user.role.code)
 
     # See FSD §10 — SELF_ONLY: engineer can only see own assignments
-    if permission.is_self_only:
-        if not current_user.resource_id or str(data.get("resource", {}).get("id")) != str(current_user.resource_id):
-            raise ForbiddenError()
+    if permission.is_self_only and (
+        not current_user.resource_id
+        or str(data.get("resource", {}).get("id")) != str(current_user.resource_id)
+    ):
+        raise ForbiddenError()
 
     if permission.is_own_portfolio:
         project = await get_project(db, data["project_id"])
@@ -163,9 +164,10 @@ async def list_resource_assignments_endpoint(
     permission = await check_access(db, current_user, "allocation")
 
     # See FSD §10 — SELF_ONLY: engineer can only see own assignments
-    if permission.is_self_only:
-        if not current_user.resource_id or resource_id != current_user.resource_id:
-            raise ForbiddenError()
+    if permission.is_self_only and (
+        not current_user.resource_id or resource_id != current_user.resource_id
+    ):
+        raise ForbiddenError()
 
     items = await list_resource_assignments(db, resource_id, permission, current_user, status)
     return {"data": items}

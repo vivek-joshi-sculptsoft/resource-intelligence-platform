@@ -175,7 +175,9 @@ Build in this exact order (each module depends on the previous):
 | Sprint 0 — Bootstrap | **Done** | Repo scaffold, backend/frontend project setup, Docker Compose, CI workflows, SQLite local dev, auth models + seed, shared base models/schemas/exceptions, traceability pipeline, JIRA tickets (80 issues) |
 | Sprint 1 — Auth & Roles | **Done** | Login/logout, JWT auth, user CRUD, role management, protected routes, sidebar layout |
 | Sprint 2 — Data Foundation | **Done** | Resource CRUD + access control + tags, Client CRUD + access control, shared access control utility, 31 integration tests, Resource List/Profile/Form UI, Client List/Detail/Form UI |
-| Sprints 3–5 | Backlog | See `tickets/phase-1/` and `SPRINT-PLAN.md` |
+| Sprint 3 — Projects & Allocations BE | **Done** | Project CRUD + status transitions, Assignment CRUD + release + auto-release job, portfolio scoping (DM/PM), audit logging, 100+ tests |
+| Sprint 4 — Projects & Allocations FE | **Done** | Project list/detail/form/edit, Assignment list/form/modal, My Assignments page (engineer), status transition UI, all mockup-matched |
+| Sprint 5 — Dashboards & Worklog | **Done** | Company/DM/Availability dashboard APIs + UIs, Worklog model + CRUD API + validation, Worklog entry UI + project detail tab, E2E smoke tests (13), Phase 1 hardening |
 
 **JIRA project:** VRIP on sspl-organisation.atlassian.net (80 issues, 10 epics).
 
