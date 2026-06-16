@@ -15,6 +15,7 @@ from app.modules.worklogs.schemas import WorklogCreateRequest, WorklogUpdateRequ
 from app.modules.worklogs.service import (
     create_worklog,
     delete_worklog,
+    list_all_worklogs,
     list_my_worklogs,
     list_project_worklogs,
     list_resource_worklogs,
@@ -45,6 +46,30 @@ async def get_my_worklogs(
     resource_id = _require_resource_id(current_user)
     items, total = await list_my_worklogs(
         db, resource_id, project_id, start_date, end_date, page, limit
+    )
+    return {
+        "data": [i.model_dump() for i in items],
+        "total": total,
+        "page": page,
+        "limit": limit,
+    }
+
+
+@router.get("/api/v1/worklogs")
+async def list_worklogs_endpoint(
+    project_id: uuid.UUID | None = Query(None),
+    resource_id: uuid.UUID | None = Query(None),
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    permission = await check_access(db, current_user, "worklogs")
+    items, total = await list_all_worklogs(
+        db, permission, current_user.resource_id,
+        project_id, resource_id, start_date, end_date, page, limit,
     )
     return {
         "data": [i.model_dump() for i in items],

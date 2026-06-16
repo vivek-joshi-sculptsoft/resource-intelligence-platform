@@ -74,6 +74,25 @@ export async function deleteWorklog(id: string): Promise<{ success: boolean }> {
   return data
 }
 
+export async function fetchAllWorklogs(params?: {
+  project_id?: string
+  resource_id?: string
+  start_date?: string
+  end_date?: string
+  page?: number
+  limit?: number
+}): Promise<WorklogListResponse> {
+  const qs = new URLSearchParams()
+  if (params?.project_id) qs.set('project_id', params.project_id)
+  if (params?.resource_id) qs.set('resource_id', params.resource_id)
+  if (params?.start_date) qs.set('start_date', params.start_date)
+  if (params?.end_date) qs.set('end_date', params.end_date)
+  if (params?.page) qs.set('page', String(params.page))
+  if (params?.limit) qs.set('limit', String(params.limit))
+  const { data } = await api.get(`/worklogs?${qs.toString()}`)
+  return data
+}
+
 export async function fetchProjectWorklogs(
   projectId: string,
   params?: {

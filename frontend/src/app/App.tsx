@@ -22,6 +22,7 @@ import { ProjectDetailPage } from './routes/projects/detail'
 import { ProjectFormPage } from './routes/projects/form'
 import { AvailabilityPage } from './routes/availability'
 import { MyAssignmentsRoute } from './routes/my-assignments'
+import { WorklogsRoute } from './routes/worklogs'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -104,6 +105,9 @@ function AppRoutes() {
 
         {/* Availability */}
         <Route path="/availability" element={<AvailabilityPage />} />
+
+        {/* Worklogs (manager view) */}
+        <Route path="/worklogs" element={<WorklogsRoute />} />
 
         {/* My Assignments (Engineer worklog entry) */}
         <Route path="/my-assignments" element={<MyAssignmentsRoute />} />

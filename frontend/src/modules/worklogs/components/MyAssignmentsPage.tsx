@@ -216,7 +216,7 @@ export function MyAssignmentsPage() {
 
   const totalFormHours = useMemo(() => {
     let total = 0
-    todaysLogs.forEach((w) => (total += w.hours))
+    todaysLogs.forEach((w) => (total += Number(w.hours)))
     worklogEnabledAssignments.forEach((a) => {
       const pid = a.project?.id
       if (!pid || loggedProjectIds.has(pid)) return
