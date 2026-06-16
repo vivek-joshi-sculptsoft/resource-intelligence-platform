@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { useAuthStore } from '../../auth/store'
-import { fetchResource, deleteResource, addResourceTag, removeResourceTag } from '../api'
+import { fetchResource, deleteResource, addResourceTag, removeResourceTag, updateResource } from '../api'
 import { Breadcrumb } from '../../../shared/components'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle'
 import { ResourceAssignmentsPanel } from '../../allocations/components/ResourceAssignmentsPanel'
@@ -14,9 +14,13 @@ export function ResourceProfile() {
   const queryClient = useQueryClient()
   const { user } = useAuthStore()
   const canEdit = user && ['CEO', 'CTO', 'HR'].includes(user.role.code)
+  const canSeeCost = user && ['CEO', 'CTO', 'FINANCE'].includes(user.role.code)
+  const canEditCost = canSeeCost
 
   const [tagInput, setTagInput] = useState('')
   const [showDeactivate, setShowDeactivate] = useState(false)
+  const [editingCost, setEditingCost] = useState(false)
+  const [costInput, setCostInput] = useState('')
 
   const { data, isLoading } = useQuery({
     queryKey: ['resource', id],
@@ -38,6 +42,12 @@ export function ResourceProfile() {
   const removeTagMut = useMutation({
     mutationFn: (tag: string) => removeResourceTag(id!, tag),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['resource', id] }),
+  })
+
+  const updateCostMut = useMutation({
+    mutationFn: (cost: number | null) => updateResource(id!, { loaded_cost_monthly: cost }),
+    onSuccess: () => { toast.success('Cost updated'); queryClient.invalidateQueries({ queryKey: ['resource', id] }); setEditingCost(false) },
+    onError: (e: any) => toast.error(e.response?.data?.message || 'Failed to update cost'),
   })
 
   const r = data?.data
@@ -104,6 +114,14 @@ export function ResourceProfile() {
           <div className="flex items-center rounded-lg px-5 py-3" style={{ background: avail.bg }}>
             <span className="text-[13px] font-semibold" style={{ color: avail.color }}>{avail.text}</span>
           </div>
+          {canSeeCost && (
+            <div className="rounded-lg px-5 py-3" style={{ background: '#F0F1FA', border: '1px solid #E8EAF6' }}>
+              <div className="text-[18px] font-bold" style={{ color: r.loaded_cost_monthly ? '#2B3990' : '#7C85C0' }}>
+                {r.loaded_cost_monthly ? `₹${r.loaded_cost_monthly.toLocaleString('en-IN')}` : '—'}
+              </div>
+              <div className="text-[12px]" style={{ color: '#6b7280' }}>Loaded Cost (Monthly)</div>
+            </div>
+          )}
         </div>
 
         {/* Tags */}
@@ -128,6 +146,62 @@ export function ResourceProfile() {
           </div>
         </div>
       </div>
+
+      {/* Cost Information — CEO/CTO/Finance only */}
+      {canSeeCost && (
+        <div className="mb-5 rounded-xl p-6" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04)' }}>
+          <div className="mb-3 flex items-center justify-between">
+            <div className="text-[14px] font-bold" style={{ color: '#2B3990' }}>Cost Information</div>
+            {canEditCost && !editingCost && r.is_active && (
+              <button
+                onClick={() => { setCostInput(r.loaded_cost_monthly ? String(r.loaded_cost_monthly) : ''); setEditingCost(true) }}
+                className="rounded-md px-3 py-1 text-[12px] font-medium transition-colors"
+                style={{ border: '1px solid #D6DAF0', background: '#fff', color: '#2B3990', cursor: 'pointer' }}
+              >
+                Edit
+              </button>
+            )}
+          </div>
+          {editingCost ? (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1">
+                <span className="text-[14px] font-medium" style={{ color: '#6b7280' }}>₹</span>
+                <input
+                  type="number"
+                  value={costInput}
+                  onChange={(e) => setCostInput(e.target.value)}
+                  placeholder="e.g. 150000"
+                  className="w-[200px] rounded-lg px-3 py-2 text-[13.5px] outline-none"
+                  style={{ border: '1px solid #D6DAF0', background: '#F0F1FA' }}
+                  onFocus={(e) => { e.target.style.borderColor = '#4A5BB5'; e.target.style.background = '#fff' }}
+                  onBlur={(e) => { e.target.style.borderColor = '#D6DAF0'; e.target.style.background = '#F0F1FA' }}
+                  autoFocus
+                />
+                <span className="text-[12px]" style={{ color: '#7C85C0' }}>/month</span>
+              </div>
+              <button
+                onClick={() => updateCostMut.mutate(costInput ? parseFloat(costInput) : null)}
+                disabled={updateCostMut.isPending}
+                className="rounded-md border-none px-3 py-2 text-[12px] font-semibold text-white"
+                style={{ background: '#FF4B2B', cursor: 'pointer' }}
+              >
+                {updateCostMut.isPending ? 'Saving...' : 'Save'}
+              </button>
+              <button
+                onClick={() => setEditingCost(false)}
+                className="rounded-md px-3 py-2 text-[12px] font-medium"
+                style={{ border: '1px solid #D6DAF0', background: '#fff', color: '#6b7280', cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <div className="text-[15px] font-semibold" style={{ color: r.loaded_cost_monthly ? '#1e1b4b' : '#7C85C0' }}>
+              {r.loaded_cost_monthly ? `₹${r.loaded_cost_monthly.toLocaleString('en-IN')} /month` : 'Not set'}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Assignments Panel */}
       <ResourceAssignmentsPanel resourceId={id!} />

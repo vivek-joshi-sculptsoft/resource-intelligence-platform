@@ -21,6 +21,8 @@ async def _create_resource(client: AsyncClient, **overrides) -> dict:
     }
     if "reporting_manager_id" in overrides:
         payload["reporting_manager_id"] = overrides["reporting_manager_id"]
+    if "loaded_cost_monthly" in overrides:
+        payload["loaded_cost_monthly"] = overrides["loaded_cost_monthly"]
     resp = await client.post("/api/v1/resources", json=payload)
     return resp
 
@@ -215,3 +217,139 @@ async def test_audit_log_on_create(client: AsyncClient, db: AsyncSession):
         )
     )
     assert len(list(logs.scalars().all())) >= 1
+
+
+# ===== loaded_cost_monthly Access Control =====
+
+
+@pytest.mark.asyncio
+async def test_ceo_can_set_loaded_cost_on_create(client: AsyncClient, db: AsyncSession):
+    """CEO (resource_profiles EDIT + ctc_loaded_cost VIEW) can set loaded_cost_monthly."""
+    await login_as(client)
+    resp = await _create_resource(client, employee_id="EMP-COST1", loaded_cost_monthly=150000.00)
+    assert resp.status_code == 201
+    assert resp.json()["data"]["loaded_cost_monthly"] == 150000.00
+
+
+@pytest.mark.asyncio
+async def test_hr_cannot_set_loaded_cost_on_create(client: AsyncClient, db: AsyncSession):
+    """HR has resource_profiles EDIT but ctc_loaded_cost NONE — blocked."""
+    await login_as_role(client, db, "HR")
+    payload = {
+        "employee_id": f"EMP-{uuid.uuid4().hex[:6]}",
+        "name": "HR Cost Test",
+        "designation": "Engineer",
+        "loaded_cost_monthly": 100000.00,
+    }
+    resp = await client.post("/api/v1/resources", json=payload)
+    assert resp.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_ceo_can_update_loaded_cost(client: AsyncClient, db: AsyncSession):
+    """CEO can update loaded_cost_monthly."""
+    await login_as(client)
+    create_resp = await _create_resource(client, employee_id="EMP-UCOST1")
+    rid = create_resp.json()["data"]["id"]
+
+    resp = await client.put(f"/api/v1/resources/{rid}", json={"loaded_cost_monthly": 200000.00})
+    assert resp.status_code == 200
+    assert resp.json()["data"]["loaded_cost_monthly"] == 200000.00
+
+
+@pytest.mark.asyncio
+async def test_finance_can_update_loaded_cost(client: AsyncClient, db: AsyncSession):
+    """Finance has resource_profiles VIEW + ctc_loaded_cost VIEW — can update only cost."""
+    await login_as(client)
+    create_resp = await _create_resource(client, employee_id="EMP-FCOST1")
+    rid = create_resp.json()["data"]["id"]
+
+    await login_as_role(client, db, "FINANCE")
+    resp = await client.put(f"/api/v1/resources/{rid}", json={"loaded_cost_monthly": 175000.00})
+    assert resp.status_code == 200
+    assert resp.json()["data"]["loaded_cost_monthly"] == 175000.00
+
+
+@pytest.mark.asyncio
+async def test_finance_cannot_update_profile_fields(client: AsyncClient, db: AsyncSession):
+    """Finance can update cost but NOT name/designation (resource_profiles VIEW not EDIT)."""
+    await login_as(client)
+    create_resp = await _create_resource(client, employee_id="EMP-FCOST2")
+    rid = create_resp.json()["data"]["id"]
+
+    await login_as_role(client, db, "FINANCE")
+    resp = await client.put(f"/api/v1/resources/{rid}", json={"name": "Hacker"})
+    assert resp.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_hr_cannot_update_loaded_cost(client: AsyncClient, db: AsyncSession):
+    """HR has resource_profiles EDIT but ctc_loaded_cost NONE — cost update blocked."""
+    await login_as(client)
+    create_resp = await _create_resource(client, employee_id="EMP-HRCOST")
+    rid = create_resp.json()["data"]["id"]
+
+    await login_as_role(client, db, "HR")
+    resp = await client.put(f"/api/v1/resources/{rid}", json={"loaded_cost_monthly": 100000.00})
+    assert resp.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_dm_sees_null_loaded_cost(client: AsyncClient, db: AsyncSession):
+    """DM has ctc_loaded_cost NONE — field returns null."""
+    await login_as(client)
+    create_resp = await _create_resource(
+        client, employee_id="EMP-DMCOST", loaded_cost_monthly=120000.00
+    )
+    rid = create_resp.json()["data"]["id"]
+
+    await login_as_role(client, db, "DM")
+    resp = await client.get(f"/api/v1/resources/{rid}")
+    assert resp.status_code == 200
+    assert resp.json()["data"]["loaded_cost_monthly"] is None
+
+
+@pytest.mark.asyncio
+async def test_loaded_cost_null_in_list_for_hr(client: AsyncClient, db: AsyncSession):
+    """HR sees null for loaded_cost_monthly in list view."""
+    await login_as(client)
+    await _create_resource(client, employee_id="EMP-HRCL", loaded_cost_monthly=130000.00)
+
+    await login_as_role(client, db, "HR")
+    resp = await client.get("/api/v1/resources")
+    assert resp.status_code == 200
+    for r in resp.json()["data"]:
+        assert r["loaded_cost_monthly"] is None
+
+
+@pytest.mark.asyncio
+async def test_ceo_sees_loaded_cost_in_list(client: AsyncClient, db: AsyncSession):
+    """CEO can see loaded_cost_monthly in list view."""
+    await login_as(client)
+    await _create_resource(client, employee_id="EMP-CEOL", loaded_cost_monthly=140000.00)
+
+    resp = await client.get("/api/v1/resources?search=EMP-CEOL")
+    assert resp.status_code == 200
+    items = resp.json()["data"]
+    assert len(items) >= 1
+    assert items[0]["loaded_cost_monthly"] == 140000.00
+
+
+@pytest.mark.asyncio
+async def test_audit_log_on_loaded_cost_update(client: AsyncClient, db: AsyncSession):
+    """Audit log captures loaded_cost_monthly changes."""
+    await login_as(client)
+    create_resp = await _create_resource(client, employee_id="EMP-ACOST")
+    rid = create_resp.json()["data"]["id"]
+
+    await client.put(f"/api/v1/resources/{rid}", json={"loaded_cost_monthly": 250000.00})
+
+    logs = await db.execute(
+        select(AuditLog).where(
+            AuditLog.entity_type == "resource",
+            AuditLog.action == "UPDATE",
+        )
+    )
+    audit_entries = list(logs.scalars().all())
+    cost_logged = any("loaded_cost_monthly" in (entry.field_name or "") for entry in audit_entries)
+    assert cost_logged

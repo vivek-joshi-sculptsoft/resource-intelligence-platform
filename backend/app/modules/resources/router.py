@@ -105,6 +105,16 @@ async def create_resource_endpoint(
 ) -> dict:
     await check_access(db, current_user, "resource_profiles", require_edit=True)
 
+    # See FSD §10 — loaded_cost_monthly restricted to CEO/CTO/Finance
+    role_code = current_user.role.code
+    cost_value = None
+    if body.loaded_cost_monthly is not None:
+        if not can_see_field(role_code, "loaded_cost_monthly"):
+            from app.shared.exceptions import ForbiddenError
+
+            raise ForbiddenError("Not authorized to set loaded_cost_monthly")
+        cost_value = body.loaded_cost_monthly
+
     resource = await create_resource(
         db,
         employee_id=body.employee_id,
@@ -115,11 +125,12 @@ async def create_resource_endpoint(
         reporting_manager_id=body.reporting_manager_id,
         tags=body.tags,
         current_user_id=current_user.id,
+        loaded_cost_monthly=cost_value,
     )
     from app.modules.resources.service import _get_total_allocation
 
     alloc = await _get_total_allocation(db, resource.id)
-    return {"data": _resource_to_detail(resource, current_user.role.code, alloc)}
+    return {"data": _resource_to_detail(resource, role_code, alloc)}
 
 
 @router.get("/{resource_id}")
@@ -150,9 +161,24 @@ async def update_resource_endpoint(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    await check_access(db, current_user, "resource_profiles", require_edit=True)
-
     fields = body.model_dump(exclude_unset=True)
+    role_code = current_user.role.code
+    has_cost_field = "loaded_cost_monthly" in fields
+    has_profile_fields = any(k != "loaded_cost_monthly" for k in fields)
+
+    # See FSD §10 — Profile fields require resource_profiles EDIT
+    if has_profile_fields:
+        await check_access(db, current_user, "resource_profiles", require_edit=True)
+    elif has_cost_field:
+        # Finance has VIEW on resource_profiles but can edit loaded_cost_monthly
+        await check_access(db, current_user, "resource_profiles")
+
+    # See FSD §10 — loaded_cost_monthly write restricted to CEO/CTO/Finance
+    if has_cost_field and not can_see_field(role_code, "loaded_cost_monthly"):
+        from app.shared.exceptions import ForbiddenError
+
+        raise ForbiddenError("Not authorized to update loaded_cost_monthly")
+
     resource = await update_resource(
         db,
         resource_id=resource_id,
@@ -163,7 +189,7 @@ async def update_resource_endpoint(
     from app.modules.resources.service import _get_total_allocation
 
     alloc = await _get_total_allocation(db, resource.id)
-    return {"data": _resource_to_detail(resource, current_user.role.code, alloc)}
+    return {"data": _resource_to_detail(resource, role_code, alloc)}
 
 
 @router.delete("/{resource_id}")

@@ -12,6 +12,7 @@ class ResourceCreateRequest(BaseModel):
     date_of_joining: date | None = None
     reporting_manager_id: uuid.UUID | None = None
     tags: list[str] = Field(default_factory=list)
+    loaded_cost_monthly: float | None = None
 
 
 class ResourceUpdateRequest(BaseModel):
@@ -21,6 +22,7 @@ class ResourceUpdateRequest(BaseModel):
     technical_expertise: str | None = Field(None, max_length=100)
     date_of_joining: date | None = None
     reporting_manager_id: uuid.UUID | None = None
+    loaded_cost_monthly: float | None = None
 
 
 class TagRequest(BaseModel):

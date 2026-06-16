@@ -91,6 +91,7 @@ async def list_resources(
                 "total_allocation_pct": alloc_pct,
                 "is_active": r.is_active,
                 "tags": [t.tag for t in r.tags],
+                "loaded_cost_monthly": float(r.loaded_cost_monthly) if r.loaded_cost_monthly else None,
             }
         )
 
@@ -107,6 +108,7 @@ async def create_resource(
     reporting_manager_id: uuid.UUID | None,
     tags: list[str],
     current_user_id: uuid.UUID,
+    loaded_cost_monthly: float | None = None,
 ) -> Resource:
     existing = await db.execute(select(Resource).where(Resource.employee_id == employee_id))
     if existing.scalar_one_or_none():
@@ -125,6 +127,7 @@ async def create_resource(
         technical_expertise=technical_expertise,
         date_of_joining=date_of_joining,
         reporting_manager_id=reporting_manager_id,
+        loaded_cost_monthly=loaded_cost_monthly,
     )
     db.add(resource)
     await db.flush()
@@ -132,16 +135,20 @@ async def create_resource(
     for t in tags:
         db.add(ResourceTag(resource_id=resource.id, tag=t[:100]))
 
+    create_changes: dict[str, Any] = {
+        "employee_id": employee_id,
+        "name": name,
+        "designation": designation,
+    }
+    if loaded_cost_monthly is not None:
+        create_changes["loaded_cost_monthly"] = loaded_cost_monthly
+
     await audit_log(
         db,
         entity_type="resource",
         entity_id=resource.id,
         action=AuditAction.CREATE,
-        changes={
-            "employee_id": employee_id,
-            "name": name,
-            "designation": designation,
-        },
+        changes=create_changes,
         user_id=current_user_id,
     )
 

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { X, AlertTriangle } from 'lucide-react'
+import { useAuthStore } from '../../auth/store'
 import { createAssignment, updateAssignment } from '../api'
 import type { AssignmentCreatePayload, AssignmentUpdatePayload, AssignmentListItem } from '../api'
 import { fetchResources } from '../../resources/api'
@@ -39,6 +40,8 @@ const INITIAL_FORM: FormState = {
 
 export function AssignmentFormModal({ open, projectId, projectName, editingAssignment, onClose }: AssignmentFormModalProps) {
   const queryClient = useQueryClient()
+  const { user } = useAuthStore()
+  const canSeeCost = user && ['CEO', 'CTO', 'FINANCE'].includes(user.role.code)
   const isEditing = !!editingAssignment
   const [form, setForm] = useState<FormState>(INITIAL_FORM)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -292,19 +295,26 @@ export function AssignmentFormModal({ open, projectId, projectName, editingAssig
               )}
               {selectedResource && (
                 <div
-                  className="mt-1.5 flex items-center gap-2 rounded-lg px-3 py-2 text-[12px]"
+                  className="mt-1.5 flex flex-col gap-1.5 rounded-lg px-3 py-2 text-[12px]"
                   style={{ background: '#F5F6FC', color: '#6b7280' }}
                 >
-                  Current allocation: <strong>{selectedResource.total_allocation_pct}%</strong> across projects
-                  <span
-                    className="rounded-xl px-2 py-0.5 text-[11px] font-semibold"
-                    style={{
-                      background: selectedResource.total_allocation_pct >= 80 ? '#fef3c7' : '#dcfce7',
-                      color: selectedResource.total_allocation_pct >= 80 ? '#92400e' : '#15803d',
-                    }}
-                  >
-                    {selectedResource.total_allocation_pct}% allocated
-                  </span>
+                  <div className="flex items-center gap-2">
+                    Current allocation: <strong>{selectedResource.total_allocation_pct}%</strong> across projects
+                    <span
+                      className="rounded-xl px-2 py-0.5 text-[11px] font-semibold"
+                      style={{
+                        background: selectedResource.total_allocation_pct >= 80 ? '#fef3c7' : '#dcfce7',
+                        color: selectedResource.total_allocation_pct >= 80 ? '#92400e' : '#15803d',
+                      }}
+                    >
+                      {selectedResource.total_allocation_pct}% allocated
+                    </span>
+                  </div>
+                  {canSeeCost && selectedResource.loaded_cost_monthly && (
+                    <div className="flex items-center gap-1">
+                      Loaded cost: <strong style={{ color: '#2B3990' }}>₹{selectedResource.loaded_cost_monthly.toLocaleString('en-IN')}</strong>/month
+                    </div>
+                  )}
                 </div>
               )}
             </div>

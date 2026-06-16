@@ -36,6 +36,7 @@ export interface ResourceCreatePayload {
   date_of_joining?: string
   reporting_manager_id?: string | null
   tags?: string[]
+  loaded_cost_monthly?: number | null
 }
 
 export interface ResourceUpdatePayload {
@@ -45,6 +46,7 @@ export interface ResourceUpdatePayload {
   technical_expertise?: string
   date_of_joining?: string
   reporting_manager_id?: string | null
+  loaded_cost_monthly?: number | null
 }
 
 export interface ResourceFilters {

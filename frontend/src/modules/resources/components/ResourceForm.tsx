@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
+import { useAuthStore } from '../../auth/store'
 import { createResource, fetchResource, fetchResourcesDropdown, updateResource } from '../api'
 
 function ManagerSearchSelect({
@@ -137,6 +138,8 @@ export function ResourceForm() {
   const isEdit = !!id
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { user } = useAuthStore()
+  const canEditCost = user && ['CEO', 'CTO', 'FINANCE'].includes(user.role.code)
 
   const [form, setForm] = useState({
     employee_id: '',
@@ -146,6 +149,7 @@ export function ResourceForm() {
     date_of_joining: '',
     reporting_manager_id: '',
     tags: [] as string[],
+    loaded_cost_monthly: '',
   })
   const [tagInput, setTagInput] = useState('')
   const [error, setError] = useState<{ message: string; field?: string } | null>(null)
@@ -172,6 +176,7 @@ export function ResourceForm() {
         date_of_joining: r.date_of_joining || '',
         reporting_manager_id: r.reporting_manager?.id || '',
         tags: r.tags,
+        loaded_cost_monthly: r.loaded_cost_monthly ? String(r.loaded_cost_monthly) : '',
       })
     }
   }, [isEdit, resourceData])
@@ -185,6 +190,7 @@ export function ResourceForm() {
       date_of_joining: form.date_of_joining || undefined,
       reporting_manager_id: form.reporting_manager_id || null,
       tags: form.tags,
+      ...(canEditCost && form.loaded_cost_monthly ? { loaded_cost_monthly: parseFloat(form.loaded_cost_monthly) } : {}),
     }),
     onSuccess: (data) => {
       toast.success('Resource created')
@@ -206,6 +212,7 @@ export function ResourceForm() {
       technical_expertise: form.technical_expertise || undefined,
       date_of_joining: form.date_of_joining || undefined,
       reporting_manager_id: form.reporting_manager_id || null,
+      ...(canEditCost ? { loaded_cost_monthly: form.loaded_cost_monthly ? parseFloat(form.loaded_cost_monthly) : null } : {}),
     }),
     onSuccess: () => {
       toast.success('Resource updated')
@@ -309,6 +316,18 @@ export function ResourceForm() {
             currentResourceId={id}
           />
         </div>
+
+        {canEditCost && (
+          <div className="mb-4">
+            <label style={labelStyle}>Loaded Cost Monthly (INR)</label>
+            <input type="number" value={form.loaded_cost_monthly} onChange={(e) => setForm({ ...form, loaded_cost_monthly: e.target.value })}
+              placeholder="e.g. 150000" step="0.01" min="0"
+              className="w-full rounded-lg px-3.5 py-[9px] text-[13.5px] outline-none" style={inputStyle}
+              onFocus={(e) => { e.target.style.borderColor = '#4A5BB5'; e.target.style.background = '#fff' }}
+              onBlur={(e) => { e.target.style.borderColor = '#D6DAF0'; e.target.style.background = '#F0F1FA' }} />
+            <div className="mt-1 text-[11px]" style={{ color: '#7C85C0' }}>CTC + overhead per month. Visible to CEO, CTO, and Finance only.</div>
+          </div>
+        )}
 
         {!isEdit && (
           <div className="mb-5">
