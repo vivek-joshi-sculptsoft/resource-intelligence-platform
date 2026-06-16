@@ -39,5 +39,7 @@ async def create_tables() -> None:
     """Create all tables directly (used for SQLite local dev instead of Alembic)."""
     from app.shared.models import Base
 
+    import app.modules.nonhuman_costs.models  # noqa: F401 — register table with Base.metadata
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

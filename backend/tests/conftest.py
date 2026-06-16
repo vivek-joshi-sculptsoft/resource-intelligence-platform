@@ -15,6 +15,7 @@ from app.modules.auth.seed import seed_all
 from app.modules.clients.models import Client  # noqa: F401
 from app.modules.projects.models import Project  # noqa: F401
 from app.modules.resources.models import Resource, ResourceTag  # noqa: F401
+from app.modules.nonhuman_costs.models import NonHumanCost  # noqa: F401
 from app.modules.worklogs.models import Worklog  # noqa: F401
 from app.shared.models import Base
 
