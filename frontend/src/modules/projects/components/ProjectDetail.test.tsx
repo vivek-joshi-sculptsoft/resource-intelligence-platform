@@ -5,6 +5,17 @@ import { MemoryRouter, Routes, Route } from 'react-router'
 import { ProjectDetail } from './ProjectDetail'
 import { useAuthStore } from '../../auth/store'
 
+vi.mock('../../nonhuman_costs/api', () => ({
+  fetchCosts: vi.fn().mockResolvedValue({ data: [], total: 0, page: 1, limit: 20 }),
+  fetchCostSummary: vi.fn().mockResolvedValue({
+    total_inr: 0,
+    one_time_inr: 0,
+    recurring_monthly_inr: 0,
+    by_category: {},
+  }),
+  deleteCost: vi.fn().mockResolvedValue({}),
+}))
+
 vi.mock('../api', () => ({
   fetchProject: vi.fn().mockResolvedValue({
     data: {
@@ -73,16 +84,18 @@ describe('ProjectDetail', () => {
     })
     expect(screen.getAllByText('Assignments').length).toBeGreaterThan(0)
     expect(screen.getByText('Worklogs')).toBeInTheDocument()
-    expect(screen.getByText('Financials')).toBeInTheDocument()
+    expect(screen.getByText('Non-Human Costs')).toBeInTheDocument()
   })
 
   it('switches tabs on click', async () => {
     renderWithProviders()
     await waitFor(() => {
-      expect(screen.getByText('Financials')).toBeInTheDocument()
+      expect(screen.getByText('Non-Human Costs')).toBeInTheDocument()
     })
-    fireEvent.click(screen.getByText('Financials'))
-    expect(screen.getByText(/Phase 2/)).toBeInTheDocument()
+    fireEvent.click(screen.getByText('Non-Human Costs'))
+    await waitFor(() => {
+      expect(screen.getByText('Total Cost (INR)')).toBeInTheDocument()
+    })
   })
 
   it('shows transition buttons for CEO', async () => {
