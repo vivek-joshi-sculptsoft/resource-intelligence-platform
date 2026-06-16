@@ -152,7 +152,7 @@ def _assignment_to_dict(
         if can_see_field(role_code, "billability_pct")
         else None,
         "is_shadow": a.is_shadow if can_see_field(role_code, "is_shadow") else None,
-        "billing_rate": a.billing_rate if can_see_field(role_code, "billing_rate") else None,
+        "billing_rate": float(a.billing_rate) if a.billing_rate is not None and can_see_field(role_code, "billing_rate") else None,
         "project_designation": a.project_designation,
         "project_expertise": a.project_expertise,
         "start_date": a.start_date.isoformat() if a.start_date else None,
@@ -246,6 +246,7 @@ async def create_assignment(
     end_date: date | None = None,
     project_designation: str | None = None,
     project_expertise: str | None = None,
+    billing_rate: float | None = None,
     current_user_id: uuid.UUID | None = None,
     role_code: str = "CEO",
 ) -> tuple[dict, list[str]]:
@@ -253,6 +254,10 @@ async def create_assignment(
     await _validate_resource(db, resource_id)
     _validate_assignment_rules(allocation_pct, billability_pct, is_shadow, start_date, end_date)
     await _check_duplicate_active(db, resource_id, project_id)
+
+    # See FSD §2.7 — Shadow assignments cannot have billing_rate
+    if is_shadow and billing_rate is not None:
+        billing_rate = None
 
     warnings: list[str] = []
     over = await _check_over_allocation(db, resource_id, allocation_pct)
@@ -268,25 +273,30 @@ async def create_assignment(
         is_shadow=is_shadow,
         project_designation=project_designation,
         project_expertise=project_expertise,
+        billing_rate=billing_rate,
         start_date=start_date,
         end_date=end_date,
     )
     db.add(assignment)
     await db.flush()
 
+    create_changes: dict[str, Any] = {
+        "project_id": str(project_id),
+        "resource_id": str(resource_id),
+        "allocation_pct": allocation_pct,
+        "billability_pct": billability_pct,
+        "is_shadow": is_shadow,
+        "start_date": start_date.isoformat(),
+    }
+    if billing_rate is not None:
+        create_changes["billing_rate"] = float(billing_rate)
+
     await audit_log(
         db,
         entity_type="assignment",
         entity_id=assignment.id,
         action=AuditAction.CREATE,
-        changes={
-            "project_id": str(project_id),
-            "resource_id": str(resource_id),
-            "allocation_pct": allocation_pct,
-            "billability_pct": billability_pct,
-            "is_shadow": is_shadow,
-            "start_date": start_date.isoformat(),
-        },
+        changes=create_changes,
         user_id=current_user_id or uuid.UUID(int=0),
     )
 

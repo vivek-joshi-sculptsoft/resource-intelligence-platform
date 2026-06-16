@@ -33,6 +33,7 @@ export function AssignmentList({ projectId, onAddAssignment, onEditAssignment }:
   const canEdit = ['CEO', 'CTO', 'DM', 'PM'].includes(roleCode)
   const canSeeBillability = !['HR', 'ENGINEER'].includes(roleCode)
   const canSeeShadow = !['HR', 'ENGINEER'].includes(roleCode)
+  const canSeeRate = ['CEO', 'CTO', 'FINANCE', 'DM'].includes(roleCode)
 
   const [statusFilter, setStatusFilter] = useState('ACTIVE')
   const [releaseTarget, setReleaseTarget] = useState<AssignmentListItem | null>(null)
@@ -156,6 +157,9 @@ export function AssignmentList({ projectId, onAddAssignment, onEditAssignment }:
                 {canSeeShadow && (
                   <th className="px-3.5 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-white" style={{ background: 'linear-gradient(135deg, #2B3990, #4A5BB5)' }}>Shadow</th>
                 )}
+                {canSeeRate && (
+                  <th className="px-3.5 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-white" style={{ background: 'linear-gradient(135deg, #2B3990, #4A5BB5)' }}>Billing Rate</th>
+                )}
                 <th className="px-3.5 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-white" style={{ background: 'linear-gradient(135deg, #2B3990, #4A5BB5)' }}>Start Date</th>
                 <th className="px-3.5 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-white" style={{ background: 'linear-gradient(135deg, #2B3990, #4A5BB5)' }}>End Date</th>
                 <th className="px-3.5 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-white" style={{ background: 'linear-gradient(135deg, #2B3990, #4A5BB5)' }}>Status</th>
@@ -214,6 +218,11 @@ export function AssignmentList({ projectId, onAddAssignment, onEditAssignment }:
                       ) : (
                         <span style={{ color: '#7C85C0' }}>—</span>
                       )}
+                    </td>
+                  )}
+                  {canSeeRate && (
+                    <td className="px-3.5 py-3 text-[13px] font-medium" style={{ color: '#1e1b4b' }}>
+                      {a.billing_rate != null ? `₹${a.billing_rate.toLocaleString('en-IN')}` : '—'}
                     </td>
                   )}
                   <td className="whitespace-nowrap px-3.5 py-3 text-[13px]" style={{ color: '#1e1b4b' }}>

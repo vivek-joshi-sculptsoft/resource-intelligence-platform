@@ -18,7 +18,7 @@ from app.modules.allocations.service import (
 )
 from app.modules.auth.models import User
 from app.modules.projects.service import get_project
-from app.shared.access_control import check_access
+from app.shared.access_control import can_see_field, check_access
 from app.shared.exceptions import ForbiddenError
 
 router = APIRouter(tags=["assignments"])
@@ -61,6 +61,14 @@ async def create_assignment_endpoint(
     project = await get_project(db, project_id)
     _check_portfolio_scope_for_project(project, permission, current_user)
 
+    # See FSD §10 — billing_rate write restricted to CEO/CTO/Finance/DM
+    role_code = current_user.role.code
+    billing_rate = None
+    if body.billing_rate is not None:
+        if not can_see_field(role_code, "billing_rate"):
+            raise ForbiddenError("Not authorized to set billing_rate")
+        billing_rate = body.billing_rate
+
     data, warnings = await create_assignment(
         db,
         project_id=project_id,
@@ -72,8 +80,9 @@ async def create_assignment_endpoint(
         end_date=body.end_date,
         project_designation=body.project_designation,
         project_expertise=body.project_expertise,
+        billing_rate=billing_rate,
         current_user_id=current_user.id,
-        role_code=current_user.role.code,
+        role_code=role_code,
     )
     result: dict = {"data": data}
     if warnings:
@@ -119,6 +128,11 @@ async def update_assignment_endpoint(
         _check_portfolio_scope_for_project(project, permission, current_user)
 
     fields = body.model_dump(exclude_unset=True)
+
+    # See FSD §10 — billing_rate write restricted to CEO/CTO/Finance/DM
+    if "billing_rate" in fields and not can_see_field(current_user.role.code, "billing_rate"):
+        raise ForbiddenError("Not authorized to update billing_rate")
+
     data, warnings = await update_assignment(
         db,
         assignment_id=assignment_id,

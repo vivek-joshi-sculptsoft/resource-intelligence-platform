@@ -20,6 +20,7 @@ class AssignmentCreateRequest(BaseModel):
     is_shadow: bool = False
     project_designation: str | None = None
     project_expertise: str | None = None
+    billing_rate: float | None = None
     start_date: date
     end_date: date | None = None
 
@@ -30,5 +31,6 @@ class AssignmentUpdateRequest(BaseModel):
     is_shadow: bool | None = None
     project_designation: str | None = None
     project_expertise: str | None = None
+    billing_rate: float | None = None
     start_date: date | None = None
     end_date: date | None = None

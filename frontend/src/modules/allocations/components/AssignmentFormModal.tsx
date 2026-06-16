@@ -21,6 +21,7 @@ interface FormState {
   allocation_pct: string
   billability_pct: string
   is_shadow: boolean
+  billing_rate: string
   start_date: string
   end_date: string
   project_designation: string
@@ -32,6 +33,7 @@ const INITIAL_FORM: FormState = {
   allocation_pct: '',
   billability_pct: '0',
   is_shadow: false,
+  billing_rate: '',
   start_date: '',
   end_date: '',
   project_designation: '',
@@ -42,6 +44,7 @@ export function AssignmentFormModal({ open, projectId, projectName, editingAssig
   const queryClient = useQueryClient()
   const { user } = useAuthStore()
   const canSeeCost = user && ['CEO', 'CTO', 'FINANCE'].includes(user.role.code)
+  const canSeeRate = user && ['CEO', 'CTO', 'FINANCE', 'DM'].includes(user.role.code)
   const isEditing = !!editingAssignment
   const [form, setForm] = useState<FormState>(INITIAL_FORM)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -64,6 +67,7 @@ export function AssignmentFormModal({ open, projectId, projectName, editingAssig
         allocation_pct: String(editingAssignment.allocation_pct),
         billability_pct: editingAssignment.billability_pct !== null ? String(editingAssignment.billability_pct) : '0',
         is_shadow: editingAssignment.is_shadow ?? false,
+        billing_rate: editingAssignment.billing_rate != null ? String(editingAssignment.billing_rate) : '',
         start_date: editingAssignment.start_date ?? '',
         end_date: editingAssignment.end_date ?? '',
         project_designation: editingAssignment.project_designation ?? '',
@@ -169,6 +173,7 @@ export function AssignmentFormModal({ open, projectId, projectName, editingAssig
         end_date: form.end_date || null,
         project_designation: form.project_designation || null,
         project_expertise: form.project_expertise || null,
+        ...(canSeeRate && form.billing_rate ? { billing_rate: parseFloat(form.billing_rate) } : {}),
       }
       updateMut.mutate(payload)
     } else {
@@ -181,6 +186,7 @@ export function AssignmentFormModal({ open, projectId, projectName, editingAssig
         end_date: form.end_date || null,
         project_designation: form.project_designation || null,
         project_expertise: form.project_expertise || null,
+        ...(canSeeRate && form.billing_rate ? { billing_rate: parseFloat(form.billing_rate) } : {}),
       }
       createMut.mutate(payload)
     }
@@ -191,6 +197,7 @@ export function AssignmentFormModal({ open, projectId, projectName, editingAssig
       ...f,
       is_shadow: checked,
       billability_pct: checked ? '0' : f.billability_pct,
+      billing_rate: checked ? '' : f.billing_rate,
     }))
     if (checked) {
       setErrors((e) => {
@@ -378,6 +385,26 @@ export function AssignmentFormModal({ open, projectId, projectName, editingAssig
                 <div className="text-[11px]" style={{ color: '#7C85C0' }}>Shadow resources have 0% billability and no billing rate</div>
               </div>
             </div>
+
+            {/* Billing Rate — See FSD §2.7 */}
+            {canSeeRate && !form.is_shadow && (
+              <div className="mt-3">
+                <label className="mb-1.5 block text-[12px] font-semibold uppercase tracking-wide" style={{ color: '#6b7280' }}>
+                  Billing Rate (₹/hr)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.billing_rate}
+                  onChange={(e) => setForm((f) => ({ ...f, billing_rate: e.target.value }))}
+                  placeholder="e.g. 2500"
+                  className="w-full rounded-lg px-3 py-2.5 text-[13px]"
+                  style={{ border: '1px solid #D6DAF0' }}
+                />
+                <div className="mt-1 text-[11px]" style={{ color: '#7C85C0' }}>Hourly billing rate for this assignment</div>
+              </div>
+            )}
           </div>
 
           {/* Dates & Overrides Card */}

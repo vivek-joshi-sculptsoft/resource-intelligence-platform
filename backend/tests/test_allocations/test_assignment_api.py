@@ -497,3 +497,120 @@ async def test_update_nonexistent_assignment(client: AsyncClient, db: AsyncSessi
     await login_as(client)
     resp = await client.put(f"/api/v1/assignments/{uuid.uuid4()}", json={"allocation_pct": 50})
     assert resp.status_code == 404
+
+
+# ── billing_rate Access Control ──────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_ceo_can_set_billing_rate_on_create(client: AsyncClient, db: AsyncSession):
+    """CEO can set billing_rate when creating assignment."""
+    await login_as(client)
+    proj, r1, r2 = await _setup_deps(client)
+    payload = _assignment_payload(r2["id"], billing_rate=150.00)
+    resp = await client.post(f"/api/v1/projects/{proj['id']}/assignments", json=payload)
+    assert resp.status_code == 201
+    assert resp.json()["data"]["billing_rate"] == 150.00
+
+
+@pytest.mark.asyncio
+async def test_ceo_can_update_billing_rate(client: AsyncClient, db: AsyncSession):
+    """CEO can update billing_rate on existing assignment."""
+    await login_as(client)
+    proj, r1, r2 = await _setup_deps(client)
+    create_resp = await client.post(
+        f"/api/v1/projects/{proj['id']}/assignments", json=_assignment_payload(r2["id"])
+    )
+    aid = create_resp.json()["data"]["id"]
+
+    resp = await client.put(f"/api/v1/assignments/{aid}", json={"billing_rate": 200.00})
+    assert resp.status_code == 200
+    assert resp.json()["data"]["billing_rate"] == 200.00
+
+
+@pytest.mark.asyncio
+async def test_finance_sees_billing_rate(client: AsyncClient, db: AsyncSession):
+    """Finance (billing_rates VIEW) can see billing_rate but DM allocation is VIEW-only."""
+    await login_as(client)
+    proj, r1, r2 = await _setup_deps(client)
+    create_resp = await client.post(
+        f"/api/v1/projects/{proj['id']}/assignments",
+        json=_assignment_payload(r2["id"], billing_rate=100.00),
+    )
+    aid = create_resp.json()["data"]["id"]
+
+    await login_as_role(client, db, "FINANCE")
+    resp = await client.get(f"/api/v1/assignments/{aid}")
+    assert resp.status_code == 200
+    assert resp.json()["data"]["billing_rate"] == 100.00
+
+
+@pytest.mark.asyncio
+async def test_engineer_sees_null_billing_rate(client: AsyncClient, db: AsyncSession):
+    """Engineer sees billing_rate as null."""
+    await login_as(client)
+    proj, r1, r2 = await _setup_deps(client)
+    create_resp = await client.post(
+        f"/api/v1/projects/{proj['id']}/assignments",
+        json=_assignment_payload(r2["id"], billing_rate=175.00),
+    )
+    aid = create_resp.json()["data"]["id"]
+
+    _, eng_user = await login_as_role(client, db, "ENGINEER")
+    eng_user.resource_id = uuid.UUID(r2["id"])
+    await db.commit()
+
+    resp = await client.get(f"/api/v1/assignments/{aid}")
+    assert resp.status_code == 200
+    assert resp.json()["data"]["billing_rate"] is None
+
+
+@pytest.mark.asyncio
+async def test_shadow_assignment_billing_rate_cleared(client: AsyncClient, db: AsyncSession):
+    """Shadow assignment gets billing_rate set to null even if provided."""
+    await login_as(client)
+    proj, r1, r2 = await _setup_deps(client)
+    payload = _assignment_payload(r2["id"], is_shadow=True, billability_pct=0, billing_rate=100.00)
+    resp = await client.post(f"/api/v1/projects/{proj['id']}/assignments", json=payload)
+    assert resp.status_code == 201
+    assert resp.json()["data"]["billing_rate"] is None
+
+
+@pytest.mark.asyncio
+async def test_billing_rate_in_list(client: AsyncClient, db: AsyncSession):
+    """CEO sees billing_rate in project assignment list."""
+    await login_as(client)
+    proj, r1, r2 = await _setup_deps(client)
+    await client.post(
+        f"/api/v1/projects/{proj['id']}/assignments",
+        json=_assignment_payload(r2["id"], billing_rate=250.00),
+    )
+    resp = await client.get(f"/api/v1/projects/{proj['id']}/assignments")
+    assert resp.status_code == 200
+    items = resp.json()["data"]
+    rated = [a for a in items if a.get("billing_rate") == 250.00]
+    assert len(rated) == 1
+
+
+@pytest.mark.asyncio
+async def test_audit_log_billing_rate_update(client: AsyncClient, db: AsyncSession):
+    """Audit log captures billing_rate changes."""
+    from sqlalchemy import select
+    from app.modules.audit.models import AuditLog
+
+    await login_as(client)
+    proj, r1, r2 = await _setup_deps(client)
+    create_resp = await client.post(
+        f"/api/v1/projects/{proj['id']}/assignments", json=_assignment_payload(r2["id"])
+    )
+    aid = create_resp.json()["data"]["id"]
+    await client.put(f"/api/v1/assignments/{aid}", json={"billing_rate": 300.00})
+
+    result = await db.execute(
+        select(AuditLog).where(
+            AuditLog.entity_type == "assignment",
+            AuditLog.action == "UPDATE",
+            AuditLog.field_name == "billing_rate",
+        )
+    )
+    assert len(list(result.scalars().all())) >= 1

@@ -43,6 +43,7 @@ export interface AssignmentCreatePayload {
   is_shadow: boolean
   project_designation?: string | null
   project_expertise?: string | null
+  billing_rate?: number | null
   start_date: string
   end_date?: string | null
 }
@@ -53,6 +54,7 @@ export interface AssignmentUpdatePayload {
   is_shadow?: boolean
   project_designation?: string | null
   project_expertise?: string | null
+  billing_rate?: number | null
   start_date?: string
   end_date?: string | null
 }
