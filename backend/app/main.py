@@ -60,10 +60,10 @@ def create_app() -> FastAPI:
     from app.modules.auth.router import router as auth_router
     from app.modules.auth.user_router import router as user_router
     from app.modules.clients.router import router as client_router
+    from app.modules.nonhuman_costs.router import router as nonhuman_cost_router
     from app.modules.projects.router import router as project_router
     from app.modules.resources.router import router as resource_router
     from app.modules.utilization.router import router as utilization_router
-    from app.modules.nonhuman_costs.router import router as nonhuman_cost_router
     from app.modules.worklogs.router import router as worklog_router
 
     app.include_router(auth_router)

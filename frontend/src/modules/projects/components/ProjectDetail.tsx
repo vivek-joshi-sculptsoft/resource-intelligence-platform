@@ -10,6 +10,7 @@ import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle'
 import { AssignmentList } from '../../allocations/components/AssignmentList'
 import { AssignmentFormModal } from '../../allocations/components/AssignmentFormModal'
 import { WorklogTab } from '../../worklogs/components/WorklogTab'
+import { NonHumanCostTab } from '../../nonhuman_costs/components/NonHumanCostTab'
 import type { AssignmentListItem } from '../../allocations/api'
 
 // See FSD §10 — valid status transitions
@@ -32,8 +33,9 @@ export function ProjectDetail() {
   const { user } = useAuthStore()
   const canEdit = user && ['CEO', 'CTO', 'DM', 'PM'].includes(user.role.code)
   const canTransition = user && ['CEO', 'CTO', 'DM'].includes(user.role.code)
+  const canViewCosts = user && ['CEO', 'CTO', 'DM', 'PM', 'FINANCE'].includes(user.role.code)
 
-  const [activeTab, setActiveTab] = useState<'assignments' | 'worklogs' | 'financials'>('assignments')
+  const [activeTab, setActiveTab] = useState<'assignments' | 'worklogs' | 'costs'>('assignments')
   const [confirmTransition, setConfirmTransition] = useState<{ target: string; label: string; variant: 'default' | 'danger' } | null>(null)
   const [assignmentModalOpen, setAssignmentModalOpen] = useState(false)
   const [editingAssignment, setEditingAssignment] = useState<AssignmentListItem | null>(null)
@@ -68,7 +70,7 @@ export function ProjectDetail() {
   const tabs = [
     { key: 'assignments' as const, label: 'Assignments' },
     ...(p.worklog_enabled ? [{ key: 'worklogs' as const, label: 'Worklogs' }] : []),
-    { key: 'financials' as const, label: 'Financials' },
+    ...(canViewCosts ? [{ key: 'costs' as const, label: 'Non-Human Costs' }] : []),
   ]
 
   return (
@@ -171,17 +173,11 @@ export function ProjectDetail() {
         />
       )}
       {activeTab === 'worklogs' && <WorklogTab projectId={id!} />}
-      {activeTab === 'financials' && (
-        <div
-          className="flex items-center justify-center rounded-xl py-16 text-center"
-          style={{ background: '#fff', boxShadow: '0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04)' }}
-        >
-          <div>
-            <div className="mb-2 text-[48px] opacity-60">{'\u{1F4B0}'}</div>
-            <p className="text-[15px] font-medium" style={{ color: '#1e1b4b' }}>Financials</p>
-            <p className="text-[13px]" style={{ color: '#6b7280' }}>Financial engine — Phase 2</p>
-          </div>
-        </div>
+      {activeTab === 'costs' && (
+        <NonHumanCostTab
+          projectId={id!}
+          canEdit={!!canEdit}
+        />
       )}
 
       <ConfirmDialog

@@ -13,7 +13,6 @@ from app.modules.audit.service import audit_log
 from app.modules.nonhuman_costs.models import NonHumanCost
 from app.modules.nonhuman_costs.schemas import CostCategory
 from app.modules.projects.models import Project
-from app.shared.access_control import Permission
 from app.shared.exceptions import NotFoundError, ValidationError
 
 ENTITY_TYPE = "NonHumanCost"
@@ -42,11 +41,10 @@ def _validate_cost_fields(
     if is_recurring and recurring_end_date is None:
         raise ValidationError("Recurring costs must have an end date", field="recurring_end_date")
 
-    if recurring_end_date is not None and cost_date is not None:
-        if recurring_end_date <= cost_date:
-            raise ValidationError(
-                "Recurring end date must be after cost date", field="recurring_end_date"
-            )
+    if recurring_end_date is not None and cost_date is not None and recurring_end_date <= cost_date:
+        raise ValidationError(
+            "Recurring end date must be after cost date", field="recurring_end_date"
+        )
 
     return resolved_rate if resolved_rate is not None else 1.0
 
@@ -67,9 +65,7 @@ def _cost_to_dict(cost: NonHumanCost) -> dict[str, Any]:
             cost.recurring_end_date.isoformat() if cost.recurring_end_date else None
         ),
         "created_by": (
-            {"id": str(cost.creator.id), "name": cost.creator.name}
-            if cost.creator
-            else None
+            {"id": str(cost.creator.id), "name": cost.creator.name} if cost.creator else None
         ),
         "is_active": cost.is_active,
         "created_at": cost.created_at.isoformat() if cost.created_at else None,
@@ -77,9 +73,7 @@ def _cost_to_dict(cost: NonHumanCost) -> dict[str, Any]:
     }
 
 
-async def _load_cost(
-    db: AsyncSession, cost_id: uuid.UUID, project_id: uuid.UUID
-) -> NonHumanCost:
+async def _load_cost(db: AsyncSession, cost_id: uuid.UUID, project_id: uuid.UUID) -> NonHumanCost:
     result = await db.execute(
         select(NonHumanCost).where(
             NonHumanCost.id == cost_id,
@@ -189,8 +183,13 @@ async def update_cost(
     )
 
     updatable = {
-        "description", "category", "amount", "currency", "cost_date",
-        "is_recurring", "recurring_end_date",
+        "description",
+        "category",
+        "amount",
+        "currency",
+        "cost_date",
+        "is_recurring",
+        "recurring_end_date",
     }
 
     for field_name in updatable:
@@ -212,14 +211,18 @@ async def update_cost(
         raise ValidationError(f"Invalid category: {fields['category']}", field="category")
 
     # Recompute exchange_rate and amount_inr
-    old_rate = float(cost.exchange_rate) if isinstance(cost.exchange_rate, Decimal) else cost.exchange_rate
+    old_rate = (
+        float(cost.exchange_rate) if isinstance(cost.exchange_rate, Decimal) else cost.exchange_rate
+    )
     if old_rate != resolved_rate:
         changes["exchange_rate"] = (old_rate, resolved_rate)
         cost.exchange_rate = resolved_rate
 
     # See BUSINESS-RULES §7.7
     new_amount_inr = float(cost.amount) * resolved_rate
-    old_amount_inr = float(cost.amount_inr) if isinstance(cost.amount_inr, Decimal) else cost.amount_inr
+    old_amount_inr = (
+        float(cost.amount_inr) if isinstance(cost.amount_inr, Decimal) else cost.amount_inr
+    )
     if old_amount_inr != new_amount_inr:
         changes["amount_inr"] = (old_amount_inr, new_amount_inr)
         cost.amount_inr = new_amount_inr

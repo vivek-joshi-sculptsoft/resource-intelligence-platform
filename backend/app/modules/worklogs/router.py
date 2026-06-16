@@ -68,8 +68,15 @@ async def list_worklogs_endpoint(
 ) -> dict:
     permission = await check_access(db, current_user, "worklogs")
     items, total = await list_all_worklogs(
-        db, permission, current_user.resource_id,
-        project_id, resource_id, start_date, end_date, page, limit,
+        db,
+        permission,
+        current_user.resource_id,
+        project_id,
+        resource_id,
+        start_date,
+        end_date,
+        page,
+        limit,
     )
     return {
         "data": [i.model_dump() for i in items],

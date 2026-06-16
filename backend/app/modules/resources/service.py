@@ -91,7 +91,9 @@ async def list_resources(
                 "total_allocation_pct": alloc_pct,
                 "is_active": r.is_active,
                 "tags": [t.tag for t in r.tags],
-                "loaded_cost_monthly": float(r.loaded_cost_monthly) if r.loaded_cost_monthly else None,
+                "loaded_cost_monthly": (
+                    float(r.loaded_cost_monthly) if r.loaded_cost_monthly else None
+                ),
             }
         )
 

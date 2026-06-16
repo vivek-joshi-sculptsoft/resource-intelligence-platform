@@ -24,6 +24,10 @@ celery_app.conf.update(
             "task": "auto_release_assignments",
             "schedule": crontab(hour=0, minute=0),
         },
+        "process-recurring-costs": {
+            "task": "process_recurring_costs",
+            "schedule": crontab(hour=0, minute=0, day_of_month=1),
+        },
     },
 )
 
@@ -47,6 +51,27 @@ def auto_release_assignments_task(self):
                 result = await run_auto_release(session)
                 await session.commit()
                 return {"released_count": len(result), "assignments": result}
+            except Exception:
+                await session.rollback()
+                raise
+
+    return asyncio.run(_run())
+
+
+@celery_app.task(name="process_recurring_costs", bind=True, max_retries=3)
+def process_recurring_costs_task(self):
+    """See JOBS.md — Monthly recurring cost snapshot generation."""
+    import asyncio
+
+    from app.database import async_session_factory
+    from app.modules.nonhuman_costs.jobs import run_process_recurring_costs
+
+    async def _run():
+        async with async_session_factory() as session:
+            try:
+                result = await run_process_recurring_costs(session)
+                await session.commit()
+                return result
             except Exception:
                 await session.rollback()
                 raise

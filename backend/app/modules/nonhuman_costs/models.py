@@ -54,5 +54,5 @@ class NonHumanCost(Base):
         Index("ix_non_human_costs_cost_date", "cost_date"),
     )
 
-    project: Mapped["Project"] = relationship(lazy="selectin")  # type: ignore[name-defined]
-    creator: Mapped["User"] = relationship(lazy="selectin")  # type: ignore[name-defined]
+    project: Mapped["Project"] = relationship(lazy="selectin")  # type: ignore[name-defined]  # noqa: F821
+    creator: Mapped["User"] = relationship(lazy="selectin")  # type: ignore[name-defined]  # noqa: F821

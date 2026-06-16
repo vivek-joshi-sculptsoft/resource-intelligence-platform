@@ -152,7 +152,11 @@ def _assignment_to_dict(
         if can_see_field(role_code, "billability_pct")
         else None,
         "is_shadow": a.is_shadow if can_see_field(role_code, "is_shadow") else None,
-        "billing_rate": float(a.billing_rate) if a.billing_rate is not None and can_see_field(role_code, "billing_rate") else None,
+        "billing_rate": (
+            float(a.billing_rate)
+            if a.billing_rate is not None and can_see_field(role_code, "billing_rate")
+            else None
+        ),
         "project_designation": a.project_designation,
         "project_expertise": a.project_expertise,
         "start_date": a.start_date.isoformat() if a.start_date else None,

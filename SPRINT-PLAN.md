@@ -1,16 +1,16 @@
-# Sprint Plan — Phase 1
+# Sprint Plan — All Phases
 
 ## Overview
 
 | Metric | Value |
 |--------|-------|
-| Phase | 1 — Foundation & Visibility |
-| Modules | 8 (auth, resources, clients, projects, allocations, utilization, worklog, audit) |
-| Total Stories | 83 |
+| Phases | Phase 1 (Foundation) + Phase 2 (Financial Engine) |
+| Modules | 13 total |
+| Total Stories | 109 (VRIP-1 to VRIP-109) |
 | Sprint Duration | 1 week (5 working days) |
 | Team | 1 developer + Claude Code |
-| Estimated Sprints | 6 (Sprint 0–5) |
-| Target Completion | ~6 weeks |
+| Estimated Sprints | 10 (Sprint 0–9) |
+| JIRA Project | VRIP on sspl-organisation.atlassian.net |
 
 ### Estimation with AI-Assisted Development
 
@@ -24,7 +24,13 @@ Original estimates assume manual development. With Claude Code handling code gen
 
 ---
 
-## Sprint 0 — Project Scaffold & Infrastructure Setup
+---
+
+## Phase 1 — Foundation & Visibility ✓ COMPLETE
+
+---
+
+## Sprint 0 — Project Scaffold & Infrastructure Setup ✓ Done
 **Goal:** Runnable empty project with CI/CD, Docker, database, and seed data.
 
 | # | Story | Module | Size | SP |
@@ -42,7 +48,7 @@ Original estimates assume manual development. With Claude Code handling code gen
 
 ---
 
-## Sprint 1 — Authentication & Access Control
+## Sprint 1 — Authentication & Access Control ✓ Done
 **Goal:** Login works. RBAC middleware enforced. Users can be managed.
 
 | # | Story | Module | Size | SP |
@@ -64,7 +70,7 @@ Original estimates assume manual development. With Claude Code handling code gen
 
 ---
 
-## Sprint 2 — Resource & Client Management
+## Sprint 2 — Resource & Client Management ✓ Done
 **Goal:** Resources and clients can be created, listed, filtered, and viewed.
 
 | # | Story | Module | Size | SP |
@@ -90,7 +96,7 @@ Original estimates assume manual development. With Claude Code handling code gen
 
 ---
 
-## Sprint 3 — Project Management & Allocations Backend
+## Sprint 3 — Project Management & Allocations Backend ✓ Done
 **Goal:** Projects with status lifecycle. Assignments with all validations. Auto-release job.
 
 | # | Story | Module | Size | SP |
@@ -115,7 +121,7 @@ Original estimates assume manual development. With Claude Code handling code gen
 
 ---
 
-## Sprint 4 — Project & Allocation UI + Resource Profile
+## Sprint 4 — Project & Allocation UI + Resource Profile ✓ Done
 **Goal:** All CRUD screens for projects and allocations. Resource profile with assignments.
 
 | # | Story | Module | Size | SP |
@@ -135,7 +141,7 @@ Original estimates assume manual development. With Claude Code handling code gen
 
 ---
 
-## Sprint 5 — Dashboards, Worklog & Polish
+## Sprint 5 — Dashboards, Worklog & Polish ✓ Done
 **Goal:** Utilization dashboards. Worklog entry. End-to-end testing. Phase 1 complete.
 
 | # | Story | Module | Size | SP |
@@ -160,35 +166,92 @@ Original estimates assume manual development. With Claude Code handling code gen
 
 ---
 
-## Deferred to Later Sprints (within Phase 1)
+---
 
-These stories exist in the ticket files but are lower priority or depend on Phase 1 stabilization:
+## Phase 2 — Financial Engine
 
-| Story | Module | Priority | Reason |
-|-------|--------|----------|--------|
-| Client dashboard aggregation endpoint | 02-client | P2 | Needs allocation data populated first |
-| Project Financials API stub | 07-util | P3 | Phase 2 placeholder |
-| Dashboard performance optimization | 07-util | P2 | Optimize after functional correctness |
-| Manager worklog viewing APIs | 11-worklog | P1 | Can ship after basic worklog works |
-| Personal worklog history page | 11-worklog | P2 | Nice-to-have |
-| Audit log viewer API + UI | 13-audit | P1 | Phase 3 per spec |
-| Point-in-time reconstruction | 13-audit | P2 | Phase 3 per spec |
-| Change history panel for entity views | 13-audit | P2 | Phase 3 per spec |
+---
+
+## Sprint 6 — Financial Foundation 🔄 In Progress
+**Goal:** Activate billing/cost fields. Non-human cost tracking. Recurring cost job.
+
+| # | JIRA | Story | Module | Status |
+|---|------|-------|--------|--------|
+| 1 | VRIP-87 | Activate loaded_cost_monthly on Resource | 08-financial | ✓ Done |
+| 2 | VRIP-88 | Activate billing_rate on Assignment | 08-financial | ✓ Done |
+| 3 | VRIP-89 | NonHumanCost database schema | 06-non-human-costs | ✓ Done |
+| 4 | VRIP-90 | NonHumanCost CRUD API (multi-currency, access control) | 06-non-human-costs | ✓ Done |
+| 5 | VRIP-92 | Recurring cost processing scheduled job | 06-non-human-costs | ✓ Done |
+| 6 | VRIP-91 | NonHumanCost list view and form UI | 06-non-human-costs | 🔄 In Progress |
+
+**Deliverable:** Cost fields live on Resource and Assignment. PM/Finance can track all non-human project costs with multi-currency support. Monthly recurring costs auto-generate.
+
+---
+
+## Sprint 7 — Invoicing
+**Goal:** Milestone tracking. Invoice generation and management.
+
+| # | JIRA | Story | Module |
+|---|------|-------|--------|
+| 1 | VRIP-93 | Milestone schema and CRUD API | 09-invoicing |
+| 2 | VRIP-94 | Invoice schema and generation API | 09-invoicing |
+| 3 | VRIP-95 | Invoice PDF generation / export | 09-invoicing |
+| 4 | VRIP-96 | Milestone list and form UI | 09-invoicing |
+| 5 | VRIP-97 | Invoice list and detail UI | 09-invoicing |
+| 6 | VRIP-98 | Invoice status workflow UI | 09-invoicing |
+
+**Deliverable:** Projects have milestones. Invoices can be generated, tracked, and marked paid.
+
+---
+
+## Sprint 8 — Calculations & Bench Forecasting
+**Goal:** Project cost/revenue/margin calculations. Bench cost API.
+
+| # | JIRA | Story | Module |
+|---|------|-------|--------|
+| 1 | VRIP-99 | Project financials API — cost, revenue, margin | 08-financial |
+| 2 | VRIP-100 | Financial engine tests and validation | 08-financial |
+| 3 | VRIP-101 | Resource bench cost API | 08-financial |
+| 4 | VRIP-102 | Bench cost and availability API enhancements | 10-bench |
+| 5 | VRIP-103 | Bench forecasting UI | 10-bench |
+
+**Deliverable:** Per-project P&L visible. Bench cost calculated from loaded_cost_monthly. Forecasting screen live.
+
+---
+
+## Sprint 9 — Dashboard Financial Updates & Polish
+**Goal:** Add financial widgets to existing dashboards. Phase 2 complete.
+
+| # | JIRA | Story | Module |
+|---|------|-------|--------|
+| 1 | VRIP-104 | Financial summary widget on Company Dashboard | 07-util + 08-financial |
+| 2 | VRIP-105 | Project margin widget on Project Detail | 08-financial |
+| 3 | VRIP-106 | DM portfolio financial view | 07-util |
+| 4 | VRIP-107 | Revenue vs cost trend chart | 07-util |
+| 5 | VRIP-108 | Alert system — contract expiry, bench, utilization | 12-alerts |
+| 6 | VRIP-109 | Alert management UI | 12-alerts |
+
+**Deliverable:** Dashboards show margin/revenue data. Alert system operational. Phase 2 complete.
 
 ---
 
 ## Sprint Velocity Tracking
 
-| Sprint | Planned SP | Actual SP | Notes |
-|--------|-----------|-----------|-------|
-| 0 | 12 | — | |
-| 1 | 21 | — | |
-| 2 | 20 | — | |
-| 3 | 22 | — | |
-| 4 | 22 | — | |
-| 5 | 40 | — | May need to split |
+| Sprint | Phase | Planned SP | Actual SP | Status |
+|--------|-------|-----------|-----------|--------|
+| 0 | 1 | 12 | 12 | ✓ Done |
+| 1 | 1 | 21 | 21 | ✓ Done |
+| 2 | 1 | 20 | 20 | ✓ Done |
+| 3 | 1 | 22 | 22 | ✓ Done |
+| 4 | 1 | 22 | 22 | ✓ Done |
+| 5 | 1 | 40 | 40 | ✓ Done |
+| 6 | 2 | 12 | — | 🔄 In Progress (5/6 done) |
+| 7 | 2 | 14 | — | Pending |
+| 8 | 2 | 12 | — | Pending |
+| 9 | 2 | 14 | — | Pending |
 
-**Total Phase 1:** ~137 story points across 6 sprints
+**Total Phase 1:** ~137 story points across 6 sprints (complete)
+**Total Phase 2:** ~52 story points across 4 sprints (in progress)
 
 ---
 

@@ -16,6 +16,7 @@ from app.modules.worklogs.schemas import (
     WorklogResponse,
     WorklogUpdateRequest,
 )
+from app.shared.access_control import Permission
 from app.shared.exceptions import AppError, ConflictError, ForbiddenError, NotFoundError
 
 
@@ -202,7 +203,7 @@ async def list_project_worklogs(
 
 async def list_all_worklogs(
     db: AsyncSession,
-    permission: "Permission",
+    permission: Permission,
     current_user_resource_id: uuid.UUID | None,
     project_id_filter: uuid.UUID | None = None,
     resource_id_filter: uuid.UUID | None = None,
@@ -212,7 +213,6 @@ async def list_all_worklogs(
     limit: int = 20,
 ) -> tuple[list[WorklogResponse], int]:
     """See FSD §10 — scope-filtered worklog listing for managers."""
-    from app.shared.access_control import Permission
 
     query = select(Worklog)
 
