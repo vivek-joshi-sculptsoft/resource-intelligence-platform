@@ -144,7 +144,9 @@ describe('AssignmentList', () => {
   it('renders status filter dropdown', async () => {
     renderWithProviders()
     await screen.findByText('Arjun Mehta')
-    expect(screen.getByDisplayValue('Active')).toBeInTheDocument()
+    const filterButtons = document.querySelectorAll('button[type="button"]')
+    const statusButton = Array.from(filterButtons).find((b) => b.textContent?.includes('Active'))
+    expect(statusButton).toBeTruthy()
   })
 
   it('calls onAddAssignment when Add Assignment clicked', async () => {

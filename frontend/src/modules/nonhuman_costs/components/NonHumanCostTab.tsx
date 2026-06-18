@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { fetchCosts, fetchCostSummary, deleteCost, type CostEntry } from '../api'
 import { CostFormModal } from './CostFormModal'
-import { ConfirmDialog } from '../../../shared/components'
+import { ConfirmDialog, SearchableSelect } from '../../../shared/components'
 
 const CATEGORY_LABELS: Record<string, string> = {
   AI_TOOLS: 'AI Tools',
@@ -145,19 +145,16 @@ export function NonHumanCostTab({ projectId, canEdit }: NonHumanCostTabProps) {
           }}
         >
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <select
+            <SearchableSelect
               value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              style={{
-                padding: '7px 12px', border: '1px solid #D6DAF0', borderRadius: 8,
-                fontSize: 13, color: '#1e1b4b', background: '#fff', outline: 'none',
-              }}
-            >
-              <option value="">All Categories</option>
-              {Object.entries(CATEGORY_LABELS).map(([v, l]) => (
-                <option key={v} value={v}>{l}</option>
-              ))}
-            </select>
+              onChange={setCategoryFilter}
+              options={[
+                { value: '', label: 'All Categories' },
+                ...Object.entries(CATEGORY_LABELS).map(([v, l]) => ({ value: v, label: l })),
+              ]}
+              placeholder="All Categories"
+              variant="filter"
+            />
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#6b7280', cursor: 'pointer' }}>
               <input
                 type="checkbox"

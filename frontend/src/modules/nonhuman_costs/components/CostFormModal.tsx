@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { X } from 'lucide-react'
 import { createCost, updateCost, type CostEntry, type CostPayload } from '../api'
+import { SearchableSelect } from '../../../shared/components'
 
 const CATEGORIES = [
   { value: 'AI_TOOLS', label: 'AI Tools' },
@@ -208,19 +209,16 @@ export function CostFormModal({ open, projectId, editingCost, onClose }: CostFor
             <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#1e1b4b', marginBottom: 6 }}>
               Category <span style={{ color: '#ef4444' }}>*</span>
             </label>
-            <select
+            <SearchableSelect
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              style={{
-                width: '100%', padding: '10px 14px', border: `1px solid ${errors.category ? '#ef4444' : '#D6DAF0'}`,
-                borderRadius: 8, fontSize: 14, color: '#1e1b4b', background: '#fff', outline: 'none',
-              }}
-            >
-              <option value="">Select category...</option>
-              {CATEGORIES.map((c) => (
-                <option key={c.value} value={c.value}>{c.label}</option>
-              ))}
-            </select>
+              onChange={setCategory}
+              options={[
+                { value: '', label: 'Select category...' },
+                ...CATEGORIES,
+              ]}
+              placeholder="Select category..."
+              error={!!errors.category}
+            />
             {errors.category && <div style={{ fontSize: 12, color: '#ef4444', marginTop: 4 }}>{errors.category}</div>}
           </div>
 
@@ -248,16 +246,12 @@ export function CostFormModal({ open, projectId, editingCost, onClose }: CostFor
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#1e1b4b', marginBottom: 6 }}>
                 Currency <span style={{ color: '#ef4444' }}>*</span>
               </label>
-              <select
+              <SearchableSelect
                 value={currency}
-                onChange={(e) => handleCurrencyChange(e.target.value)}
-                style={{
-                  width: '100%', padding: '10px 14px', border: '1px solid #D6DAF0',
-                  borderRadius: 8, fontSize: 14, color: '#1e1b4b', background: '#fff', outline: 'none',
-                }}
-              >
-                {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
+                onChange={handleCurrencyChange}
+                options={CURRENCIES.map((c) => ({ value: c, label: c }))}
+                placeholder="Currency"
+              />
             </div>
             <div>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#1e1b4b', marginBottom: 6 }}>

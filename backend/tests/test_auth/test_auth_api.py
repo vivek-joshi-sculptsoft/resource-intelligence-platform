@@ -252,7 +252,7 @@ class TestRolesAPI:
 
         resp = await client.get(f"/api/v1/roles/{role_id}")
         assert resp.status_code == 200
-        assert len(resp.json()["data"]["permissions"]) == 15
+        assert len(resp.json()["data"]["permissions"]) == 16
 
     async def test_get_role_permissions(self, client: AsyncClient):
         await login_as(client)
@@ -261,7 +261,7 @@ class TestRolesAPI:
 
         resp = await client.get(f"/api/v1/roles/{role_id}/permissions")
         assert resp.status_code == 200
-        assert len(resp.json()["data"]) == 15
+        assert len(resp.json()["data"]) == 16
 
     async def test_get_nonexistent_role(self, client: AsyncClient):
         await login_as(client)

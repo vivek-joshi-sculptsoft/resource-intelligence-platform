@@ -157,6 +157,7 @@ def _assignment_to_dict(
             if a.billing_rate is not None and can_see_field(role_code, "billing_rate")
             else None
         ),
+        "billing_currency": a.project.billing_currency if a.project else "INR",
         "project_designation": a.project_designation,
         "project_expertise": a.project_expertise,
         "start_date": a.start_date.isoformat() if a.start_date else None,
@@ -176,6 +177,7 @@ def _assignment_detail_dict(a: Assignment, role_code: str) -> dict:
             "name": project.name,
             "type": project.type,
             "status": project.status,
+            "billing_currency": project.billing_currency,
             "worklog_enabled": project.worklog_enabled,
             "client_name": project.client.name if project.client else None,
         }

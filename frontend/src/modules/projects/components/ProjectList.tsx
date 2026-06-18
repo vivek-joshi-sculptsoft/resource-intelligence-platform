@@ -5,7 +5,7 @@ import { Plus, Search } from 'lucide-react'
 import { useAuthStore } from '../../auth/store'
 import { fetchProjects, type ProjectListItem } from '../api'
 import { fetchClients } from '../../clients/api'
-import { StatusBadge, TypeBadge, Breadcrumb, DataTable } from '../../../shared/components'
+import { StatusBadge, TypeBadge, Breadcrumb, DataTable, SearchableSelect } from '../../../shared/components'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle'
 import { type ColumnDef } from '@tanstack/react-table'
 import { differenceInDays, parseISO } from 'date-fns'
@@ -107,16 +107,6 @@ export function ProjectList() {
   const projects = data?.data ?? []
   const meta = data?.meta
 
-  const selectStyle = {
-    border: '1px solid #D6DAF0',
-    color: '#1e1b4b',
-    background: '#F0F1FA',
-    appearance: 'none' as const,
-    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237C85C0' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'right 12px center',
-  }
-
   return (
     <div>
       <Breadcrumb items={[{ label: 'Projects' }]} />
@@ -160,40 +150,41 @@ export function ProjectList() {
             onBlur={(e) => { e.target.style.borderColor = '#D6DAF0'; e.target.style.boxShadow = 'none'; e.target.style.background = '#F0F1FA' }}
           />
         </div>
-        <select
+        <SearchableSelect
           value={status}
-          onChange={(e) => { setStatus(e.target.value); setPage(1) }}
-          className="cursor-pointer rounded-lg py-[9px] pl-3.5 pr-8 text-[13.5px] outline-none"
-          style={selectStyle}
-        >
-          <option value="ALL">All Status</option>
-          <option value="ACTIVE">Active</option>
-          <option value="COMPLETED">Completed</option>
-          <option value="ON_HOLD">On Hold</option>
-          <option value="CANCELLED">Cancelled</option>
-        </select>
-        <select
+          onChange={(v) => { setStatus(v); setPage(1) }}
+          options={[
+            { value: 'ALL', label: 'All Status' },
+            { value: 'ACTIVE', label: 'Active' },
+            { value: 'COMPLETED', label: 'Completed' },
+            { value: 'ON_HOLD', label: 'On Hold' },
+            { value: 'CANCELLED', label: 'Cancelled' },
+          ]}
+          placeholder="All Status"
+          variant="filter"
+        />
+        <SearchableSelect
           value={type}
-          onChange={(e) => { setType(e.target.value); setPage(1) }}
-          className="cursor-pointer rounded-lg py-[9px] pl-3.5 pr-8 text-[13.5px] outline-none"
-          style={selectStyle}
-        >
-          <option value="">All Types</option>
-          <option value="FIXED_PRICE">Fixed Price</option>
-          <option value="TIME_AND_MATERIAL">Time & Material</option>
-          <option value="CLIENT_ONBOARDING">Client Onboarding</option>
-        </select>
-        <select
+          onChange={(v) => { setType(v); setPage(1) }}
+          options={[
+            { value: '', label: 'All Types' },
+            { value: 'FIXED_PRICE', label: 'Fixed Price' },
+            { value: 'TIME_AND_MATERIAL', label: 'Time & Material' },
+            { value: 'CLIENT_ONBOARDING', label: 'Client Onboarding' },
+          ]}
+          placeholder="All Types"
+          variant="filter"
+        />
+        <SearchableSelect
           value={clientId}
-          onChange={(e) => { setClientId(e.target.value); setPage(1) }}
-          className="cursor-pointer rounded-lg py-[9px] pl-3.5 pr-8 text-[13.5px] outline-none"
-          style={selectStyle}
-        >
-          <option value="">All Clients</option>
-          {(clientsData?.data ?? []).map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </select>
+          onChange={(v) => { setClientId(v); setPage(1) }}
+          options={[
+            { value: '', label: 'All Clients' },
+            ...(clientsData?.data ?? []).map((c) => ({ value: c.id, label: c.name })),
+          ]}
+          placeholder="All Clients"
+          variant="filter"
+        />
       </div>
 
       <DataTable

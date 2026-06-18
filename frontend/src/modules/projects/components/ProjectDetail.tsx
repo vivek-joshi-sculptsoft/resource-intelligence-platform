@@ -194,6 +194,7 @@ export function ProjectDetail() {
         open={assignmentModalOpen}
         projectId={id!}
         projectName={p.name}
+        projectCurrency={p.billing_currency}
         editingAssignment={editingAssignment}
         onClose={() => { setAssignmentModalOpen(false); setEditingAssignment(null) }}
       />

@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { createUser, fetchRoles, fetchUser, updateUser } from '../users-api'
 import { fetchResourcesDropdown } from '../../resources/api'
+import { SearchableSelect } from '../../../shared/components'
 
 function EyeOpenIcon() {
   return (
@@ -339,21 +340,15 @@ export function UserForm() {
             <label className="mb-1.5 flex items-center gap-1.5 text-[13.5px] font-semibold" style={{ color: '#1e1b4b' }}>
               Role <span className="text-[14px] font-bold leading-none" style={{ color: '#ef4444' }}>*</span>
             </label>
-            <select
+            <SearchableSelect
               value={roleId}
-              onChange={(e) => setRoleId(e.target.value)}
-              required
-              style={selectStyle}
-              onFocus={focusInput as any}
-              onBlur={blurInput as any}
-            >
-              <option value="" disabled>Select role...</option>
-              {roles.map((r: any) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                </option>
-              ))}
-            </select>
+              onChange={setRoleId}
+              options={[
+                { value: '', label: 'Select role...' },
+                ...roles.map((r: any) => ({ value: r.id, label: r.name })),
+              ]}
+              placeholder="Select role..."
+            />
           </div>
 
           {/* Link to Resource (optional, searchable) */}

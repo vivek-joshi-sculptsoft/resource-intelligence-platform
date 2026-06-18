@@ -12,6 +12,7 @@ export interface AssignmentProject {
   name: string
   type: string
   status: string
+  billing_currency: string
   worklog_enabled: boolean
   client_name: string | null
 }
@@ -27,6 +28,7 @@ export interface AssignmentListItem {
   billability_pct: number | null
   is_shadow: boolean | null
   billing_rate: number | null
+  billing_currency: string
   project_designation: string | null
   project_expertise: string | null
   start_date: string

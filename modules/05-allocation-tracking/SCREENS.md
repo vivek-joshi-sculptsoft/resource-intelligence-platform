@@ -21,7 +21,7 @@
 | Allocation % | Assignment.allocation_pct | |
 | Billability % | Assignment.billability_pct | Hidden from HR, Engineer |
 | Shadow | Assignment.is_shadow | Shown as badge; hidden from HR, Engineer |
-| Billing Rate | Assignment.billing_rate | Phase 2 only; restricted per access matrix |
+| Billing Rate | Assignment.billing_rate | Phase 2 only; restricted per access matrix. Displayed with project's billing_currency symbol (not always INR). |
 | Start Date | Assignment.start_date | |
 | End Date | Assignment.end_date | "Ongoing" if null |
 | Status | Assignment.status | Badge: Active / Released / Auto-Released |
@@ -51,7 +51,7 @@
 - Shadow toggle — when enabled, billability auto-set to 0 and disabled
 - Project Designation override input (optional)
 - Project Expertise override input (optional)
-- Billing Rate input (Phase 2 only — visible to authorized roles)
+- Billing Rate input (Phase 2 only — visible to authorized roles). Label shows project's billing_currency (e.g. "Billing Rate (USD/hr)"), not hardcoded INR.
 - Start Date picker (required)
 - End Date picker (optional — "Ongoing" if blank)
 - Over-allocation warning banner (shown inline when total would exceed 100%)

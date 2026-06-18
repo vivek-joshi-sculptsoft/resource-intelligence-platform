@@ -79,6 +79,8 @@ async def test_create_assignment(client: AsyncClient, db: AsyncSession):
     assert data["billability_pct"] == 40
     assert data["resource"]["name"] == "Dev Resource"
     assert data["project"]["id"] == proj["id"]
+    assert data["project"]["billing_currency"] == "INR"
+    assert data["billing_currency"] == "INR"
     assert data["status"] == "ACTIVE"
 
 
@@ -92,6 +94,7 @@ async def test_list_project_assignments(client: AsyncClient, db: AsyncSession):
     resp = await client.get(f"/api/v1/projects/{proj['id']}/assignments")
     assert resp.status_code == 200
     assert len(resp.json()["data"]) == 2
+    assert resp.json()["data"][0]["billing_currency"] == "INR"
 
 
 @pytest.mark.asyncio
@@ -124,6 +127,8 @@ async def test_get_assignment(client: AsyncClient, db: AsyncSession):
     data = resp.json()["data"]
     assert data["id"] == aid
     assert data["project"] is not None
+    assert data["project"]["billing_currency"] == "INR"
+    assert data["billing_currency"] == "INR"
     assert data["resource"] is not None
 
 

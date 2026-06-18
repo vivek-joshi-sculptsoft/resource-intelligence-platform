@@ -3,6 +3,10 @@ const CURRENCY_CONFIG: Record<string, { locale: string; symbol: string }> = {
   USD: { locale: 'en-US', symbol: 'USD' },
   EUR: { locale: 'en-DE', symbol: 'EUR' },
   GBP: { locale: 'en-GB', symbol: 'GBP' },
+  AED: { locale: 'ar-AE', symbol: 'AED' },
+  SGD: { locale: 'en-SG', symbol: 'SGD' },
+  AUD: { locale: 'en-AU', symbol: 'AUD' },
+  CAD: { locale: 'en-CA', symbol: 'CAD' },
 }
 
 interface CurrencyDisplayProps {

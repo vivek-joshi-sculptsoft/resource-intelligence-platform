@@ -44,6 +44,7 @@ function renderWithProviders(props?: Partial<React.ComponentProps<typeof Assignm
           open={true}
           projectId="p1"
           projectName="Test Project"
+          projectCurrency="INR"
           editingAssignment={null}
           onClose={vi.fn()}
           {...props}
@@ -97,10 +98,13 @@ describe('AssignmentFormModal', () => {
   it('shows over-allocation warning when total > 100%', async () => {
     renderWithProviders()
     await waitFor(() => {
-      expect(screen.getByText(/Arjun Mehta/)).toBeInTheDocument()
+      expect(screen.getByText('Select a resource...')).toBeInTheDocument()
     })
-    const resourceSelect = screen.getByRole('combobox')
-    fireEvent.change(resourceSelect, { target: { value: 'r1' } })
+    fireEvent.click(screen.getByText('Select a resource...'))
+    await waitFor(() => {
+      expect(screen.getByText(/Arjun Mehta \(SS-001\)/)).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByText(/Arjun Mehta \(SS-001\)/))
     const allocInput = document.querySelectorAll('input[type="number"]')[0] as HTMLInputElement
     fireEvent.change(allocInput, { target: { value: '50' } })
     await waitFor(() => {
@@ -113,8 +117,14 @@ describe('AssignmentFormModal', () => {
     const inputs = document.querySelectorAll('input[type="number"]')
     fireEvent.change(inputs[0], { target: { value: '30' } })
     fireEvent.change(inputs[1], { target: { value: '50' } })
-    const resourceSelect = screen.getByRole('combobox')
-    fireEvent.change(resourceSelect, { target: { value: 'r2' } })
+    await waitFor(() => {
+      expect(screen.getByText('Select a resource...')).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByText('Select a resource...'))
+    await waitFor(() => {
+      expect(screen.getByText(/Priya Patel \(SS-002\)/)).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByText(/Priya Patel \(SS-002\)/))
     const startInput = document.querySelector('input[type="date"]') as HTMLInputElement
     fireEvent.change(startInput, { target: { value: '2026-01-01' } })
     fireEvent.click(screen.getByText('Save Assignment'))
@@ -126,8 +136,14 @@ describe('AssignmentFormModal', () => {
     const dateInputs = document.querySelectorAll('input[type="date"]')
     fireEvent.change(dateInputs[0], { target: { value: '2026-06-01' } })
     fireEvent.change(dateInputs[1], { target: { value: '2026-01-01' } })
-    const resourceSelect = screen.getByRole('combobox')
-    fireEvent.change(resourceSelect, { target: { value: 'r2' } })
+    await waitFor(() => {
+      expect(screen.getByText('Select a resource...')).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByText('Select a resource...'))
+    await waitFor(() => {
+      expect(screen.getByText(/Priya Patel \(SS-002\)/)).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByText(/Priya Patel \(SS-002\)/))
     const allocInput = document.querySelectorAll('input[type="number"]')[0]
     fireEvent.change(allocInput, { target: { value: '50' } })
     fireEvent.click(screen.getByText('Save Assignment'))

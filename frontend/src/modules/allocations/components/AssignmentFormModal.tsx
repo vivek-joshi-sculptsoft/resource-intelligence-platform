@@ -7,11 +7,13 @@ import { createAssignment, updateAssignment } from '../api'
 import type { AssignmentCreatePayload, AssignmentUpdatePayload, AssignmentListItem } from '../api'
 import { fetchResources } from '../../resources/api'
 import type { ResourceListItem } from '../../resources/api'
+import { SearchableSelect } from '../../../shared/components'
 
 interface AssignmentFormModalProps {
   open: boolean
   projectId: string
   projectName: string
+  projectCurrency: string
   editingAssignment?: AssignmentListItem | null
   onClose: () => void
 }
@@ -40,7 +42,7 @@ const INITIAL_FORM: FormState = {
   project_expertise: '',
 }
 
-export function AssignmentFormModal({ open, projectId, projectName, editingAssignment, onClose }: AssignmentFormModalProps) {
+export function AssignmentFormModal({ open, projectId, projectName, projectCurrency, editingAssignment, onClose }: AssignmentFormModalProps) {
   const queryClient = useQueryClient()
   const { user } = useAuthStore()
   const canSeeCost = user && ['CEO', 'CTO', 'FINANCE'].includes(user.role.code)
@@ -279,24 +281,23 @@ export function AssignmentFormModal({ open, projectId, projectName, editingAssig
               <label className="mb-1.5 block text-[12px] font-semibold uppercase tracking-wide" style={{ color: '#6b7280' }}>
                 Resource <span style={{ color: '#ef4444' }}>*</span>
               </label>
-              <select
+              <SearchableSelect
                 value={form.resource_id}
-                onChange={(e) => setForm((f) => ({ ...f, resource_id: e.target.value }))}
+                onChange={(v) => setForm((f) => ({ ...f, resource_id: v }))}
                 disabled={isEditing}
-                className="w-full rounded-lg px-3 py-2.5 text-[13px]"
+                options={[
+                  { value: '', label: 'Select a resource...' },
+                  ...resources.map((r) => ({
+                    value: r.id,
+                    label: `${r.name} (${r.employee_id}) — ${r.designation}`,
+                  })),
+                ]}
+                placeholder="Select a resource..."
+                error={!!errors.resource_id}
                 style={{
-                  border: `1px solid ${errors.resource_id ? '#ef4444' : '#D6DAF0'}`,
                   background: isEditing ? '#F5F6FC' : '#fff',
-                  color: isEditing ? '#7C85C0' : '#1e1b4b',
                 }}
-              >
-                <option value="">Select a resource...</option>
-                {resources.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.name} ({r.employee_id}) — {r.designation}
-                  </option>
-                ))}
-              </select>
+              />
               {errors.resource_id && (
                 <div className="mt-1 text-[12px]" style={{ color: '#ef4444' }}>{errors.resource_id}</div>
               )}
@@ -390,7 +391,7 @@ export function AssignmentFormModal({ open, projectId, projectName, editingAssig
             {canSeeRate && !form.is_shadow && (
               <div className="mt-3">
                 <label className="mb-1.5 block text-[12px] font-semibold uppercase tracking-wide" style={{ color: '#6b7280' }}>
-                  Billing Rate (₹/hr)
+                  Billing Rate ({projectCurrency}/hr)
                 </label>
                 <input
                   type="number"

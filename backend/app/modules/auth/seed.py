@@ -32,11 +32,15 @@ DATA_TYPES = [
     "resource_availability",
     "bench_data",
     "invoicing",
+    "milestones",
     "worklogs",
     "alerts",
 ]
 
-# See shared/ACCESS-MATRIX.md — 7 roles x 15 data_types = 105 rows
+# See shared/ACCESS-MATRIX.md — 7 roles x 16 data_types = 112 rows
+# "milestones" is not in ACCESS-MATRIX.md (which only lists "invoicing" for Finance-only
+# invoice CRUD). VRIP-94 ACs require PM/DM to manage milestone CRUD/transitions up to
+# APPROVED in their own portfolio, so milestones is tracked as a separate data_type.
 PERMISSIONS: dict[str, dict[str, tuple[str, str, bool]]] = {
     "CEO": {
         "client_profiles": ("EDIT", "ALL", False),
@@ -52,6 +56,7 @@ PERMISSIONS: dict[str, dict[str, tuple[str, str, bool]]] = {
         "resource_availability": ("VIEW", "ALL", False),
         "bench_data": ("VIEW", "ALL", False),
         "invoicing": ("VIEW", "ALL", False),
+        "milestones": ("EDIT", "ALL", False),
         "worklogs": ("VIEW", "ALL", False),
         "alerts": ("VIEW", "ALL", False),
     },
@@ -69,6 +74,7 @@ PERMISSIONS: dict[str, dict[str, tuple[str, str, bool]]] = {
         "resource_availability": ("VIEW", "ALL", False),
         "bench_data": ("VIEW", "ALL", False),
         "invoicing": ("VIEW", "ALL", False),
+        "milestones": ("EDIT", "ALL", False),
         "worklogs": ("VIEW", "ALL", False),
         "alerts": ("VIEW", "ALL", False),
     },
@@ -86,6 +92,7 @@ PERMISSIONS: dict[str, dict[str, tuple[str, str, bool]]] = {
         "resource_availability": ("VIEW", "ALL", False),
         "bench_data": ("VIEW", "ALL", False),
         "invoicing": ("NONE", "ALL", False),
+        "milestones": ("EDIT", "OWN_PORTFOLIO", False),
         "worklogs": ("VIEW", "OWN_PORTFOLIO", False),
         "alerts": ("VIEW", "OWN_PORTFOLIO", False),
     },
@@ -103,6 +110,7 @@ PERMISSIONS: dict[str, dict[str, tuple[str, str, bool]]] = {
         "resource_availability": ("VIEW", "ALL", False),
         "bench_data": ("NONE", "ALL", False),
         "invoicing": ("NONE", "ALL", False),
+        "milestones": ("EDIT", "OWN_PORTFOLIO", False),
         "worklogs": ("VIEW", "OWN_PORTFOLIO", False),
         "alerts": ("VIEW", "OWN_PORTFOLIO", False),
     },
@@ -120,6 +128,7 @@ PERMISSIONS: dict[str, dict[str, tuple[str, str, bool]]] = {
         "resource_availability": ("VIEW", "ALL", False),
         "bench_data": ("VIEW", "ALL", False),
         "invoicing": ("EDIT", "ALL", False),
+        "milestones": ("EDIT", "ALL", False),
         "worklogs": ("NONE", "ALL", False),
         "alerts": ("VIEW", "ALL", False),
     },
@@ -137,6 +146,7 @@ PERMISSIONS: dict[str, dict[str, tuple[str, str, bool]]] = {
         "resource_availability": ("VIEW", "ALL", False),
         "bench_data": ("VIEW", "ALL", False),
         "invoicing": ("NONE", "ALL", False),
+        "milestones": ("NONE", "ALL", False),
         "worklogs": ("NONE", "ALL", False),
         "alerts": ("VIEW", "ALL", False),
     },
@@ -154,6 +164,7 @@ PERMISSIONS: dict[str, dict[str, tuple[str, str, bool]]] = {
         "resource_availability": ("VIEW", "ALL", False),
         "bench_data": ("VIEW", "ALL", False),
         "invoicing": ("NONE", "ALL", False),
+        "milestones": ("NONE", "ALL", False),
         "worklogs": ("EDIT", "SELF_ONLY", False),
         "alerts": ("NONE", "ALL", False),
     },

@@ -14,7 +14,8 @@
   "effective_expertise",     // project_expertise ?? resource.technical_expertise
   "allocation_pct", "billability_pct",  // billability_pct null for HR/Engineer
   "is_shadow",              // null for HR/Engineer
-  "billing_rate",           // null unless CEO/CTO/Finance/DM(configurable)
+  "billing_rate",           // null unless CEO/CTO/Finance/DM(configurable); value is in project billing_currency
+  "billing_currency",       // project's ISO 4217 currency code (e.g. "INR", "USD"); always present
   "start_date", "end_date", "status", "released_at"
 }
 ```
@@ -49,7 +50,7 @@
 **Description:** Get a single assignment.
 **Auth:** CEO, CTO; DM/PM (own portfolio); Engineer (own assignment only)
 **Scope:** Per role
-**Response:** Full assignment object with resource and project info.
+**Response:** Full assignment object with resource and project info. Project sub-object includes `billing_currency`.
 
 ---
 

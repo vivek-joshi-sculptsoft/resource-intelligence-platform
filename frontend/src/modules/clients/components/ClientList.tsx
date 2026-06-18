@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import { useAuthStore } from '../../auth/store'
 import { fetchClients, type ClientListItem } from '../api'
-import { Breadcrumb } from '../../../shared/components'
+import { Breadcrumb, SearchableSelect } from '../../../shared/components'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle'
 
 export function ClientList() {
@@ -62,13 +62,17 @@ export function ClientList() {
             onFocus={(e) => { e.target.style.borderColor = '#4A5BB5'; e.target.style.boxShadow = '0 0 0 3px rgba(43,57,144,0.1)'; e.target.style.background = '#fff' }}
             onBlur={(e) => { e.target.style.borderColor = '#D6DAF0'; e.target.style.boxShadow = 'none'; e.target.style.background = '#F0F1FA' }} />
         </div>
-        <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1) }}
-          className="cursor-pointer rounded-lg py-[9px] pl-3.5 pr-8 text-[13.5px] outline-none"
-          style={{ border: '1px solid #D6DAF0', color: '#1e1b4b', background: '#F0F1FA', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237C85C0' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}>
-          <option value="ALL">All Status</option>
-          <option value="ACTIVE">Active</option>
-          <option value="INACTIVE">Inactive</option>
-        </select>
+        <SearchableSelect
+          value={status}
+          onChange={(v) => { setStatus(v); setPage(1) }}
+          options={[
+            { value: 'ALL', label: 'All Status' },
+            { value: 'ACTIVE', label: 'Active' },
+            { value: 'INACTIVE', label: 'Inactive' },
+          ]}
+          placeholder="All Status"
+          variant="filter"
+        />
       </div>
 
       {isLoading ? (

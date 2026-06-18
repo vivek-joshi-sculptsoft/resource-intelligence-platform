@@ -22,7 +22,7 @@ def test_all_roles_have_permission_level():
 
 
 def test_fifteen_data_types():
-    assert len(DATA_TYPES) == 15
+    assert len(DATA_TYPES) == 16
 
 
 def test_permissions_cover_all_roles():
@@ -38,7 +38,7 @@ def test_each_role_has_all_data_types():
 
 def test_total_permission_rows_is_105():
     total = sum(len(perms) for perms in PERMISSIONS.values())
-    assert total == 105
+    assert total == 112
 
 
 def test_permission_values_are_valid():

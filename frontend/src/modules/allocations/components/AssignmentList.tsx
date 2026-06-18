@@ -6,7 +6,7 @@ import { AlertTriangle, Users } from 'lucide-react'
 import { useAuthStore } from '../../auth/store'
 import { fetchProjectAssignments, releaseAssignment } from '../api'
 import type { AssignmentListItem } from '../api'
-import { StatusBadge, ConfirmDialog } from '../../../shared/components'
+import { StatusBadge, ConfirmDialog, SearchableSelect } from '../../../shared/components'
 import { format, parseISO } from 'date-fns'
 
 interface AssignmentListProps {
@@ -21,6 +21,9 @@ const STATUS_OPTIONS = [
   { value: 'RELEASED', label: 'Released' },
   { value: 'AUTO_RELEASED', label: 'Auto-Released' },
 ]
+
+const CURRENCY_SYMBOLS: Record<string, string> = { INR: '₹', USD: '$', EUR: '€', GBP: '£' }
+function currencySymbol(code: string): string { return CURRENCY_SYMBOLS[code] ?? code }
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return 'Ongoing'
@@ -110,16 +113,13 @@ export function AssignmentList({ projectId, onAddAssignment, onEditAssignment }:
       </div>
 
       <div className="mb-4">
-        <select
+        <SearchableSelect
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg px-3 py-2 text-[13px]"
-          style={{ border: '1px solid #D6DAF0', background: '#fff', color: '#1e1b4b' }}
-        >
-          {STATUS_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
+          onChange={setStatusFilter}
+          options={STATUS_OPTIONS}
+          placeholder="All Statuses"
+          variant="filter"
+        />
       </div>
 
       {/* Table or Empty State */}
@@ -222,7 +222,7 @@ export function AssignmentList({ projectId, onAddAssignment, onEditAssignment }:
                   )}
                   {canSeeRate && (
                     <td className="px-3.5 py-3 text-[13px] font-medium" style={{ color: '#1e1b4b' }}>
-                      {a.billing_rate != null ? `₹${a.billing_rate.toLocaleString('en-IN')}` : '—'}
+                      {a.billing_rate != null ? `${currencySymbol(a.billing_currency)}${a.billing_rate.toLocaleString('en-IN')}` : '—'}
                     </td>
                   )}
                   <td className="whitespace-nowrap px-3.5 py-3 text-[13px]" style={{ color: '#1e1b4b' }}>

@@ -93,15 +93,15 @@ describe('ProjectList', () => {
   it('renders status filter dropdown', async () => {
     renderWithProviders()
     await screen.findByText('Project Alpha')
-    const statusSelect = screen.getByDisplayValue('Active')
-    expect(statusSelect).toBeInTheDocument()
+    const filterButtons = document.querySelectorAll('button[type="button"]')
+    const statusButton = Array.from(filterButtons).find((b) => b.textContent?.includes('Active'))
+    expect(statusButton).toBeTruthy()
   })
 
   it('renders type filter dropdown', async () => {
     renderWithProviders()
     await screen.findByText('Project Alpha')
-    const typeSelect = screen.getByDisplayValue('All Types')
-    expect(typeSelect).toBeInTheDocument()
+    expect(screen.getByText('All Types')).toBeInTheDocument()
   })
 
   it('renders pagination info', async () => {

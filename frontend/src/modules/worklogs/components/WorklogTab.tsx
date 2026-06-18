@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
 import { fetchProjectWorklogs, type WorklogEntry } from '../api'
 import { fetchProjectAssignments, type AssignmentListItem } from '../../allocations/api'
+import { SearchableSelect } from '../../../shared/components'
 
 const AVATAR_COLORS = ['#6366f1', '#f59e0b', '#22c55e', '#ec4899', '#8b5cf6', '#06b6d4', '#ef4444']
 const PAGE_SIZE = 15
@@ -159,28 +160,16 @@ export function WorklogTab({ projectId }: WorklogTabProps) {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <label style={{ fontSize: 13, color: '#6b7280', fontWeight: 500 }}>Resource:</label>
-            <select
+            <SearchableSelect
               value={resourceFilter}
-              onChange={(e) => {
-                setResourceFilter(e.target.value)
-                setPage(1)
-              }}
-              style={{
-                padding: '7px 10px',
-                border: '1px solid #D6DAF0',
-                borderRadius: 8,
-                fontSize: 13,
-                color: '#1e1b4b',
-                background: '#fff',
-              }}
-            >
-              <option value="">All Resources</option>
-              {resourceOptions.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => { setResourceFilter(v); setPage(1) }}
+              options={[
+                { value: '', label: 'All Resources' },
+                ...resourceOptions.map((r) => ({ value: r.id, label: r.name })),
+              ]}
+              placeholder="All Resources"
+              variant="filter"
+            />
           </div>
           <button
             onClick={resetFilters}

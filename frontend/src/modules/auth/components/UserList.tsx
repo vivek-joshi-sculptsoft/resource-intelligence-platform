@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import { fetchUsers, fetchRoles, type UserListItem } from '../users-api'
+import { SearchableSelect } from '../../../shared/components'
 
 export function UserList() {
   const navigate = useNavigate()
@@ -82,27 +83,27 @@ export function UserList() {
             onBlur={(e) => { e.target.style.borderColor = '#D6DAF0'; e.target.style.boxShadow = 'none'; e.target.style.background = '#F0F1FA' }}
           />
         </div>
-        <select
+        <SearchableSelect
           value={status}
-          onChange={(e) => { setStatus(e.target.value); setPage(1) }}
-          className="cursor-pointer rounded-lg py-[9px] pl-3.5 pr-8 text-[13.5px] outline-none transition-all"
-          style={{ border: '1px solid #D6DAF0', color: '#1e1b4b', background: '#F0F1FA', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237C85C0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
-        >
-          <option value="ALL">All Status</option>
-          <option value="ACTIVE">Active</option>
-          <option value="INACTIVE">Inactive</option>
-        </select>
-        <select
+          onChange={(v) => { setStatus(v); setPage(1) }}
+          options={[
+            { value: 'ALL', label: 'All Status' },
+            { value: 'ACTIVE', label: 'Active' },
+            { value: 'INACTIVE', label: 'Inactive' },
+          ]}
+          placeholder="All Status"
+          variant="filter"
+        />
+        <SearchableSelect
           value={roleFilter}
-          onChange={(e) => { setRoleFilter(e.target.value); setPage(1) }}
-          className="cursor-pointer rounded-lg py-[9px] pl-3.5 pr-8 text-[13.5px] outline-none transition-all"
-          style={{ border: '1px solid #D6DAF0', color: '#1e1b4b', background: '#F0F1FA', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237C85C0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
-        >
-          <option value="ALL">All Roles</option>
-          {roles.map((r: any) => (
-            <option key={r.code} value={r.code}>{r.name}</option>
-          ))}
-        </select>
+          onChange={(v) => { setRoleFilter(v); setPage(1) }}
+          options={[
+            { value: 'ALL', label: 'All Roles' },
+            ...roles.map((r: any) => ({ value: r.code, label: r.name })),
+          ]}
+          placeholder="All Roles"
+          variant="filter"
+        />
       </div>
 
       {/* Content */}

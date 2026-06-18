@@ -6,7 +6,7 @@ import { useAuthStore } from '../../auth/store'
 import { createProject, fetchProject, updateProject, type ProjectCreatePayload } from '../api'
 import { fetchClients } from '../../clients/api'
 import { fetchResourcesDropdown } from '../../resources/api'
-import { Breadcrumb } from '../../../shared/components'
+import { Breadcrumb, SearchableSelect } from '../../../shared/components'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle'
 
 const inputStyle = {
@@ -191,17 +191,16 @@ export function ProjectForm() {
               <label className="mb-1.5 block text-[13px] font-semibold" style={{ color: '#1e1b4b' }}>
                 Client <span style={{ color: '#ef4444' }}>*</span>
               </label>
-              <select
+              <SearchableSelect
                 value={clientId}
-                onChange={(e) => setClientId(e.target.value)}
-                className="w-full cursor-pointer rounded-lg px-3.5 py-[9px] text-[13.5px] outline-none"
-                style={{ ...inputStyle, appearance: 'none' as const }}
-              >
-                <option value="">Select client</option>
-                {clients.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+                onChange={setClientId}
+                options={[
+                  { value: '', label: 'Select client' },
+                  ...clients.map((c) => ({ value: c.id, label: c.name })),
+                ]}
+                placeholder="Select client"
+                error={!!errors.clientId}
+              />
               {errors.clientId && <p className="mt-1 text-[12px]" style={{ color: '#ef4444' }}>{errors.clientId}</p>}
             </div>
 
@@ -210,17 +209,21 @@ export function ProjectForm() {
               <label className="mb-1.5 block text-[13px] font-semibold" style={{ color: '#1e1b4b' }}>
                 Billing Currency
               </label>
-              <select
+              <SearchableSelect
                 value={billingCurrency}
-                onChange={(e) => setBillingCurrency(e.target.value)}
-                className="w-full cursor-pointer rounded-lg px-3.5 py-[9px] text-[13.5px] outline-none"
-                style={{ ...inputStyle, appearance: 'none' as const }}
-              >
-                <option value="INR">INR</option>
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
-                <option value="GBP">GBP</option>
-              </select>
+                onChange={setBillingCurrency}
+                options={[
+                  { value: 'INR', label: 'INR' },
+                  { value: 'USD', label: 'USD' },
+                  { value: 'EUR', label: 'EUR' },
+                  { value: 'GBP', label: 'GBP' },
+                  { value: 'AED', label: 'AED' },
+                  { value: 'SGD', label: 'SGD' },
+                  { value: 'AUD', label: 'AUD' },
+                  { value: 'CAD', label: 'CAD' },
+                ]}
+                placeholder="Select currency"
+              />
             </div>
 
             {/* Type — radio buttons */}
@@ -301,18 +304,17 @@ export function ProjectForm() {
               <label className="mb-1.5 block text-[13px] font-semibold" style={{ color: '#1e1b4b' }}>
                 Delivery Manager <span style={{ color: '#ef4444' }}>*</span>
               </label>
-              <select
+              <SearchableSelect
                 value={dmId}
-                onChange={(e) => setDmId(e.target.value)}
+                onChange={setDmId}
+                options={[
+                  { value: '', label: 'Select DM' },
+                  ...resourceList.map((r) => ({ value: r.id, label: r.name })),
+                ]}
+                placeholder="Select DM"
                 disabled={isDM && !isEdit}
-                className="w-full cursor-pointer rounded-lg px-3.5 py-[9px] text-[13.5px] outline-none disabled:cursor-not-allowed disabled:opacity-60"
-                style={{ ...inputStyle, appearance: 'none' as const }}
-              >
-                <option value="">Select DM</option>
-                {resourceList.map((r) => (
-                  <option key={r.id} value={r.id}>{r.name}</option>
-                ))}
-              </select>
+                error={!!errors.dmId}
+              />
               {errors.dmId && <p className="mt-1 text-[12px]" style={{ color: '#ef4444' }}>{errors.dmId}</p>}
             </div>
 
@@ -321,17 +323,16 @@ export function ProjectForm() {
               <label className="mb-1.5 block text-[13px] font-semibold" style={{ color: '#1e1b4b' }}>
                 Project Manager <span style={{ color: '#ef4444' }}>*</span>
               </label>
-              <select
+              <SearchableSelect
                 value={pmId}
-                onChange={(e) => setPmId(e.target.value)}
-                className="w-full cursor-pointer rounded-lg px-3.5 py-[9px] text-[13.5px] outline-none"
-                style={{ ...inputStyle, appearance: 'none' as const }}
-              >
-                <option value="">Select PM</option>
-                {resourceList.map((r) => (
-                  <option key={r.id} value={r.id}>{r.name}</option>
-                ))}
-              </select>
+                onChange={setPmId}
+                options={[
+                  { value: '', label: 'Select PM' },
+                  ...resourceList.map((r) => ({ value: r.id, label: r.name })),
+                ]}
+                placeholder="Select PM"
+                error={!!errors.pmId}
+              />
               {errors.pmId && <p className="mt-1 text-[12px]" style={{ color: '#ef4444' }}>{errors.pmId}</p>}
             </div>
 
