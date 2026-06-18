@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-const APP_NAME = 'Resource Intelligence Platform'
+const APP_NAME = 'SculptNexus'
 
 export function useDocumentTitle(title?: string) {
   useEffect(() => {

@@ -23,6 +23,7 @@ import { ProjectFormPage } from './routes/projects/form'
 import { AvailabilityPage } from './routes/availability'
 import { MyAssignmentsRoute } from './routes/my-assignments'
 import { WorklogsRoute } from './routes/worklogs'
+import { ReceivablesRoute } from './routes/receivables'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -108,6 +109,16 @@ function AppRoutes() {
 
         {/* Worklogs (manager view) */}
         <Route path="/worklogs" element={<WorklogsRoute />} />
+
+        {/* Receivables */}
+        <Route
+          path="/receivables"
+          element={
+            <RoleGuard allowedRoles={['CEO', 'CTO', 'FINANCE']}>
+              <ReceivablesRoute />
+            </RoleGuard>
+          }
+        />
 
         {/* My Assignments (Engineer worklog entry) */}
         <Route path="/my-assignments" element={<MyAssignmentsRoute />} />

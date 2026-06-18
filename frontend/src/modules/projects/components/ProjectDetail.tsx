@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useNavigate, useParams, Link } from 'react-router'
+import { useNavigate, useParams, useSearchParams, Link } from 'react-router'
 import { toast } from 'sonner'
 import { Pencil, Calendar, User, Coins } from 'lucide-react'
 import { useAuthStore } from '../../auth/store'
@@ -11,6 +11,8 @@ import { AssignmentList } from '../../allocations/components/AssignmentList'
 import { AssignmentFormModal } from '../../allocations/components/AssignmentFormModal'
 import { WorklogTab } from '../../worklogs/components/WorklogTab'
 import { NonHumanCostTab } from '../../nonhuman_costs/components/NonHumanCostTab'
+import { MilestoneTab } from '../../invoicing/components/MilestoneTab'
+import { InvoiceTab } from '../../invoicing/components/InvoiceTab'
 import type { AssignmentListItem } from '../../allocations/api'
 
 // See FSD §10 — valid status transitions
@@ -29,13 +31,22 @@ const TRANSITIONS: Record<string, { label: string; target: string; variant: 'def
 export function ProjectDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const queryClient = useQueryClient()
   const { user } = useAuthStore()
   const canEdit = user && ['CEO', 'CTO', 'DM', 'PM'].includes(user.role.code)
   const canTransition = user && ['CEO', 'CTO', 'DM'].includes(user.role.code)
   const canViewCosts = user && ['CEO', 'CTO', 'DM', 'PM', 'FINANCE'].includes(user.role.code)
+  const canViewMilestones = user && ['CEO', 'CTO', 'DM', 'PM', 'FINANCE'].includes(user.role.code)
+  const canViewInvoices = user && ['CEO', 'CTO', 'FINANCE'].includes(user.role.code)
 
-  const [activeTab, setActiveTab] = useState<'assignments' | 'worklogs' | 'costs'>('assignments')
+  type TabKey = 'assignments' | 'milestones' | 'invoices' | 'worklogs' | 'costs'
+  const requestedTab = searchParams.get('tab') as TabKey | null
+  const [activeTab, setActiveTab] = useState<TabKey>(
+    requestedTab && ['assignments', 'milestones', 'invoices', 'worklogs', 'costs'].includes(requestedTab)
+      ? requestedTab
+      : 'assignments',
+  )
   const [confirmTransition, setConfirmTransition] = useState<{ target: string; label: string; variant: 'default' | 'danger' } | null>(null)
   const [assignmentModalOpen, setAssignmentModalOpen] = useState(false)
   const [editingAssignment, setEditingAssignment] = useState<AssignmentListItem | null>(null)
@@ -69,6 +80,8 @@ export function ProjectDetail() {
   const availableTransitions = TRANSITIONS[p.status] ?? []
   const tabs = [
     { key: 'assignments' as const, label: 'Assignments' },
+    ...(p.type === 'FIXED_PRICE' && canViewMilestones ? [{ key: 'milestones' as const, label: 'Milestones' }] : []),
+    ...(canViewInvoices ? [{ key: 'invoices' as const, label: 'Invoices' }] : []),
     ...(p.worklog_enabled ? [{ key: 'worklogs' as const, label: 'Worklogs' }] : []),
     ...(canViewCosts ? [{ key: 'costs' as const, label: 'Non-Human Costs' }] : []),
   ]
@@ -171,6 +184,12 @@ export function ProjectDetail() {
           onAddAssignment={() => { setEditingAssignment(null); setAssignmentModalOpen(true) }}
           onEditAssignment={(a) => { setEditingAssignment(a); setAssignmentModalOpen(true) }}
         />
+      )}
+      {activeTab === 'milestones' && (
+        <MilestoneTab projectId={id!} billingCurrency={p.billing_currency} />
+      )}
+      {activeTab === 'invoices' && (
+        <InvoiceTab projectId={id!} projectType={p.type} billingCurrency={p.billing_currency} />
       )}
       {activeTab === 'worklogs' && <WorklogTab projectId={id!} />}
       {activeTab === 'costs' && (

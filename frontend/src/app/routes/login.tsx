@@ -23,16 +23,7 @@ function EyeClosedIcon() {
 }
 
 function LogoIcon() {
-  return (
-    <svg className="mb-4 h-14 w-14" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="56" height="56" rx="14" fill="#EEF0FA" />
-      <rect x="10" y="30" width="8" height="16" rx="2" fill="#4A5BB5" />
-      <rect x="21" y="22" width="8" height="24" rx="2" fill="#2B3990" />
-      <rect x="32" y="14" width="8" height="32" rx="2" fill="#1B2B65" />
-      <path d="M14 28L25 20L36 24L46 12" stroke="#FF4B2B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="46" cy="12" r="3" fill="#FF4B2B" />
-    </svg>
-  )
+  return <img src="/logo.png" alt="SculptNexus" className="mb-4 h-20 w-auto" />
 }
 
 export function LoginPage() {
@@ -68,9 +59,6 @@ export function LoginPage() {
         {/* Logo & Title */}
         <div className="mb-7 flex flex-col items-center">
           <LogoIcon />
-          <div className="text-center text-[22px] font-bold leading-tight tracking-tight" style={{ color: '#1B2B65' }}>
-            Resource Intelligence Platform
-          </div>
           <div className="mt-1 text-[13px] font-medium tracking-wide" style={{ color: '#7C85C0' }}>
             by SculptSoft
           </div>

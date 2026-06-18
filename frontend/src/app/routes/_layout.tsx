@@ -17,6 +17,7 @@ import {
   Bell,
   PanelLeftClose,
   PanelLeftOpen,
+  Receipt,
 } from 'lucide-react'
 
 interface NavItem {
@@ -63,6 +64,12 @@ const MAIN_NAV: NavItem[] = [
     to: '/worklogs',
     icon: <Clock size={18} />,
     allowedRoles: ['CEO', 'CTO', 'DM', 'PM', 'FINANCE', 'HR'],
+  },
+  {
+    label: 'Receivables',
+    to: '/receivables',
+    icon: <Receipt size={18} />,
+    allowedRoles: ['CEO', 'CTO', 'FINANCE'],
   },
 ]
 
@@ -130,15 +137,16 @@ export function RootLayout() {
         style={{ background: '#fff', borderBottom: '1px solid #E8EAF6' }}
       >
         <div className="flex items-center gap-3">
-          <div
-            className="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] text-[15px] font-bold text-white"
-            style={{ background: 'linear-gradient(135deg, #2B3990, #4A5BB5)', boxShadow: '0 2px 6px rgba(43,57,144,0.2)' }}
-          >
-            RI
-          </div>
+          <img src="/logo-icon.png" alt="SculptNexus" className="h-[34px] w-auto" />
           {!collapsed && (
-            <div className="text-[16px] font-bold tracking-tight" style={{ color: '#1B2B65' }}>
-              Resource Intelligence <span style={{ color: '#FF4B2B' }}>Platform</span>
+            <div className="flex items-baseline gap-1.5 text-[16px] font-bold tracking-tight">
+              <span>
+                <span style={{ color: '#0A0E1F' }}>Sculpt</span>
+                <span style={{ color: '#2254F4' }}>Nexus</span>
+              </span>
+              <span className="text-[12px] font-medium" style={{ color: '#7C85C0' }}>
+                - A Resource Intelligence Platform By SculptSoft
+              </span>
             </div>
           )}
         </div>

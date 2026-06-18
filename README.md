@@ -1,6 +1,6 @@
-# Resource Intelligence & Project Economics Platform
+# SculptNexus
 
-An internal tool for an IT services company (~30-40 employees) to track resource allocations, project delivery, client billing, and financial margins. Replaces Google Sheets with a structured, role-based platform.
+Resource Intelligence & Project Economics Platform — an internal tool for an IT services company (~30-40 employees) to track resource allocations, project delivery, client billing, and financial margins. Replaces Google Sheets with a structured, role-based platform.
 
 ## Tech Stack
 
