@@ -60,7 +60,7 @@ export function LoginPage() {
         <div className="mb-7 flex flex-col items-center">
           <LogoIcon />
           <div className="mt-1 text-[13px] font-medium tracking-wide" style={{ color: '#7C85C0' }}>
-            by SculptSoft
+            for SculptSoft
           </div>
         </div>
 

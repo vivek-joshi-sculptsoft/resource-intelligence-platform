@@ -276,7 +276,7 @@ For frontend tickets, verify against mockups if referenced:
 
    - [x] Navy gradient background
    - [x] Centered card with shadow
-   - [x] Logo + "by SculptSoft" subtitle
+   - [x] Logo + "for SculptSoft" subtitle
    - [x] Password toggle (eye icon)
    - [x] Remember me + forgot password row
    - [x] Orange-red gradient submit button

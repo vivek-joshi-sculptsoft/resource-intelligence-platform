@@ -62,6 +62,18 @@ async def check_access(
     return Permission(access_level=perm.access_level, scope=perm.scope)
 
 
+async def has_access(db: AsyncSession, user: User, data_type: str) -> bool:
+    """Non-raising variant of check_access — for field-level masking decisions."""
+    result = await db.execute(
+        select(RolePermission).where(
+            RolePermission.role_id == user.role_id,
+            RolePermission.data_type == data_type,
+        )
+    )
+    perm = result.scalar_one_or_none()
+    return perm is not None and perm.access_level != AccessLevel.NONE
+
+
 def can_see_field(role_code: str, field: str) -> bool:
     """Check if a role can see a restricted field. See FSD §10 — Field-Level Restrictions."""
     restrictions: dict[str, set[str]] = {

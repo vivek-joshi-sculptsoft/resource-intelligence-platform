@@ -145,7 +145,7 @@ export function RootLayout() {
                 <span style={{ color: '#2254F4' }}>Nexus</span>
               </span>
               <span className="text-[12px] font-medium" style={{ color: '#7C85C0' }}>
-                - A Resource Intelligence Platform By SculptSoft
+                - A Resource Intelligence Platform For SculptSoft
               </span>
             </div>
           )}

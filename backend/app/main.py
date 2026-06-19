@@ -60,6 +60,7 @@ def create_app() -> FastAPI:
     from app.modules.auth.router import router as auth_router
     from app.modules.auth.user_router import router as user_router
     from app.modules.clients.router import router as client_router
+    from app.modules.financial.router import router as financial_router
     from app.modules.invoicing.router import router as invoicing_router
     from app.modules.nonhuman_costs.router import router as nonhuman_cost_router
     from app.modules.projects.router import router as project_router
@@ -78,6 +79,7 @@ def create_app() -> FastAPI:
     app.include_router(worklog_router)
     app.include_router(nonhuman_cost_router)
     app.include_router(invoicing_router)
+    app.include_router(financial_router)
 
     @app.get("/api/v1/health")
     async def health_check() -> dict:
