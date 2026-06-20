@@ -1,7 +1,47 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
+import { InfoTooltip, type InfoTooltipContent } from '../../../shared/components/InfoTooltip'
 import { fetchCompanyDashboard, type BenchResource, type UpcomingRelease } from '../api'
+
+// See modules/07-utilization-dashboards/SCREENS.md — Info Tooltips; formulas per shared/BUSINESS-RULES.md §7
+const KPI_TOOLTIPS: Record<string, InfoTooltipContent> = {
+  billableUtilization: {
+    formula: 'SUM(billable_pct) for non-shadow ACTIVE assignments / (active_resource_count × 100) × 100',
+    meaning: 'Share of total available capacity that is currently billed to clients',
+    purpose: 'Core revenue-generating efficiency metric; low values mean idle/non-billable capacity',
+  },
+  benchCount: {
+    formula: 'COUNT(resources WHERE 0 ACTIVE assignments)',
+    meaning: 'Number of resources with no active project allocation',
+    purpose: 'Drives bench cost exposure and signals resourcing/sales gaps',
+  },
+  activeProjects: {
+    formula: 'COUNT(projects WHERE status = ACTIVE) GROUP BY type',
+    meaning: 'Number of currently active engagements, split by FP / T&M / Onboarding',
+    purpose: 'Indicates current delivery load and engagement mix',
+  },
+  activeResources: {
+    formula: 'COUNT(resources WHERE is_active = true), with allocated/bench breakdown',
+    meaning: 'Total headcount currently available for assignment',
+    purpose: 'Denominator for utilization and capacity-planning metrics',
+  },
+  totalMonthlyRevenue: {
+    formula: 'SUM(per-assignment projected revenue) for non-shadow ACTIVE assignments',
+    meaning: 'Projected billable revenue for the current month across all active assignments',
+    purpose: 'Top-line financial health indicator',
+  },
+  companyMargin: {
+    formula: 'Projected Revenue (INR) − Total Project Cost',
+    meaning: 'Company-wide projected margin after resource and non-human costs',
+    purpose: 'Bottom-line profitability indicator after costs',
+  },
+  shadowAllocation: {
+    formula: 'COUNT(assignments WHERE is_shadow = true); allocation % = SUM(billability_pct) for shadow assignments',
+    meaning: 'Number of shadow (non-billable) assignments and their share of total allocation',
+    purpose: 'Shadow resources add cost but contribute no revenue — high values signal hidden cost exposure',
+  },
+}
 
 // See FSD §7.1 — Company utilization color thresholds
 function utilizationColor(pct: number): { text: string; gradient: string; label: string } {
@@ -23,19 +63,20 @@ const PROJECT_TYPE_LABELS: Record<string, string> = {
 }
 
 function KpiCard({
-  label, value, sub, detail, accentClass, textClass, phase2,
+  label, value, sub, detail, accentClass, textClass, phase2, tooltip,
 }: {
   label: string; value: string; sub?: React.ReactNode; detail?: string
-  accentClass: string; textClass: string; phase2?: boolean
+  accentClass: string; textClass: string; phase2?: boolean; tooltip: InfoTooltipContent
 }) {
   return (
     <div
-      className="relative overflow-hidden rounded-xl border border-[#E8EAF6] bg-white p-5"
+      className="relative rounded-xl border border-[#E8EAF6] bg-white p-5"
       style={{ boxShadow: '0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04)' }}
     >
-      <div className={`absolute top-0 left-0 right-0 h-[3px] ${accentClass}`} />
-      <div className="text-[12px] font-semibold uppercase tracking-wide text-[#7C85C0] mb-2">
+      <div className={`absolute top-0 left-0 right-0 h-[3px] rounded-t-xl ${accentClass}`} />
+      <div className="flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wide text-[#7C85C0] mb-2">
         {label}
+        <InfoTooltip content={tooltip} />
         {phase2 && (
           <span className="ml-2 inline-flex items-center gap-1 rounded-md border border-dashed border-[#D1D5DB] bg-[#F3F4F6] px-2 py-0.5 text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-tight">
             Phase 2
@@ -139,6 +180,7 @@ export function CompanyDashboard() {
           detail={`${data.total_active_resources - data.bench_count} of ${data.total_active_resources} resources billable`}
           accentClass="bg-gradient-to-r from-[#2B3990] to-[#4A5BB5]"
           textClass="text-[#2B3990]"
+          tooltip={KPI_TOOLTIPS.billableUtilization}
         />
         <KpiCard
           label="Bench Count"
@@ -152,6 +194,7 @@ export function CompanyDashboard() {
           }
           accentClass="bg-gradient-to-r from-[#ea580c] to-[#f59e0b]"
           textClass="text-[#ea580c]"
+          tooltip={KPI_TOOLTIPS.benchCount}
         />
         <KpiCard
           label="Active Projects"
@@ -159,6 +202,7 @@ export function CompanyDashboard() {
           sub={typeBreakdown || '—'}
           accentClass="bg-gradient-to-r from-[#16a34a] to-[#22c55e]"
           textClass="text-[#16a34a]"
+          tooltip={KPI_TOOLTIPS.activeProjects}
         />
         <KpiCard
           label="Active Resources"
@@ -166,6 +210,7 @@ export function CompanyDashboard() {
           sub={`${data.total_active_resources - data.bench_count} allocated · ${data.bench_count} on bench`}
           accentClass="bg-gradient-to-r from-[#7c3aed] to-[#a78bfa]"
           textClass="text-[#7c3aed]"
+          tooltip={KPI_TOOLTIPS.activeResources}
         />
         <KpiCard
           label="Total Monthly Revenue"
@@ -174,6 +219,7 @@ export function CompanyDashboard() {
           accentClass="bg-gradient-to-r from-[#0d9488] to-[#2dd4bf]"
           textClass="text-[#0d9488]"
           phase2
+          tooltip={KPI_TOOLTIPS.totalMonthlyRevenue}
         />
         <KpiCard
           label="Company Margin"
@@ -182,6 +228,7 @@ export function CompanyDashboard() {
           accentClass="bg-gradient-to-r from-[#FF4B2B] to-[#FF7043]"
           textClass="text-[#FF4B2B]"
           phase2
+          tooltip={KPI_TOOLTIPS.companyMargin}
         />
       </div>
 
@@ -205,11 +252,12 @@ export function CompanyDashboard() {
       <div className="grid grid-cols-[1.2fr_1fr] gap-6 mb-6">
         {/* Shadow Allocation Card */}
         <div
-          className="rounded-xl border border-[#E8EAF6] bg-white overflow-hidden"
+          className="rounded-xl border border-[#E8EAF6] bg-white"
           style={{ boxShadow: '0 2px 8px rgba(43,57,144,0.06)' }}
         >
-          <div className="px-5 py-3.5 border-b border-[#E8EAF6]">
+          <div className="px-5 py-3.5 border-b border-[#E8EAF6] flex items-center gap-1.5">
             <h3 className="text-[15px] font-bold text-[#1e1b4b]">Shadow Allocation</h3>
+            <InfoTooltip content={KPI_TOOLTIPS.shadowAllocation} />
           </div>
           <div className="p-5">
             {data.shadow_count === 0 ? (

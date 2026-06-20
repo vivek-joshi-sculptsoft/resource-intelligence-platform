@@ -29,6 +29,21 @@
 - Click bench resource → Resource profile
 - Click upcoming release → Assignment in project detail
 - Click project type count → filtered project list
+- Hover/click info icon on each KPI card → tooltip with formula, meaning, and purpose (see Info Tooltips below)
+
+### Info Tooltips
+
+Every KPI card (`KpiCard` component) shows an info icon (`lucide-react` `Info`) next to its label. Hovering/clicking it opens a tooltip with three parts: **Formula**, **What it means**, **Why it matters**. Applies to all 6 KPI cards (including Phase 2 cards, so the pattern is ready once their data lands) plus the Shadow Allocation card heading. Tooltip text shown to end users does not reference internal doc paths (e.g. `BUSINESS-RULES.md`) — those references are kept in this spec table only, for engineering traceability.
+
+| Card | Formula | What it means | Why it matters |
+|---|---|---|---|
+| Billable Utilization % | `SUM(billable_pct) for non-shadow ACTIVE assignments / (active_resource_count × 100) × 100` — `shared/BUSINESS-RULES.md §7.1` | Share of total available capacity that is currently billed to clients | Core revenue-generating efficiency metric; low values mean idle/non-billable capacity |
+| Bench Count | `COUNT(resources WHERE 0 ACTIVE assignments)` — `shared/BUSINESS-RULES.md §7.6` | Number of resources with no active project allocation | Drives bench cost exposure and signals resourcing/sales gaps |
+| Active Projects | `COUNT(projects WHERE status = ACTIVE) GROUP BY type` | Number of currently active engagements, split by FP / T&M / Onboarding | Indicates current delivery load and engagement mix |
+| Active Resources | `COUNT(resources WHERE is_active = true)`, with allocated/bench breakdown | Total headcount currently available for assignment | Denominator for utilization and capacity-planning metrics |
+| Total Monthly Revenue (Phase 2) | `SUM(per-assignment projected revenue) for non-shadow ACTIVE assignments` — `shared/BUSINESS-RULES.md §7.3` | Projected billable revenue for the current month across all active assignments | Top-line financial health indicator |
+| Company Margin (Phase 2) | `Projected Revenue (INR) − Total Project Cost` — `shared/BUSINESS-RULES.md §7.5` | Company-wide projected margin after resource and non-human costs | Bottom-line profitability indicator after costs |
+| Shadow Allocation | `COUNT(assignments WHERE is_shadow = true)`; allocation % = `SUM(billability_pct) for shadow assignments` | Number of shadow (non-billable) assignments and their share of total allocation | Shadow resources add cost but contribute no revenue — high values signal hidden cost exposure |
 
 ### Empty State
 Each widget shows "—" or "0" when no data.
