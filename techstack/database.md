@@ -90,16 +90,16 @@ CREATE INDEX ix_audit_logs_entity_type_entity_id ON audit_logs(entity_type, enti
 
 ## Caching Layer
 
-**Redis 7** running in Docker on the same EC2 instance.
+**Redis 7** (optional) — running in Docker on the same EC2 instance, only deployed when `SCHEDULER_BACKEND=celery` (see [ADR-007](decisions/007-background-jobs.md)). The default scheduler backend (APScheduler) needs no Redis.
 
-| What's Cached | TTL | Invalidation |
+| What's Cached (planned, not yet implemented) | TTL | Invalidation |
 |---------------|-----|-------------|
 | RolePermission lookups | 5 min | On permission update (Phase 3) |
 | SystemConfig values | 10 min | On config update |
 | Dashboard aggregate queries | 30 sec | Time-based expiry |
 | User session data | Matches JWT lifetime | On logout |
 
-Cache is optional at MVP scale — PostgreSQL handles 20 users without breaking a sweat. Redis is primarily there as the Celery broker; caching is a bonus.
+Cache is optional at MVP scale — PostgreSQL handles 20 users without breaking a sweat. If caching is added later without Celery, use a lightweight client like `cachetools` (in-process) or add Redis back as a dedicated cache (e.g. Upstash free tier) independent of the job scheduler choice.
 
 ---
 

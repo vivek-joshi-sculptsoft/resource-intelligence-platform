@@ -12,11 +12,11 @@ FastAPI was chosen for: automatic OpenAPI documentation, Pydantic v2 integration
 
 **Modular monolith.** One FastAPI application, 13 modules as Python packages, one shared database. Modules are logically separated with clear import boundaries but deployed as a single process.
 
-Two runtime processes:
-1. **API server** — FastAPI via uvicorn (2 workers)
-2. **Celery worker** — background jobs + celery-beat scheduler
+Runtime processes — configurable via `SCHEDULER_BACKEND` env var (default `apscheduler`):
+1. **API server** — FastAPI via uvicorn (2 workers). When `SCHEDULER_BACKEND=apscheduler`, scheduled jobs run in-process inside this server via `AsyncIOScheduler` — no separate worker, no Redis.
+2. **Celery worker + celery-beat** (optional) — only deployed when `SCHEDULER_BACKEND=celery`. Requires Redis as broker.
 
-Both share the same codebase and database connection.
+Both backends share the same job implementations (`app/modules/{module}/jobs.py`) and the same codebase/database connection — only the scheduling layer differs.
 
 ---
 
@@ -61,8 +61,8 @@ Both share the same codebase and database connection.
 | Validation | Pydantic v2 | Request/response schemas |
 | Auth | python-jose | JWT encoding/decoding |
 | Password | argon2-cffi | Password hashing (OWASP recommended) |
-| Background | Celery 5.4 | Task queue and scheduling |
-| Scheduler | celery-beat | Cron-like job scheduling |
+| Scheduler (default) | APScheduler 3.x | In-process cron-like job scheduling, no Redis needed |
+| Background (optional) | Celery 5.4 + celery-beat | Task queue and scheduling — enabled via `SCHEDULER_BACKEND=celery` |
 | HTTP | httpx | Async HTTP client (for future integrations) |
 | Testing | pytest + pytest-asyncio | Unit and integration tests |
 | Coverage | pytest-cov | Test coverage reporting |
@@ -117,10 +117,10 @@ backend/
 │   │   └── utils.py               # Currency conversion, date helpers
 │   └── jobs/
 │       ├── __init__.py
-│       ├── celery_app.py          # Celery configuration
-│       ├── auto_release.py        # Daily: release expired assignments
-│       ├── alert_checks.py        # Contract expiry, bench, utilization alerts
-│       └── recurring_costs.py     # Monthly: create entries for recurring costs
+│       ├── scheduler.py           # APScheduler configuration (default backend)
+│       └── celery_app.py          # Celery configuration (optional backend, SCHEDULER_BACKEND=celery)
+│   # Job logic itself lives per-module: app/modules/allocations/jobs.py, app/modules/nonhuman_costs/jobs.py, etc.
+│   # Both scheduler.py and celery_app.py call the same module-level job functions.
 ├── alembic/
 │   ├── env.py
 │   └── versions/                  # Migration files
@@ -154,20 +154,25 @@ All business-logic errors raise `AppException` subclasses. Unhandled exceptions 
 
 ---
 
-## Background Job Worker
+## Background Job Scheduler
 
-Celery with Redis broker. Jobs defined in `app/jobs/`.
+Configurable via `SCHEDULER_BACKEND` env var:
+
+| Value | Mechanism | Infra needed |
+|-------|-----------|--------------|
+| `apscheduler` (default) | `AsyncIOScheduler` started/stopped in the FastAPI lifespan (`app/jobs/scheduler.py`) | None — runs inside the API process |
+| `celery` | Celery worker + celery-beat (`app/jobs/celery_app.py`) | Redis broker, separate worker/beat processes |
+
+Currently implemented jobs (both backends run the same underlying functions):
 
 | Job | Schedule | Module |
 |-----|----------|--------|
 | auto_release_assignments | Daily 00:00 IST | allocations |
-| check_contract_expiry | Daily 06:00 IST | alerts |
-| check_bench_duration | Daily 06:00 IST | alerts |
-| check_milestone_overdue | Daily 06:00 IST | alerts |
-| check_utilization_drop | Weekly Mon 06:00 IST | alerts |
 | process_recurring_costs | Monthly 1st 00:00 IST | nonhuman_costs |
 
-Retry policy: 3 retries with exponential backoff (10s, 60s, 300s). Failed jobs logged to Sentry.
+Planned (Phase 3, not yet implemented): `check_contract_expiry`, `check_bench_duration`, `check_milestone_overdue`, `check_utilization_drop` — all daily/weekly alert checks in the `alerts` module.
+
+**Choosing a backend:** APScheduler is the default — zero extra infra, sufficient for low-volume cron jobs (current load: 2 jobs/month). Switch to Celery if job volume grows, retries with backoff become necessary, or jobs need to run on a separate worker process (CPU-heavy jobs that shouldn't compete with API request handling). Celery retry policy: 3 retries with exponential backoff (10s, 60s, 300s). Failed jobs logged to Sentry in both backends.
 
 ---
 
@@ -188,7 +193,8 @@ All secrets via environment variables. Never in code, never in git.
 | Secret | Source |
 |--------|--------|
 | `DATABASE_URL` | RDS connection string |
-| `REDIS_URL` | Redis connection string |
+| `SCHEDULER_BACKEND` | `apscheduler` (default) or `celery` |
+| `REDIS_URL` | Redis connection string — only required when `SCHEDULER_BACKEND=celery` |
 | `JWT_SECRET_KEY` | 256-bit random key for JWT signing |
 | `JWT_REFRESH_SECRET_KEY` | Separate key for refresh tokens |
 | `SENTRY_DSN` | Sentry project DSN |

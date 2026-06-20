@@ -17,16 +17,17 @@ An internal web application for an IT services company (~30-40 employees) to rep
                       │ HTTPS /api/*
 ┌─────────────────────▼────────────────────────────┐
 │              EC2 (t3.small) — Docker Compose       │
-│  ┌──────────┐  ┌───────────────┐  ┌───────────┐  │
-│  │  Nginx   │→ │   FastAPI     │  │  Celery   │  │
-│  │ reverse  │  │  (uvicorn)    │  │  worker   │  │
-│  │ proxy    │  │               │  │  + beat   │  │
-│  └──────────┘  └───────┬───────┘  └─────┬─────┘  │
-│                        │                │         │
-│                ┌───────▼────────────────▼──────┐  │
-│                │        Redis 7               │  │
-│                │  (Celery broker + cache)      │  │
-│                └──────────────────────────────┘  │
+│  ┌──────────┐  ┌───────────────────────────────┐  │
+│  │  Nginx   │→ │   FastAPI (uvicorn)           │  │
+│  │ reverse  │  │   + APScheduler (in-process,  │  │
+│  │ proxy    │  │     default scheduled jobs)   │  │
+│  └──────────┘  └───────────────────────────────┘  │
+│                                                     │
+│  Optional, only when SCHEDULER_BACKEND=celery:     │
+│  ┌───────────┐         ┌──────────────────────┐   │
+│  │  Celery   │ ───────▶│  Redis 7             │   │
+│  │ worker+beat│        │  (Celery broker)      │   │
+│  └───────────┘         └──────────────────────┘   │
 └────────────────────────┬─────────────────────────┘
                          │ port 5432
                ┌─────────▼──────────┐
@@ -51,8 +52,8 @@ An internal web application for an IT services company (~30-40 employees) to rep
 | ORM | SQLAlchemy + Alembic | SQLAlchemy 2.0 |
 | Validation | Pydantic | v2 |
 | Primary Database | PostgreSQL | 16 (AWS RDS) |
-| Cache / Broker | Redis | 7 (Docker on EC2) |
-| Background Jobs | Celery + celery-beat | 5.4 |
+| Background Jobs | APScheduler (default) or Celery + celery-beat | APScheduler 3.x in-process; Celery 5.4 optional via `SCHEDULER_BACKEND=celery` |
+| Cache / Broker | Redis (optional) | 7 (Docker on EC2) — only deployed when running Celery |
 | Auth | Custom JWT (python-jose + argon2) | — |
 | Hosting (Frontend) | AWS S3 + CloudFront | — |
 | Hosting (Backend) | AWS EC2 (t3.small) + Docker Compose | — |
@@ -65,7 +66,7 @@ An internal web application for an IT services company (~30-40 employees) to rep
 
 ## Key Architectural Decisions
 
-1. **Modular monolith over microservices.** 1-2 devs, 1-week timeline, 20 concurrent users. Two processes (FastAPI + Celery worker) in Docker Compose, 13 modules as Python packages. See [ADR-008](decisions/008-monolith-vs-microservices.md).
+1. **Modular monolith over microservices.** 1-2 devs, 1-week timeline, 20 concurrent users. One FastAPI process handles the API and scheduled jobs (APScheduler, in-process); Celery worker + Redis are optional and only added when `SCHEDULER_BACKEND=celery`. 13 modules as Python packages. See [ADR-008](decisions/008-monolith-vs-microservices.md) and [ADR-007](decisions/007-background-jobs.md).
 
 2. **React SPA over Next.js.** No SSR, no SEO, no server-side features needed. React + Vite is lighter, faster to build, and eliminates server/client boundary confusion. See [ADR-003](decisions/003-frontend-framework.md).
 

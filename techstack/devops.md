@@ -79,6 +79,8 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--worker
 
 ### Docker Compose (Production)
 
+Default — `SCHEDULER_BACKEND=apscheduler` in `.env`, scheduled jobs run inside the API process:
+
 ```yaml
 services:
   nginx:
@@ -90,9 +92,12 @@ services:
   api:
     image: ${ECR_REPO}/ri-platform-api:latest
     env_file: .env
-    depends_on: [redis]
     expose: ["8000"]
+```
 
+Optional — set `SCHEDULER_BACKEND=celery` in `.env` and add these services:
+
+```yaml
   celery-worker:
     image: ${ECR_REPO}/ri-platform-api:latest
     command: celery -A app.jobs.celery_app worker -l info
@@ -152,7 +157,7 @@ Brief (~2-5 second) interruption during container restart. Acceptable for an int
 
 ## Rollback Procedure
 
-1. **Backend:** `docker compose` with previous image tag: `docker compose up -d --no-deps api celery-worker celery-beat`
+1. **Backend:** `docker compose` with previous image tag: `docker compose up -d --no-deps api` (add `celery-worker celery-beat` if `SCHEDULER_BACKEND=celery`)
 2. **Frontend:** Re-deploy previous S3 build: `aws s3 sync s3://ri-platform-frontend-backup/ s3://ri-platform-frontend/`
 3. **Database:** Alembic downgrade: `alembic downgrade -1` (only if migration was the issue)
 4. **Nuclear:** Restore EC2 from weekly AMI snapshot
@@ -171,11 +176,11 @@ pip install -e ".[dev]"
 python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-SQLite database auto-creates on first startup (`ri_platform.db`). No Docker, no PostgreSQL, no Redis needed for basic API development.
+SQLite database auto-creates on first startup (`ri_platform.db`). No Docker, no PostgreSQL, no Redis needed for basic API development. Scheduled jobs run in-process via APScheduler (default `SCHEDULER_BACKEND`).
 
 ### Full Stack (Docker Compose)
 
-For production-parity testing with PostgreSQL, Redis, and Celery:
+For production-parity testing with PostgreSQL (Redis/Celery only needed if testing that backend):
 
 ```yaml
 # docker-compose.dev.yml
@@ -187,16 +192,6 @@ services:
     env_file: .env
     ports: ["8000:8000"]
 
-  celery-worker:
-    build: ./backend
-    command: celery -A app.jobs.celery_app worker -l info
-    volumes: ["./backend/app:/app/app"]
-    env_file: .env
-
-  redis:
-    image: redis:7-alpine
-    ports: ["6379:6379"]
-
   postgres:
     image: postgres:16-alpine
     environment:
@@ -206,10 +201,23 @@ services:
     ports: ["5432:5432"]
     volumes: ["pg_data:/var/lib/postgresql/data"]
 
+  # Behind the "celery" Compose profile — only started when testing SCHEDULER_BACKEND=celery
+  celery-worker:
+    profiles: ["celery"]
+    build: ./backend
+    command: celery -A app.jobs.celery_app worker -l info
+    volumes: ["./backend/app:/app/app"]
+    env_file: .env
+
+  redis:
+    profiles: ["celery"]
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
 volumes:
   pg_data:
 ```
 
-To use PostgreSQL locally, set `DATABASE_URL=postgresql+asyncpg://dev:dev@localhost:5432/ri_platform` in `.env`.
+To use PostgreSQL locally, set `DATABASE_URL=postgresql+asyncpg://dev:dev@localhost:5432/ri_platform` in `.env`. To test the Celery backend, also set `SCHEDULER_BACKEND=celery` and run `docker compose --profile celery -f docker-compose.dev.yml up`.
 
 Frontend runs outside Docker via `npm run dev` (Vite dev server with API proxy to localhost:8000).

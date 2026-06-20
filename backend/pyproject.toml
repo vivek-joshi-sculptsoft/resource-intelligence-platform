@@ -21,6 +21,7 @@ dependencies = [
     "slowapi>=0.1.9",
     "sentry-sdk[fastapi]>=2.19.0",
     "python-multipart>=0.0.18",
+    "apscheduler>=3.10.0,<4.0.0",
 ]
 
 [project.optional-dependencies]

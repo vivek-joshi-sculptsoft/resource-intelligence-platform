@@ -23,7 +23,18 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         await create_tables()
         async with async_session_factory() as session:
             await seed_all(session)
+
+    if settings.SCHEDULER_BACKEND == "apscheduler":
+        from app.jobs.scheduler import start_scheduler
+
+        start_scheduler()
+
     yield
+
+    if settings.SCHEDULER_BACKEND == "apscheduler":
+        from app.jobs.scheduler import shutdown_scheduler
+
+        shutdown_scheduler()
 
 
 def create_app() -> FastAPI:
@@ -83,7 +94,13 @@ def create_app() -> FastAPI:
 
     @app.get("/api/v1/health")
     async def health_check() -> dict:
-        return {"status": "healthy", "version": "0.1.0"}
+        result: dict = {"status": "healthy", "version": "0.1.0", "scheduler": settings.SCHEDULER_BACKEND}
+        if settings.SCHEDULER_BACKEND == "apscheduler":
+            from app.jobs.scheduler import scheduler
+
+            result["scheduler_running"] = scheduler.running
+            result["scheduled_jobs"] = [job.id for job in scheduler.get_jobs()]
+        return result
 
     return app
 

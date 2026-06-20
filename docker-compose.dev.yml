@@ -18,10 +18,9 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
-      redis:
-        condition: service_healthy
 
   celery-worker:
+    profiles: ["celery"]
     build: ./backend
     command: ["worker"]
     volumes:
@@ -34,6 +33,7 @@ services:
         condition: service_healthy
 
   redis:
+    profiles: ["celery"]
     image: redis:7-alpine
     ports:
       - "6379:6379"

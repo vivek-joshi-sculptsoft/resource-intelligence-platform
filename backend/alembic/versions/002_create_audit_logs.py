@@ -16,9 +16,6 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    audit_action_enum = sa.Enum("CREATE", "UPDATE", "DELETE", name="audit_action_enum")
-    audit_action_enum.create(op.get_bind(), checkfirst=True)
-
     op.create_table(
         "audit_logs",
         sa.Column("id", sa.BigInteger(), autoincrement=True, nullable=False),
@@ -28,7 +25,7 @@ def upgrade() -> None:
         ),
         sa.Column(
             "action",
-            sa.Enum("CREATE", "UPDATE", "DELETE", name="audit_action_enum", create_type=False),
+            sa.Enum("CREATE", "UPDATE", "DELETE", name="audit_action_enum"),
             nullable=False,
         ),
         sa.Column("field_name", sa.String(100), nullable=True),

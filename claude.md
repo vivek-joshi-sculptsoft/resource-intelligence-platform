@@ -26,8 +26,8 @@ You are building a **Resource Intelligence & Project Economics Platform** — an
 | Frontend | React 19 + Vite 6 | shadcn/ui + Tailwind CSS, React Router v7, TanStack Query + Zustand |
 | Backend | Python 3.12 + FastAPI | Pydantic v2, SQLAlchemy 2.0 + Alembic, uvicorn |
 | Database | PostgreSQL 16 (prod/Docker) / SQLite (local dev) | UUID PKs, DECIMAL(15,2) for financials |
-| Cache / Broker | Redis 7 (Docker on EC2) | Celery broker + API cache |
-| Background Jobs | Celery 5.4 + celery-beat | 6 scheduled jobs (auto-release, alerts, recurring costs) |
+| Background Jobs | APScheduler (default) or Celery 5.4 + celery-beat | `SCHEDULER_BACKEND` env var picks the backend — see [ADR-007 update](techstack/decisions/007-background-jobs.md). APScheduler runs in-process, no Redis. 6 scheduled jobs planned (auto-release, alerts, recurring costs); 2 implemented so far |
+| Cache / Broker | Redis 7 (optional, Docker on EC2) | Only deployed when `SCHEDULER_BACKEND=celery` — Celery broker |
 | Auth | Custom JWT (python-jose + argon2) | httpOnly cookies, 15min access + 7d refresh tokens |
 | Hosting | AWS (EC2 t3.small + RDS + S3/CloudFront) | Docker Compose, ap-south-1 (Mumbai), ~$36/mo |
 | CI/CD | GitHub Actions | `ci.yml` (Lint → Test → Build → Deploy), `traceability-check.yml` |
@@ -64,7 +64,7 @@ project/
 │   │   │   ├── invoicing/
 │   │   │   └── nonhuman_costs/
 │   │   ├── shared/                   # Base models, schemas, exceptions, utils
-│   │   └── jobs/                     # Celery app + tasks
+│   │   └── jobs/                     # scheduler.py (APScheduler, default) + celery_app.py (Celery, optional)
 │   ├── alembic/                      # Database migrations
 │   ├── tests/                        # pytest test suites
 │   ├── pyproject.toml
@@ -428,12 +428,13 @@ cd frontend && npm run dev
 
 ### Full stack (Docker)
 ```bash
-docker compose -f docker-compose.dev.yml up postgres redis -d   # infra
-cd backend && python3 -m uvicorn app.main:app --reload          # API
+docker compose -f docker-compose.dev.yml up postgres -d         # infra
+cd backend && python3 -m uvicorn app.main:app --reload          # API (APScheduler runs in-process)
 cd frontend && npm run dev                                       # UI
 ```
 - PostgreSQL: `localhost:5432` (ri_platform / devuser / devpass)
-- Redis: `localhost:6379`
+
+**Celery instead of APScheduler:** set `SCHEDULER_BACKEND=celery` in `backend/.env`, then `docker compose --profile celery -f docker-compose.dev.yml up redis celery-worker -d`. Redis: `localhost:6379` (only running under the `celery` profile).
 
 ### Slash commands
 Use `/dev-backend`, `/dev-frontend`, `/dev-infra`, or `/dev-all` to start services via Claude Code.

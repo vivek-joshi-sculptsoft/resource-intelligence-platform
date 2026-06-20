@@ -12,11 +12,13 @@
 
 ### Backend: EC2 (t3.small)
 
-Single EC2 instance running Docker Compose with 4 containers:
+Single EC2 instance running Docker Compose with 2 containers by default:
 1. **Nginx** — reverse proxy, SSL termination, static file serving
-2. **FastAPI** — uvicorn with 2 workers
+2. **FastAPI** — uvicorn with 2 workers, scheduled jobs run in-process via APScheduler (default — see [ADR-007](decisions/007-background-jobs.md))
+
+Two more containers are added only if `SCHEDULER_BACKEND=celery` is set:
 3. **Celery worker** — background job processor
-4. **Redis 7** — Celery broker + application cache
+4. **Redis 7** — Celery broker
 
 | Spec | Value |
 |------|-------|

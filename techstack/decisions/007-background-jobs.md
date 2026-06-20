@@ -47,3 +47,15 @@ The platform requires 6 scheduled background jobs: daily auto-release of expired
 ## Review Trigger
 
 Revisit if job volume exceeds 10K/day or if complex multi-step workflows are needed (consider Temporal at that point).
+
+---
+
+## Update — 2026-06-20: Made the scheduler backend configurable
+
+**Trigger:** Exploring free-tier hosting options (Vercel + Render + Supabase) surfaced that Redis/Celery has no free-hosting equivalent and is the main blocker to a $0/month deployment, while the actual job volume (2 jobs/month: daily auto-release, monthly recurring costs) doesn't need Celery's distributed worker model.
+
+**Change:** Added APScheduler as the **default** scheduler backend, selectable via the `SCHEDULER_BACKEND` env var (`apscheduler` | `celery`). APScheduler runs `AsyncIOScheduler` in-process inside the FastAPI lifespan (`app/jobs/scheduler.py`) — no Redis, no separate worker process. Celery remains fully intact (`app/jobs/celery_app.py`, untouched) for environments that need it.
+
+This does not reverse the original ADR-007 rationale — Celery is still the right choice if job volume or complexity grows (see Review Trigger above). It adds a lighter-weight default for the current low-volume, single-instance deployment, and keeps Celery available as an opt-in upgrade path with zero code rewrite (`docker compose --profile celery` brings up Redis + worker).
+
+**Switch back to Celery when:** job volume grows past the original review trigger, jobs need CPU isolation from the API process, or the deployment moves to a host where Redis is already provisioned (e.g. AWS EC2 — see ADR-004).

@@ -15,6 +15,9 @@ if _is_sqlite:
 else:
     _engine_kwargs["pool_size"] = 5
     _engine_kwargs["max_overflow"] = 10
+    # PgBouncer transaction-mode pooling (e.g. Supabase pooler) doesn't support
+    # server-side prepared statements — asyncpg must not cache them.
+    _engine_kwargs["connect_args"] = {"statement_cache_size": 0}
 
 engine = create_async_engine(settings.DATABASE_URL, **_engine_kwargs)
 

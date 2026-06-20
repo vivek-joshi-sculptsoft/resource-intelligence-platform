@@ -20,9 +20,6 @@ scope_enum = sa.Enum("ALL", "OWN_PORTFOLIO", "SELF_ONLY", name="scope_enum")
 
 
 def upgrade() -> None:
-    access_level_enum.create(op.get_bind(), checkfirst=True)
-    scope_enum.create(op.get_bind(), checkfirst=True)
-
     op.create_table(
         "roles",
         sa.Column("id", UUID(as_uuid=True), primary_key=True),

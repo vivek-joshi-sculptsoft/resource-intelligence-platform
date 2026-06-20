@@ -7,9 +7,10 @@ Resource Intelligence & Project Economics Platform — an internal tool for an I
 | Layer | Choice | Notes |
 |---|---|---|
 | Frontend | React 19 + Vite 6 | shadcn/ui, Tailwind CSS 4, React Router v7, TanStack Query v5, Zustand v5 |
-| Backend | Python 3.12 + FastAPI | Pydantic v2, SQLAlchemy 2.0 async, Alembic, Celery 5.4 |
+| Backend | Python 3.12 + FastAPI | Pydantic v2, SQLAlchemy 2.0 async, Alembic |
 | Database | PostgreSQL 16 | UUID PKs, DECIMAL(15,2) for financials, soft delete |
-| Cache / Broker | Redis 7 | Celery broker + API cache |
+| Background Jobs | APScheduler (default) or Celery 5.4 | `SCHEDULER_BACKEND` env var — APScheduler runs in-process, no Redis needed |
+| Cache / Broker | Redis 7 (optional) | Only needed when `SCHEDULER_BACKEND=celery` |
 | Auth | Custom JWT | argon2 password hashing, httpOnly cookies, 15min access + 7d refresh tokens |
 | Hosting | AWS (EC2 + RDS + S3/CloudFront) | ap-south-1 (Mumbai), ~$36/mo |
 | CI/CD | GitHub Actions | Lint → Test → Build → Deploy |
@@ -34,7 +35,7 @@ project/
 │   │   │   ├── worklogs/       # Daily worklog CRUD
 │   │   │   └── audit/          # Append-only audit log
 │   │   ├── shared/             # Base models, schemas, exceptions, utils
-│   │   └── jobs/               # Celery app + tasks
+│   │   └── jobs/               # scheduler.py (APScheduler) + celery_app.py (Celery), both configurable via SCHEDULER_BACKEND
 │   ├── alembic/                # Database migrations
 │   ├── tests/                  # pytest test suites
 │   ├── pyproject.toml
@@ -56,7 +57,7 @@ project/
 ├── modules/                    # Module-wise specs (13 modules)
 ├── techstack/                  # Architecture decisions and stack docs
 ├── tickets/                    # JIRA-ready story breakdowns
-├── docker-compose.dev.yml      # Local dev: api, celery, redis, postgres
+├── docker-compose.dev.yml      # Local dev: api, postgres (+ optional celery-worker, redis via `--profile celery`)
 ├── .github/workflows/ci.yml    # CI pipeline
 ├── CLAUDE.md                   # Master build instructions
 └── ROADMAP.md                  # Phase-wise build plan
@@ -90,13 +91,21 @@ npm run dev
 ### Full Stack (Docker)
 
 ```bash
-docker compose -f docker-compose.dev.yml up postgres redis -d   # infra
-cd backend && python3 -m uvicorn app.main:app --reload          # API
+docker compose -f docker-compose.dev.yml up postgres -d         # infra
+cd backend && python3 -m uvicorn app.main:app --reload          # API (APScheduler runs in-process by default)
 cd frontend && npm run dev                                       # UI
 ```
 
 - PostgreSQL: `localhost:5432` (ri_platform / dev / dev)
-- Redis: `localhost:6379`
+
+**Using Celery instead of APScheduler:** set `SCHEDULER_BACKEND=celery` in `backend/.env`, then start Redis and the worker via the `celery` Compose profile:
+
+```bash
+docker compose -f docker-compose.dev.yml --profile celery up redis celery-worker -d
+cd backend && celery -A app.jobs.celery_app beat -l info   # separate terminal, if scheduled jobs are needed
+```
+
+- Redis: `localhost:6379` (only running when the `celery` profile is active)
 
 ### Claude Code Commands
 
@@ -104,7 +113,7 @@ cd frontend && npm run dev                                       # UI
 |---|---|
 | `/dev-backend` | Start FastAPI dev server (port 8000, hot-reload) |
 | `/dev-frontend` | Start Vite dev server (port 5173, HMR) |
-| `/dev-infra` | Start PostgreSQL + Redis via Docker Compose |
+| `/dev-infra` | Start PostgreSQL via Docker Compose (add `redis` only if testing the Celery backend) |
 | `/dev-all` | Start full stack (infra + backend + frontend) |
 | `/test backend` | Run backend tests |
 | `/test frontend` | Run frontend tests |
