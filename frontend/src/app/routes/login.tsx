@@ -59,6 +59,12 @@ export function LoginPage() {
         {/* Logo & Title */}
         <div className="mb-7 flex flex-col items-center">
           <LogoIcon />
+          <span
+            className="mb-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+            style={{ background: '#FFF3D6', color: '#B7791F' }}
+          >
+            Beta
+          </span>
           <div className="mt-1 text-[13px] font-medium tracking-wide" style={{ color: '#7C85C0' }}>
             for SculptSoft
           </div>

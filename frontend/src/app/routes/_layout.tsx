@@ -144,6 +144,12 @@ export function RootLayout() {
                 <span style={{ color: '#0A0E1F' }}>Sculpt</span>
                 <span style={{ color: '#2254F4' }}>Nexus</span>
               </span>
+              <span
+                className="rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+                style={{ background: '#FFF3D6', color: '#B7791F' }}
+              >
+                Beta
+              </span>
               <span className="text-[12px] font-medium" style={{ color: '#7C85C0' }}>
                 - A Resource Intelligence Platform For SculptSoft
               </span>
