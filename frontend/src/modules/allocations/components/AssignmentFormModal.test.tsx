@@ -167,6 +167,7 @@ describe('AssignmentFormModal', () => {
         billability_pct: 50,
         is_shadow: false,
         billing_rate: null,
+        billing_currency: 'INR',
         project_designation: 'Frontend Lead',
         project_expertise: null,
         start_date: '2026-01-01',

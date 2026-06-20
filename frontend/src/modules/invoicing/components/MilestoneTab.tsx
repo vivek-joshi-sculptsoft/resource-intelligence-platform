@@ -57,8 +57,9 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-function formatInr(val: number): string {
-  return '₹' + val.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+function formatInr(val: number, currency?: string): string {
+  const formatted = '₹' + val.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+  return currency && currency !== 'INR' ? `${formatted} (${currency})` : formatted
 }
 
 function getDelayDays(planned: string, actual: string): number | null {
@@ -231,10 +232,10 @@ export function MilestoneTab({ projectId, billingCurrency }: MilestoneTabProps) 
       {/* Summary Cards */}
       <div style={{ display: 'flex', gap: 16, marginBottom: 20 }}>
         {[
-          { label: 'Contract Value', value: formatInr(totalAmount), sub: `${milestones.length} milestones` },
-          { label: 'Delivered', value: formatInr(deliveredAmount), sub: `${deliveredCount} milestones` },
-          { label: 'Invoiced / Paid', value: formatInr(invoicedAmount), sub: `${invoicedCount} milestones` },
-          { label: 'Remaining', value: formatInr(remainingAmount), sub: `${remainingCount} milestones planned` },
+          { label: 'Contract Value', value: formatInr(totalAmount, billingCurrency), sub: `${milestones.length} milestones` },
+          { label: 'Delivered', value: formatInr(deliveredAmount, billingCurrency), sub: `${deliveredCount} milestones` },
+          { label: 'Invoiced / Paid', value: formatInr(invoicedAmount, billingCurrency), sub: `${invoicedCount} milestones` },
+          { label: 'Remaining', value: formatInr(remainingAmount, billingCurrency), sub: `${remainingCount} milestones planned` },
         ].map((card) => (
           <div
             key={card.label}
@@ -329,7 +330,7 @@ export function MilestoneTab({ projectId, billingCurrency }: MilestoneTabProps) 
                     <strong>{m.name}</strong>
                   </td>
                   <td style={{ padding: '12px 16px', fontSize: 14, textAlign: 'right' }}>
-                    {m.amount != null ? formatInr(m.amount) : '—'}
+                    {m.amount != null ? formatInr(m.amount, billingCurrency) : '—'}
                   </td>
                   <td style={{ padding: '12px 16px', fontSize: 14 }}>
                     {m.planned_delivery_date ? formatDate(m.planned_delivery_date) : '—'}
@@ -370,7 +371,7 @@ export function MilestoneTab({ projectId, billingCurrency }: MilestoneTabProps) 
             <tr style={{ fontWeight: 700, background: '#F5F6FC' }}>
               <td style={{ padding: '12px 16px' }} />
               <td style={{ padding: '12px 16px', fontSize: 14 }}><strong>Total Contract Value</strong></td>
-              <td style={{ padding: '12px 16px', fontSize: 14, textAlign: 'right' }}><strong>{formatInr(totalAmount)}</strong></td>
+              <td style={{ padding: '12px 16px', fontSize: 14, textAlign: 'right' }}><strong>{formatInr(totalAmount, billingCurrency)}</strong></td>
               <td colSpan={5} style={{ padding: '12px 16px' }} />
             </tr>
           </tbody>
