@@ -9,9 +9,11 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = "sqlite+aiosqlite:///./ri_platform.db"
     DATABASE_ECHO: bool = False
-    # Direct (non-pooled) connection used only for Alembic migrations against Supabase —
-    # pgbouncer transaction-mode pooling (DATABASE_URL, port 6543) breaks asyncpg's prepared
-    # statements during DDL. Falls back to DATABASE_URL when unset (SQLite, plain Postgres).
+    # Used only for Alembic migrations against Supabase — pgbouncer transaction-mode pooling
+    # (DATABASE_URL, port 6543) breaks asyncpg's prepared statements during DDL. Use the
+    # Supabase *session pooler* (port 5432, same pooler.supabase.com host), NOT the true
+    # direct db.<ref>.supabase.co:5432 connection — that one is IPv6-only and unreachable
+    # from IPv4-only hosts like Render. Falls back to DATABASE_URL when unset (SQLite, plain Postgres).
     MIGRATION_DATABASE_URL: str = ""
 
     REDIS_URL: str = "redis://localhost:6379/0"

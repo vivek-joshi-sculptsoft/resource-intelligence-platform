@@ -24,14 +24,15 @@
 **[MANUAL]**
 1. In the Supabase project dashboard, go to **Project Settings → Database**.
 2. Copy **two** connection strings — both are needed, for different jobs:
-   - **Pooler** (Connection pooling, Transaction mode, port `6543`) — used by the running app for normal queries. Required because Render's free tier connects like a serverless workload (many short-lived connections); the pooler handles that, a direct connection doesn't.
-   - **Direct connection** (port `5432`) — used **only** to run Alembic migrations. `asyncpg` relies on prepared statements for DDL, and pgbouncer's transaction-mode pooling (what port 6543 uses) breaks those — so migrations must bypass the pooler.
+   - **Transaction pooler** (Connection pooling, Transaction mode, port `6543`) — used by the running app for normal queries. Required because Render's free tier connects like a serverless workload (many short-lived connections); the pooler handles that, a direct connection doesn't.
+   - **Session pooler** (Connection pooling, **Session** mode, port `5432`, same `*.pooler.supabase.com` host) — used **only** to run Alembic migrations. `asyncpg` relies on prepared statements for DDL, which transaction-mode pooling (port 6543) breaks — session mode supports them.
+     **Do not use the true direct connection** (`db.<project-ref>.supabase.co:5432`) for this — it's IPv6-only and unreachable from IPv4-only hosts like Render (`OSError: Network is unreachable`).
 3. They look like:
    ```
-   postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres   # pooler
-   postgresql://postgres.<project-ref>:<password>@db.<project-ref>.supabase.co:5432/postgres          # direct
+   postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres   # transaction pooler
+   postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres   # session pooler
    ```
-4. Convert both to the SQLAlchemy async driver format (swap `postgresql://` → `postgresql+asyncpg://`). Save the pooler one as `SUPABASE_DATABASE_URL` and the direct one as `SUPABASE_MIGRATION_DATABASE_URL` somewhere safe (password manager / local `.env.supabase`, not committed to git) — you'll set both as Render env vars in Phase 2 (`DATABASE_URL` and `MIGRATION_DATABASE_URL` respectively).
+4. Convert both to the SQLAlchemy async driver format (swap `postgresql://` → `postgresql+asyncpg://`). Save the transaction-pooler one as `SUPABASE_DATABASE_URL` and the session-pooler one as `SUPABASE_MIGRATION_DATABASE_URL` somewhere safe (password manager / local `.env.supabase`, not committed to git) — you'll set both as Render env vars in Phase 2 (`DATABASE_URL` and `MIGRATION_DATABASE_URL` respectively).
 
 **Migrations are no longer run manually.** `backend/startup.sh`'s `api` case now runs `alembic upgrade head` automatically before `uvicorn` starts, using `MIGRATION_DATABASE_URL` (falls back to `DATABASE_URL` if unset — see `backend/alembic/env.py`). This was added specifically because a model without a matching migration (`non_human_costs`) shipped silently on SQLite and only broke on Postgres — see the CI gate in Phase 2 note below and `.github/workflows/ci.yml`'s `alembic check` step, which now catches this class of bug before merge.
 
@@ -95,8 +96,8 @@ Expect `roles=7 users=1` (or more, if seed creates more). Note the seeded admin 
 
    | Key | Value | Notes |
    |---|---|---|
-   | `DATABASE_URL` | the Supabase **pooler** URL (port 6543) from Phase 1 | used by the running app for normal queries |
-   | `MIGRATION_DATABASE_URL` | the Supabase **direct** URL (port 5432) from Phase 1 | used only by `alembic upgrade head` at startup — pgbouncer transaction-mode pooling breaks asyncpg DDL |
+   | `DATABASE_URL` | the Supabase **transaction pooler** URL (port 6543) from Phase 1 | used by the running app for normal queries |
+   | `MIGRATION_DATABASE_URL` | the Supabase **session pooler** URL (port 5432, `*.pooler.supabase.com` — NOT `db.<ref>.supabase.co`) from Phase 1 | used only by `alembic upgrade head` at startup — transaction-mode pooling breaks asyncpg DDL, and the true direct connection is IPv6-only/unreachable from Render |
    | `SCHEDULER_BACKEND` | `apscheduler` | default — no Redis needed on Render |
    | `JWT_SECRET_KEY` | generate: `openssl rand -hex 32` | |
    | `JWT_REFRESH_SECRET_KEY` | generate: `openssl rand -hex 32` (different value) | |

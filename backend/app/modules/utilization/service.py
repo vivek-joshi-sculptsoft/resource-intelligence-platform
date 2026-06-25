@@ -7,15 +7,24 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.allocations.models import Assignment
+from app.modules.auth.models import SystemConfig
 from app.modules.projects.models import Project
 from app.modules.resources.models import Resource, ResourceTag
 from app.modules.utilization.schemas import (
     AvailabilityBenchResource,
     AvailabilityFullyAllocated,
+    AvailabilityPartialItem,
+    AvailabilityPartialProject,
     AvailabilityPartialResource,
     AvailabilityReleasingSoon,
     AvailabilityResponse,
+    AvailabilityUpcomingItem,
+    AvailabilityUpcomingProject,
+    AvailabilityUpcomingResource,
+    BenchListItem,
     BenchResource,
+    BenchSummaryResource,
+    BenchSummaryResponse,
     CompanyDashboardResponse,
     DMDashboardResponse,
     UpcomingRelease,
@@ -434,3 +443,191 @@ async def get_availability(db: AsyncSession, window: int = 30) -> AvailabilityRe
         releasing_soon=releasing_soon,
         fully_allocated=fully_allocated,
     )
+
+
+async def _get_working_days(db: AsyncSession) -> int:
+    result = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == "system.working_days_per_month")
+    )
+    config = result.scalar_one_or_none()
+    return int(config.value) if config else 22
+
+
+async def _bench_resources(db: AsyncSession) -> list[Resource]:
+    """See BUSINESS-RULES.md §7.6 — bench = active resource with 0 ACTIVE assignments."""
+
+    active_resources = (
+        (await db.execute(select(Resource).where(Resource.is_active == True)))  # noqa: E712
+        .scalars()
+        .all()
+    )
+    allocated_resource_ids = set(
+        (await db.execute(select(Assignment.resource_id).where(Assignment.status == "ACTIVE")))
+        .scalars()
+        .all()
+    )
+    return [r for r in active_resources if r.id not in allocated_resource_ids]
+
+
+async def _bench_start_and_days(
+    db: AsyncSession, resource: Resource, today: date
+) -> tuple[date, int]:
+    last_release = (
+        await db.execute(
+            select(func.max(Assignment.released_at)).where(
+                Assignment.resource_id == resource.id,
+                Assignment.released_at.isnot(None),
+            )
+        )
+    ).scalar()
+    if last_release:
+        bench_start = last_release.date() if hasattr(last_release, "date") else last_release
+    else:
+        bench_start = resource.date_of_joining or today
+    return bench_start, max((today - bench_start).days, 0)
+
+
+async def get_bench_list(db: AsyncSession, can_see_cost: bool) -> list[BenchListItem]:
+    """See modules/10-bench-forecasting/API.md — GET /api/bench."""
+
+    today = date.today()
+    working_days = await _get_working_days(db)
+    items: list[BenchListItem] = []
+
+    for r in await _bench_resources(db):
+        bench_start, days_on_bench = await _bench_start_and_days(db, r, today)
+        tags = (
+            (await db.execute(select(ResourceTag.tag).where(ResourceTag.resource_id == r.id)))
+            .scalars()
+            .all()
+        )
+
+        loaded_cost_monthly: Decimal | None = None
+        daily_bench_cost_inr: Decimal | None = None
+        total_bench_cost_inr: Decimal | None = None
+        if can_see_cost and r.loaded_cost_monthly is not None:
+            loaded_cost_monthly = Decimal(str(r.loaded_cost_monthly))
+            daily_bench_cost_inr = loaded_cost_monthly / Decimal(working_days)
+            total_bench_cost_inr = daily_bench_cost_inr * Decimal(days_on_bench)
+
+        items.append(
+            BenchListItem(
+                id=r.id,
+                name=r.name,
+                designation=r.designation,
+                technical_expertise=r.technical_expertise,
+                tags=list(tags),
+                days_on_bench=days_on_bench,
+                bench_start_date=bench_start,
+                loaded_cost_monthly=loaded_cost_monthly,
+                daily_bench_cost_inr=daily_bench_cost_inr,
+                total_bench_cost_inr=total_bench_cost_inr,
+            )
+        )
+    return items
+
+
+async def get_bench_summary(db: AsyncSession, can_see_cost: bool) -> BenchSummaryResponse:
+    """See modules/10-bench-forecasting/API.md — GET /api/bench/summary."""
+
+    bench_list = await get_bench_list(db, can_see_cost=can_see_cost)
+
+    total_bench_cost_monthly: Decimal | None = None
+    if can_see_cost:
+        known_costs = [
+            item.loaded_cost_monthly for item in bench_list if item.loaded_cost_monthly is not None
+        ]
+        if known_costs:
+            total_bench_cost_monthly = sum(known_costs, Decimal("0"))
+
+    average_bench_duration: Decimal | None = None
+    if bench_list:
+        average_bench_duration = (
+            Decimal(sum(item.days_on_bench for item in bench_list)) / Decimal(len(bench_list))
+        ).quantize(Decimal("0.01"))
+
+    return BenchSummaryResponse(
+        bench_count=len(bench_list),
+        total_bench_cost_monthly=total_bench_cost_monthly,
+        average_bench_duration=average_bench_duration,
+        resources=[
+            BenchSummaryResource(name=item.name, days_on_bench=item.days_on_bench)
+            for item in bench_list
+        ],
+    )
+
+
+async def get_upcoming_availability(
+    db: AsyncSession, window: int = 30
+) -> list[AvailabilityUpcomingItem]:
+    """See modules/10-bench-forecasting/API.md — GET /api/availability/upcoming."""
+
+    today = date.today()
+    window_end = today + timedelta(days=window)
+    upcoming = (
+        (
+            await db.execute(
+                select(Assignment).where(
+                    Assignment.status == "ACTIVE",
+                    Assignment.end_date.isnot(None),
+                    Assignment.end_date >= today,
+                    Assignment.end_date <= window_end,
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+    return [
+        AvailabilityUpcomingItem(
+            resource=AvailabilityUpcomingResource(
+                id=a.resource.id, name=a.resource.name, designation=a.resource.designation
+            ),
+            project=AvailabilityUpcomingProject(id=a.project.id, name=a.project.name),
+            allocation_pct=a.allocation_pct,
+            end_date=a.end_date,
+            days_remaining=(a.end_date - today).days,
+        )
+        for a in upcoming
+    ]
+
+
+async def get_partial_availability(db: AsyncSession) -> list[AvailabilityPartialItem]:
+    """See modules/10-bench-forecasting/API.md — GET /api/availability/partial."""
+
+    active_resources = (
+        (await db.execute(select(Resource).where(Resource.is_active == True)))  # noqa: E712
+        .scalars()
+        .all()
+    )
+    active_assignments = (
+        (await db.execute(select(Assignment).where(Assignment.status == "ACTIVE"))).scalars().all()
+    )
+
+    resource_alloc: dict[str, int] = {}
+    resource_projects: dict[str, dict] = {}
+    for a in active_assignments:
+        rid = str(a.resource_id)
+        resource_alloc[rid] = resource_alloc.get(rid, 0) + a.allocation_pct
+        resource_projects.setdefault(rid, {})[a.project.id] = a.project.name
+
+    items: list[AvailabilityPartialItem] = []
+    for r in active_resources:
+        rid = str(r.id)
+        total_pct = resource_alloc.get(rid, 0)
+        if 0 < total_pct < 100:
+            items.append(
+                AvailabilityPartialItem(
+                    id=r.id,
+                    name=r.name,
+                    designation=r.designation,
+                    total_allocation_pct=total_pct,
+                    spare_capacity_pct=100 - total_pct,
+                    projects=[
+                        AvailabilityPartialProject(id=pid, name=pname)
+                        for pid, pname in resource_projects.get(rid, {}).items()
+                    ],
+                )
+            )
+    return items

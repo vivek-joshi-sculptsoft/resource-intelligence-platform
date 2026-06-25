@@ -9,9 +9,14 @@ from app.modules.auth.models import User
 from app.modules.projects.models import Project
 from app.modules.utilization.service import (
     get_availability,
+    get_bench_list,
+    get_bench_summary,
     get_company_dashboard,
     get_dm_dashboard,
+    get_partial_availability,
+    get_upcoming_availability,
 )
+from app.shared.access_control import can_see_field
 from app.shared.exceptions import ForbiddenError
 
 router = APIRouter(tags=["dashboard"])
@@ -73,3 +78,46 @@ async def availability_dashboard(
     # See ACCESS-MATRIX.md — All authenticated roles including Engineer
     data = await get_availability(db, window=window)
     return {"data": data.model_dump()}
+
+
+@router.get("/api/v1/bench")
+async def bench_list(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    # See ACCESS-MATRIX.md — bench_data: all roles; cost fields restricted to CEO/CTO/Finance
+    can_see_cost = can_see_field(current_user.role.code, "loaded_cost_monthly")
+    data = await get_bench_list(db, can_see_cost=can_see_cost)
+    return {"data": [item.model_dump() for item in data]}
+
+
+@router.get("/api/v1/bench/summary")
+async def bench_summary(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    # See ACCESS-MATRIX.md — bench_data: all roles; cost fields restricted to CEO/CTO/Finance
+    can_see_cost = can_see_field(current_user.role.code, "loaded_cost_monthly")
+    data = await get_bench_summary(db, can_see_cost=can_see_cost)
+    return {"data": data.model_dump()}
+
+
+@router.get("/api/v1/availability/upcoming")
+async def availability_upcoming(
+    window: int = Query(30, ge=1, le=90),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    # See ACCESS-MATRIX.md — All authenticated roles including Engineer
+    data = await get_upcoming_availability(db, window=window)
+    return {"data": [item.model_dump() for item in data]}
+
+
+@router.get("/api/v1/availability/partial")
+async def availability_partial(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    # See ACCESS-MATRIX.md — All authenticated roles including Engineer
+    data = await get_partial_availability(db)
+    return {"data": [item.model_dump() for item in data]}

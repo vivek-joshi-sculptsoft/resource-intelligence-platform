@@ -75,6 +75,72 @@ class AvailabilityResponse(BaseModel):
     fully_allocated: list[AvailabilityFullyAllocated]
 
 
+class BenchListItem(BaseModel):
+    """See modules/10-bench-forecasting/API.md — GET /api/bench."""
+
+    id: UUID
+    name: str
+    designation: str
+    technical_expertise: str | None
+    tags: list[str]
+    days_on_bench: int
+    bench_start_date: date
+    loaded_cost_monthly: Decimal | None = None
+    daily_bench_cost_inr: Decimal | None = None
+    total_bench_cost_inr: Decimal | None = None
+
+
+class BenchSummaryResource(BaseModel):
+    name: str
+    days_on_bench: int
+
+
+class BenchSummaryResponse(BaseModel):
+    """See modules/10-bench-forecasting/API.md — GET /api/bench/summary."""
+
+    bench_count: int
+    total_bench_cost_monthly: Decimal | None = None
+    average_bench_duration: Decimal | None = None
+    resources: list[BenchSummaryResource]
+
+
+class AvailabilityUpcomingResource(BaseModel):
+    id: UUID
+    name: str
+    designation: str
+
+
+class AvailabilityUpcomingProject(BaseModel):
+    id: UUID
+    name: str
+
+
+class AvailabilityUpcomingItem(BaseModel):
+    """See modules/10-bench-forecasting/API.md — GET /api/availability/upcoming."""
+
+    resource: AvailabilityUpcomingResource
+    project: AvailabilityUpcomingProject
+    allocation_pct: int
+    end_date: date
+    days_remaining: int
+
+
+class AvailabilityPartialProject(BaseModel):
+    id: UUID
+    name: str
+
+
+class AvailabilityPartialItem(BaseModel):
+    """See modules/10-bench-forecasting/API.md — GET /api/availability/partial."""
+
+    id: UUID
+    name: str
+    designation: str
+    total_allocation_pct: int
+    spare_capacity_pct: int
+    projects: list[AvailabilityPartialProject]
+
+
 class CompanyDashboardResponse(BaseModel):
     billable_utilization_pct: Decimal
     total_active_resources: int
