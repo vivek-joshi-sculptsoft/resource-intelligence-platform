@@ -71,6 +71,10 @@ jobs:
           python-version: "3.12"
       - run: pip install -e ".[dev]"
       - run: python -m pytest tests/ -v --cov=app --cov-report=term-missing
+      - name: Check for missing Alembic migrations (model/migration drift)
+        run: |
+          alembic upgrade head
+          alembic check
 
   test-frontend:
     name: Test Frontend

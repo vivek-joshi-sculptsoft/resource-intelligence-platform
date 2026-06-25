@@ -23,26 +23,21 @@
 
 **[MANUAL]**
 1. In the Supabase project dashboard, go to **Project Settings → Database**.
-2. Copy the **connection string** under "Connection pooling" (Transaction mode, port `6543`) — NOT the direct connection (port 5432). Render's free tier and serverless-style connections need the pooler.
-3. It looks like:
+2. Copy **two** connection strings — both are needed, for different jobs:
+   - **Pooler** (Connection pooling, Transaction mode, port `6543`) — used by the running app for normal queries. Required because Render's free tier connects like a serverless workload (many short-lived connections); the pooler handles that, a direct connection doesn't.
+   - **Direct connection** (port `5432`) — used **only** to run Alembic migrations. `asyncpg` relies on prepared statements for DDL, and pgbouncer's transaction-mode pooling (what port 6543 uses) breaks those — so migrations must bypass the pooler.
+3. They look like:
    ```
-   postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres
+   postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres   # pooler
+   postgresql://postgres.<project-ref>:<password>@db.<project-ref>.supabase.co:5432/postgres          # direct
    ```
-4. Convert it to the SQLAlchemy async driver format (swap `postgresql://` → `postgresql+asyncpg://`):
-   ```
-   postgresql+asyncpg://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres
-   ```
-   Save this as `SUPABASE_DATABASE_URL` somewhere safe (password manager / local `.env.supabase`, not committed to git).
+4. Convert both to the SQLAlchemy async driver format (swap `postgresql://` → `postgresql+asyncpg://`). Save the pooler one as `SUPABASE_DATABASE_URL` and the direct one as `SUPABASE_MIGRATION_DATABASE_URL` somewhere safe (password manager / local `.env.supabase`, not committed to git) — you'll set both as Render env vars in Phase 2 (`DATABASE_URL` and `MIGRATION_DATABASE_URL` respectively).
 
-**[CLAUDE]** — run migrations and seed data against Supabase from your local machine:
+**Migrations are no longer run manually.** `backend/startup.sh`'s `api` case now runs `alembic upgrade head` automatically before `uvicorn` starts, using `MIGRATION_DATABASE_URL` (falls back to `DATABASE_URL` if unset — see `backend/alembic/env.py`). This was added specifically because a model without a matching migration (`non_human_costs`) shipped silently on SQLite and only broke on Postgres — see the CI gate in Phase 2 note below and `.github/workflows/ci.yml`'s `alembic check` step, which now catches this class of bug before merge.
 
-```bash
-cd backend
-export DATABASE_URL="postgresql+asyncpg://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres"
-python3 -m alembic upgrade head
-```
+**[CLAUDE]** — seed data against Supabase from your local machine (one-time, after the first successful Render deploy has created the schema):
 
-Then seed roles, permissions, system config, and the admin user (there's no standalone CLI seed command — `seed_all` only auto-runs for SQLite in `app/main.py`'s lifespan — so invoke it directly):
+Seed roles, permissions, system config, and the admin user (there's no standalone CLI seed command — `seed_all` only auto-runs for SQLite in `app/main.py`'s lifespan — so invoke it directly):
 
 ```bash
 DATABASE_URL="postgresql+asyncpg://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres" python3 -c "
@@ -94,13 +89,14 @@ Expect `roles=7 users=1` (or more, if seed creates more). Note the seeded admin 
    | Runtime | Docker |
    | Dockerfile Path | `backend/Dockerfile` (Render auto-detects since Root Directory is `backend`, so just `Dockerfile`) |
    | Instance Type | Free |
-3. Render will use the existing `ENTRYPOINT ["./startup.sh"]` / `CMD ["api"]` from `backend/Dockerfile:19-20` — no Docker changes needed. This runs `uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2` (see `backend/startup.sh:6`).
+3. Render will use the existing `ENTRYPOINT ["./startup.sh"]` / `CMD ["api"]` from `backend/Dockerfile:19-20` — no Docker changes needed. The `api` case now runs `alembic upgrade head` (against `MIGRATION_DATABASE_URL`) before starting `uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2` — every deploy self-migrates, no manual step.
 4. **Health Check Path:** `/api/v1/health` (already implemented at `backend/app/main.py:84-91`, now also reports scheduler status).
 5. Set environment variables (Render dashboard → Environment):
 
    | Key | Value | Notes |
    |---|---|---|
-   | `DATABASE_URL` | the Supabase pooler URL from Phase 1 | |
+   | `DATABASE_URL` | the Supabase **pooler** URL (port 6543) from Phase 1 | used by the running app for normal queries |
+   | `MIGRATION_DATABASE_URL` | the Supabase **direct** URL (port 5432) from Phase 1 | used only by `alembic upgrade head` at startup — pgbouncer transaction-mode pooling breaks asyncpg DDL |
    | `SCHEDULER_BACKEND` | `apscheduler` | default — no Redis needed on Render |
    | `JWT_SECRET_KEY` | generate: `openssl rand -hex 32` | |
    | `JWT_REFRESH_SECRET_KEY` | generate: `openssl rand -hex 32` (different value) | |
