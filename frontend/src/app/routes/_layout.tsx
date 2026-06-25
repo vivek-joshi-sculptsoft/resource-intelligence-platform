@@ -151,7 +151,7 @@ export function RootLayout() {
                 Beta
               </span>
               <span className="text-[12px] font-medium" style={{ color: '#7C85C0' }}>
-                - A Resource Intelligence Platform For SculptSoft
+                - A Resource Intelligence Platform By & For SculptSoft
               </span>
             </div>
           )}

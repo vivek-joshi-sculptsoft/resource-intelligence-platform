@@ -66,7 +66,7 @@ export function LoginPage() {
             Beta
           </span>
           <div className="mt-1 text-[13px] font-medium tracking-wide" style={{ color: '#7C85C0' }}>
-            for SculptSoft
+            by & for SculptSoft
           </div>
         </div>
 
@@ -192,7 +192,7 @@ export function LoginPage() {
       </div>
 
       <div className="mt-8 text-center text-[12.5px] tracking-wide" style={{ color: 'rgba(255, 255, 255, 0.5)' }}>
-        &copy; 2026 SculptSoft. All rights reserved.
+        &copy; 2026 SculptSoft Pvt Ltd. All rights reserved.
       </div>
     </div>
   )
