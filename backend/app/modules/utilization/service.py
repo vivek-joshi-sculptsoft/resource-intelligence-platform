@@ -315,10 +315,14 @@ async def get_dm_dashboard(
     )
 
 
-async def get_availability(db: AsyncSession, window: int = 30) -> AvailabilityResponse:
-    """See API.md — 4 buckets: bench, partial, releasing_soon, fully_allocated."""
+async def get_availability(
+    db: AsyncSession, window: int = 30, can_see_cost: bool = False
+) -> AvailabilityResponse:
+    """See API.md — 4 buckets: bench, partial, releasing_soon, fully_allocated.
+    Bench cost fields restricted to CEO/CTO/Finance per ACCESS-MATRIX.md."""
 
     today = date.today()
+    working_days = await _get_working_days(db) if can_see_cost else 22
 
     active_resources = (
         (
@@ -374,6 +378,13 @@ async def get_availability(db: AsyncSession, window: int = 30) -> AvailabilityRe
                 .all()
             )
 
+            bench_cost_daily: Decimal | None = None
+            bench_cost_total: Decimal | None = None
+            if can_see_cost and r.loaded_cost_monthly is not None:
+                loaded_cost_monthly = Decimal(str(r.loaded_cost_monthly))
+                bench_cost_daily = loaded_cost_monthly / Decimal(working_days)
+                bench_cost_total = bench_cost_daily * Decimal(days_on_bench)
+
             bench.append(
                 AvailabilityBenchResource(
                     id=r.id,
@@ -382,6 +393,8 @@ async def get_availability(db: AsyncSession, window: int = 30) -> AvailabilityRe
                     technical_expertise=r.technical_expertise,
                     days_on_bench=days_on_bench,
                     tags=list(tags_result),
+                    bench_cost_daily=bench_cost_daily,
+                    bench_cost_total=bench_cost_total,
                 )
             )
         elif total_pct < 100:
@@ -437,11 +450,23 @@ async def get_availability(db: AsyncSession, window: int = 30) -> AvailabilityRe
             )
         )
 
+    total_bench_cost_monthly: Decimal | None = None
+    if can_see_cost:
+        known_costs = [
+            Decimal(str(r.loaded_cost_monthly))
+            for r in active_resources
+            if str(r.id) not in resource_alloc and r.loaded_cost_monthly is not None
+        ]
+        if known_costs:
+            total_bench_cost_monthly = sum(known_costs, Decimal("0"))
+
     return AvailabilityResponse(
         bench=bench,
         partial=partial,
         releasing_soon=releasing_soon,
         fully_allocated=fully_allocated,
+        can_see_bench_cost=can_see_cost,
+        total_bench_cost_monthly=total_bench_cost_monthly,
     )
 
 

@@ -107,7 +107,14 @@ async def test_unauthenticated_401(client: AsyncClient):
 async def test_response_has_four_sections(client: AsyncClient, db: AsyncSession):
     await login_as(client)
     data = (await client.get(URL)).json()["data"]
-    assert set(data.keys()) == {"bench", "partial", "releasing_soon", "fully_allocated"}
+    assert set(data.keys()) == {
+        "bench",
+        "partial",
+        "releasing_soon",
+        "fully_allocated",
+        "can_see_bench_cost",
+        "total_bench_cost_monthly",
+    }
 
 
 # --- Bench bucket ---

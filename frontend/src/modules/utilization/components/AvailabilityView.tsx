@@ -1,163 +1,110 @@
 import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
-import {
-  fetchAvailability,
-  type AvailabilityData,
-  type AvailabilityBenchResource,
-  type AvailabilityPartialResource,
-  type AvailabilityReleasingSoon,
-  type AvailabilityFullyAllocated,
-} from '../api'
+import { fetchAvailability, type AvailabilityData } from '../api'
 
-type FilterTab = 'all' | 'bench' | 'partial' | 'releasing_soon' | 'fully_allocated'
-
-interface UnifiedRow {
-  id: string | null
-  name: string
-  designation: string
-  allocationPct: number
-  availablePct: number
-  status: 'bench' | 'partial' | 'fully' | 'over' | 'releasing'
-  statusLabel: string
-  projects: string[]
-  details: React.ReactNode
-  bucket: FilterTab
-}
-
-function benchDaysClass(days: number): string {
-  if (days > 14) return 'text-[#ef4444] font-bold'
-  if (days > 7) return 'text-[#f59e0b] font-bold'
-  return 'text-[#22c55e] font-bold'
-}
-
-function allocBarColor(pct: number, bucket: string): { fill: string; text: string } {
-  if (bucket === 'bench') return { fill: '#22c55e', text: '#22c55e' }
-  if (bucket === 'releasing') return { fill: '#f59e0b', text: '#f59e0b' }
-  if (pct > 100) return { fill: '#ef4444', text: '#ef4444' }
-  if (pct === 100) return { fill: '#9CA3AF', text: '#6B7280' }
-  if (pct >= 50) return { fill: '#f59e0b', text: '#f59e0b' }
-  return { fill: '#22c55e', text: '#22c55e' }
-}
-
-function availBarColor(pct: number): { fill: string; text: string } {
-  if (pct <= 0) return { fill: '#9CA3AF', text: '#6B7280' }
-  if (pct > 50) return { fill: '#22c55e', text: '#22c55e' }
-  return { fill: '#f59e0b', text: '#f59e0b' }
-}
-
-function buildRows(data: AvailabilityData): UnifiedRow[] {
-  const rows: UnifiedRow[] = []
-
-  data.bench.forEach((r: AvailabilityBenchResource) => {
-    rows.push({
-      id: r.id,
-      name: r.name,
-      designation: r.designation,
-      allocationPct: 0,
-      availablePct: 100,
-      status: 'bench',
-      statusLabel: 'On Bench',
-      projects: [],
-      details: (
-        <span className={benchDaysClass(r.days_on_bench)}>
-          {r.days_on_bench}d on bench
-        </span>
-      ),
-      bucket: 'bench',
-    })
-  })
-
-  data.partial.forEach((r: AvailabilityPartialResource) => {
-    rows.push({
-      id: r.id,
-      name: r.name,
-      designation: r.designation,
-      allocationPct: r.total_allocation_pct,
-      availablePct: r.spare_capacity_pct,
-      status: 'partial',
-      statusLabel: 'Partial',
-      projects: r.projects,
-      details: null,
-      bucket: 'partial',
-    })
-  })
-
-  data.fully_allocated.forEach((r: AvailabilityFullyAllocated) => {
-    const isOver = r.total_allocation_pct > 100
-    rows.push({
-      id: r.id,
-      name: r.name,
-      designation: r.designation,
-      allocationPct: r.total_allocation_pct,
-      availablePct: isOver ? -(r.total_allocation_pct - 100) : 0,
-      status: isOver ? 'over' : 'fully',
-      statusLabel: isOver ? 'Over-Allocated' : 'Fully Allocated',
-      projects: r.projects,
-      details: null,
-      bucket: 'fully_allocated',
-    })
-  })
-
-  data.releasing_soon.forEach((r: AvailabilityReleasingSoon) => {
-    rows.push({
-      id: r.resource_id,
-      name: r.name,
-      designation: r.designation,
-      allocationPct: r.allocation_pct,
-      availablePct: 0,
-      status: 'releasing',
-      statusLabel: 'Releasing Soon',
-      projects: [r.project_name],
-      details: (
-        <div className="text-[12px]">
-          <div className="text-[#7C85C0]">
-            {new Date(r.end_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-          </div>
-          <div className={r.days_remaining <= 7 ? 'text-[#ef4444] font-semibold' : r.days_remaining <= 14 ? 'text-[#f59e0b] font-semibold' : 'text-[#6b7280] font-semibold'}>
-            {r.days_remaining}d remaining
-          </div>
-        </div>
-      ),
-      bucket: 'releasing_soon',
-    })
-  })
-
-  return rows
-}
-
-const STATUS_CONFIG: Record<string, { dotClass: string; textClass: string; label: string }> = {
-  bench: { dotClass: 'bg-[#22c55e] shadow-[0_0_6px_rgba(34,197,94,0.4)]', textClass: 'text-[#166534]', label: 'On Bench' },
-  partial: { dotClass: 'bg-[#f59e0b] shadow-[0_0_6px_rgba(245,158,11,0.4)]', textClass: 'text-[#92400E]', label: 'Partial' },
-  fully: { dotClass: 'bg-[#9CA3AF]', textClass: 'text-[#6B7280]', label: 'Fully Allocated' },
-  over: { dotClass: 'bg-[#ef4444] shadow-[0_0_6px_rgba(239,68,68,0.4)] animate-pulse', textClass: 'text-[#B91C1C]', label: 'Over-Allocated' },
-  releasing: { dotClass: 'bg-[#f59e0b] shadow-[0_0_6px_rgba(245,158,11,0.4)]', textClass: 'text-[#92400E]', label: 'Releasing Soon' },
-}
+type TabKey = 'bench' | 'partial' | 'releasing_soon' | 'fully_allocated'
 
 const WINDOW_OPTIONS = [30, 60, 90] as const
 
-function AllocationBar({ pct, color }: { pct: number; color: { fill: string; text: string } }) {
+function formatInr(value: number | null | undefined): string {
+  if (value === null || value === undefined) return '—'
+  return `₹${Math.round(value).toLocaleString('en-IN')}`
+}
+
+function benchDaysBadgeClass(days: number): string {
+  if (days > 14) return 'bg-[#fecaca] text-[#991b1b]'
+  if (days > 7) return 'bg-[#fef3c7] text-[#92400e]'
+  return 'bg-[#dcfce7] text-[#166534]'
+}
+
+function countdownClass(daysRemaining: number): string {
+  if (daysRemaining <= 7) return 'text-[#ef4444]'
+  if (daysRemaining <= 14) return 'text-[#f59e0b]'
+  return 'text-[#6b7280]'
+}
+
+function AllocBar({ pct }: { pct: number }) {
+  const fill = pct > 100 ? '#ef4444' : pct === 100 ? '#9CA3AF' : '#f59e0b'
   return (
-    <div className="flex items-center gap-2">
-      <div className="w-[80px] h-[8px] bg-[#E5E7EB] rounded flex-shrink-0 overflow-hidden">
-        <div
-          className="h-full rounded"
-          style={{ width: `${Math.min(Math.abs(pct), 100)}%`, background: color.fill }}
-        />
+    <div className="flex items-center justify-center gap-2">
+      <div className="w-[60px] h-[8px] bg-[#E5E7EB] rounded overflow-hidden flex-shrink-0">
+        <div className="h-full rounded" style={{ width: `${Math.min(pct, 100)}%`, background: fill }} />
       </div>
-      <span className="font-bold text-[13px] min-w-[40px]" style={{ color: color.text }}>
-        {pct < 0 ? `${pct}%` : `${pct}%`}
+      <span className="font-bold text-[13px]" style={{ color: pct > 100 ? '#ef4444' : '#1e1b4b' }}>
+        {pct}%
       </span>
     </div>
+  )
+}
+
+function ProjectPills({ projects }: { projects: string[] }) {
+  if (projects.length === 0) {
+    return <span className="text-[#7C85C0] italic text-[12px]">No active projects</span>
+  }
+  return (
+    <>
+      {projects.map((p) => (
+        <span
+          key={p}
+          className="inline-flex px-2 py-0.5 rounded-[10px] text-[11px] bg-[#F5F6FC] text-[#6b7280] mr-1 mb-0.5"
+        >
+          {p}
+        </span>
+      ))}
+    </>
+  )
+}
+
+function ResourceLink({ id, name, navigate }: { id: string; name: string; navigate: (path: string) => void }) {
+  return (
+    <button
+      onClick={() => navigate(`/resources/${id}`)}
+      className="font-semibold text-[#1e1b4b] hover:text-[#2B3990] bg-transparent border-none cursor-pointer text-left p-0"
+      style={{ fontFamily: 'inherit', fontSize: '13px' }}
+    >
+      {name}
+    </button>
+  )
+}
+
+function EmptyRow({ colSpan, message }: { colSpan: number; message: string }) {
+  return (
+    <tr>
+      <td colSpan={colSpan} className="text-center py-12">
+        <div className="text-[40px] mb-3">&#128100;</div>
+        <div className="text-[14px] text-[#6b7280]">{message}</div>
+      </td>
+    </tr>
+  )
+}
+
+function TableHeader({ columns }: { columns: { label: string; align?: 'left' | 'center' | 'right' }[] }) {
+  return (
+    <thead>
+      <tr>
+        {columns.map((c) => (
+          <th
+            key={c.label}
+            className={`px-4 py-3 text-[12px] font-semibold uppercase tracking-wide text-white whitespace-nowrap ${
+              c.align === 'center' ? 'text-center' : c.align === 'right' ? 'text-right' : 'text-left'
+            }`}
+            style={{ background: 'linear-gradient(135deg, #2B3990 0%, #4A5BB5 100%)' }}
+          >
+            {c.label}
+          </th>
+        ))}
+      </tr>
+    </thead>
   )
 }
 
 function LoadingSkeleton() {
   return (
     <div className="animate-pulse space-y-5">
-      <div className="flex gap-6">
+      <div className="grid grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-14 w-40 rounded-lg bg-[#E8EAF6]" />
+          <div key={i} className="h-20 rounded-xl bg-[#E8EAF6]" />
         ))}
       </div>
       <div className="h-10 w-72 rounded-lg bg-[#E8EAF6]" />
@@ -166,9 +113,23 @@ function LoadingSkeleton() {
   )
 }
 
+const SUMMARY_CARD_CONFIG: Record<TabKey, { label: string; sub: string; barColor: string }> = {
+  bench: { label: 'On Bench', sub: '0% allocated', barColor: 'linear-gradient(90deg, #ef4444, #f87171)' },
+  partial: { label: 'Partially Available', sub: '<100% allocated', barColor: 'linear-gradient(90deg, #f59e0b, #fbbf24)' },
+  releasing_soon: { label: 'Releasing Soon', sub: 'Ending within window', barColor: 'linear-gradient(90deg, #2B3990, #4A5BB5)' },
+  fully_allocated: { label: 'Fully Allocated', sub: '100%+ allocated', barColor: 'linear-gradient(90deg, #22c55e, #4ade80)' },
+}
+
+const TAB_LABELS: Record<TabKey, string> = {
+  bench: 'Bench',
+  partial: 'Partially Available',
+  releasing_soon: 'Releasing Soon',
+  fully_allocated: 'Fully Allocated',
+}
+
 export function AvailabilityView() {
   const navigate = useNavigate()
-  const [activeFilter, setActiveFilter] = useState<FilterTab>('all')
+  const [activeTab, setActiveTab] = useState<TabKey>('bench')
   const [search, setSearch] = useState('')
   const [window, setWindow] = useState<number>(30)
 
@@ -177,234 +138,309 @@ export function AvailabilityView() {
     queryFn: () => fetchAvailability(window),
   })
 
-  const rows = useMemo(() => (data ? buildRows(data) : []), [data])
-
-  const filtered = useMemo(() => {
-    let result = rows
-    if (activeFilter !== 'all') {
-      result = result.filter((r) => r.bucket === activeFilter)
-    }
-    if (search.trim()) {
-      const q = search.toLowerCase()
-      result = result.filter((r) => r.name.toLowerCase().includes(q))
-    }
-    return result
-  }, [rows, activeFilter, search])
-
   const counts = useMemo(() => {
-    if (!data) return { bench: 0, partial: 0, releasing_soon: 0, fully_allocated: 0, over: 0, all: 0 }
-    const overCount = data.fully_allocated.filter((r) => r.total_allocation_pct > 100).length
+    if (!data) return { bench: 0, partial: 0, releasing_soon: 0, fully_allocated: 0 }
     return {
       bench: data.bench.length,
       partial: data.partial.length,
       releasing_soon: data.releasing_soon.length,
-      fully_allocated: data.fully_allocated.length - overCount,
-      over: overCount,
-      all: rows.length,
+      fully_allocated: data.fully_allocated.length,
     }
-  }, [data, rows])
+  }, [data])
+
+  const filteredData = useMemo(() => {
+    if (!data) return null
+    const q = search.trim().toLowerCase()
+    if (!q) return data
+    const filterByName = <T extends { name: string }>(items: T[]) =>
+      items.filter((item) => item.name.toLowerCase().includes(q))
+    return {
+      ...data,
+      bench: filterByName(data.bench),
+      partial: filterByName(data.partial),
+      releasing_soon: filterByName(data.releasing_soon),
+      fully_allocated: filterByName(data.fully_allocated),
+    } satisfies AvailabilityData
+  }, [data, search])
 
   if (isLoading) return <LoadingSkeleton />
   if (error) return <div className="text-center py-12 text-[#ef4444]">Failed to load availability data</div>
-  if (!data) return null
+  if (!data || !filteredData) return null
 
-  const TABS: { key: FilterTab; label: string; count: number }[] = [
-    { key: 'all', label: 'All', count: counts.all },
-    { key: 'bench', label: 'Bench', count: counts.bench },
-    { key: 'partial', label: 'Partial', count: counts.partial },
-    { key: 'releasing_soon', label: 'Releasing Soon', count: counts.releasing_soon },
-    { key: 'fully_allocated', label: 'Fully Allocated', count: counts.fully_allocated + counts.over },
-  ]
+  const dailyBenchBurn = data.bench.reduce((sum, r) => sum + (r.bench_cost_daily ?? 0), 0)
+
+  const TABS: TabKey[] = ['bench', 'partial', 'releasing_soon', 'fully_allocated']
 
   return (
     <div>
-      {/* Summary Strip */}
-      <div className="flex gap-6 mb-5">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-[#22c55e]" />
-          <div>
-            <div className="text-[15px] font-bold text-[#1e1b4b]">{counts.bench}</div>
-            <div className="text-[13px] text-[#6b7280]">On Bench</div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-[#f59e0b]" />
-          <div>
-            <div className="text-[15px] font-bold text-[#1e1b4b]">{counts.partial}</div>
-            <div className="text-[13px] text-[#6b7280]">Partial</div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-[#9CA3AF]" />
-          <div>
-            <div className="text-[15px] font-bold text-[#1e1b4b]">{counts.fully_allocated}</div>
-            <div className="text-[13px] text-[#6b7280]">Fully Allocated</div>
-          </div>
-        </div>
-        {counts.over > 0 && (
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-[#ef4444]" />
-            <div>
-              <div className="text-[15px] font-bold text-[#1e1b4b]">{counts.over}</div>
-              <div className="text-[13px] text-[#6b7280]">Over-Allocated</div>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-4 gap-4 mb-5">
+        {TABS.map((tab) => {
+          const cfg = SUMMARY_CARD_CONFIG[tab]
+          return (
+            <div
+              key={tab}
+              className="relative rounded-xl border border-[#E8EAF6] bg-white p-5 overflow-hidden"
+              style={{ boxShadow: '0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04)' }}
+            >
+              <div className="absolute top-0 left-0 right-0 h-1" style={{ background: cfg.barColor }} />
+              <div className="text-[28px] font-extrabold text-[#1e1b4b]">{counts[tab]}</div>
+              <div className="text-[13px] font-semibold text-[#6b7280] mt-1">{cfg.label}</div>
+              <div className="text-[12px] text-[#7C85C0] mt-0.5">{cfg.sub}</div>
             </div>
-          </div>
-        )}
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-[#f59e0b]" />
-          <div>
-            <div className="text-[15px] font-bold text-[#1e1b4b]">{counts.releasing_soon}</div>
-            <div className="text-[13px] text-[#6b7280]">Releasing Soon</div>
-          </div>
-        </div>
+          )
+        })}
       </div>
 
-      {/* Toolbar: Search + Filters + Window Toggle */}
-      <div className="flex items-center justify-between mb-5 gap-3">
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#7C85C0] text-[14px]">&#128269;</span>
-          <input
-            type="text"
-            placeholder="Search by resource name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="py-2 pl-9 pr-3.5 border rounded-lg text-[13px] w-[280px] focus:outline-none focus:border-[#2B3990] focus:shadow-[0_0_0_3px_rgba(43,57,144,0.08)]"
-            style={{ borderColor: '#D6DAF0', fontFamily: 'inherit' }}
-          />
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex gap-2">
-            {TABS.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveFilter(tab.key)}
-                className={`px-3.5 py-[7px] text-[12px] font-medium border rounded-full cursor-pointer transition-all inline-flex items-center gap-1.5 ${
-                  activeFilter === tab.key
-                    ? 'bg-[#2B3990] text-white border-[#2B3990]'
-                    : 'bg-white text-[#6b7280] border-[#D6DAF0] hover:border-[#2B3990] hover:text-[#2B3990]'
-                }`}
-                style={{ fontFamily: 'inherit' }}
-              >
-                {tab.label}
-                <span
-                  className={`px-[7px] py-px rounded-[10px] text-[11px] font-bold ${
-                    activeFilter === tab.key
-                      ? 'bg-white/30'
-                      : 'bg-[#F5F6FC] text-[#7C85C0]'
-                  }`}
-                >
-                  {tab.count}
-                </span>
-              </button>
-            ))}
+      {/* Bench Cost Summary — restricted to CEO/CTO/Finance */}
+      {data.can_see_bench_cost && data.total_bench_cost_monthly !== null && (
+        <div
+          className="flex items-center justify-between rounded-xl px-6 py-5 mb-5 text-white"
+          style={{
+            background: 'linear-gradient(135deg, #1B2B65, #2B3990)',
+            boxShadow: '0 4px 12px rgba(43,57,144,0.3)',
+          }}
+        >
+          <div>
+            <div className="text-[13px] font-medium opacity-80">Total Monthly Bench Cost</div>
+            <div className="text-[28px] font-extrabold mt-1">{formatInr(data.total_bench_cost_monthly)}</div>
+            <div className="text-[12px] opacity-70 mt-0.5">{counts.bench} resources on bench</div>
           </div>
-          {/* Window toggle */}
-          <div className="flex items-center gap-1 ml-2 border-l border-[#D6DAF0] pl-3">
-            <span className="text-[11px] text-[#7C85C0] font-semibold uppercase tracking-wide mr-1">Window</span>
+          <div className="text-right">
+            <div className="text-[11px] uppercase tracking-wide opacity-70">Daily Bench Burn</div>
+            <div className="text-[18px] font-bold mt-0.5">{formatInr(dailyBenchBurn)} /day</div>
+          </div>
+        </div>
+      )}
+
+      {/* Tabbed Section */}
+      <div
+        className="rounded-xl border border-[#E8EAF6] bg-white overflow-hidden"
+        style={{ boxShadow: '0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04)' }}
+      >
+        {/* Tab Bar */}
+        <div className="flex border-b-2 border-[#E8EAF6]">
+          {TABS.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-5 py-3 text-[14px] font-medium cursor-pointer border-b-2 -mb-px flex items-center gap-2 transition-colors ${
+                activeTab === tab
+                  ? 'text-[#FF4B2B] border-[#FF4B2B] font-semibold'
+                  : 'text-[#6b7280] border-transparent hover:text-[#1e1b4b]'
+              }`}
+              style={{ fontFamily: 'inherit', background: 'none' }}
+            >
+              {TAB_LABELS[tab]}
+              <span
+                className={`inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-[11px] text-[11px] font-bold ${
+                  activeTab === tab ? 'bg-[#FFF0EC] text-[#FF4B2B]' : 'bg-[#F5F6FC] text-[#7C85C0]'
+                }`}
+              >
+                {counts[tab]}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Search Bar */}
+        <div className="flex items-center gap-3 px-5 py-3 border-b border-[#E8EAF6]">
+          <div className="relative max-w-[320px] flex-1">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#7C85C0] text-[14px]">&#128269;</span>
+            <input
+              type="text"
+              placeholder="Search by resource name..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full py-2 pl-9 pr-3.5 border rounded-lg text-[13px] focus:outline-none focus:border-[#2B3990] focus:shadow-[0_0_0_3px_rgba(43,57,144,0.08)]"
+              style={{ borderColor: '#D6DAF0', fontFamily: 'inherit' }}
+            />
+          </div>
+        </div>
+
+        {/* Day Window Filter — Releasing Soon tab only */}
+        {activeTab === 'releasing_soon' && (
+          <div className="flex items-center gap-2 px-5 py-3 bg-[#F5F6FC] border-b border-[#E8EAF6]">
+            <span className="text-[13px] text-[#6b7280] font-medium">Show releasing within:</span>
             {WINDOW_OPTIONS.map((w) => (
               <button
                 key={w}
                 onClick={() => setWindow(w)}
-                className={`px-2.5 py-1 text-[11px] font-semibold rounded cursor-pointer transition-all ${
+                className={`px-3.5 py-1.5 text-[12px] font-semibold rounded-full cursor-pointer transition-colors ${
                   window === w
-                    ? 'bg-[#2B3990] text-white'
-                    : 'bg-[#F5F6FC] text-[#7C85C0] hover:bg-[#E8EAF6]'
+                    ? 'bg-[#2B3990] text-white border border-[#2B3990]'
+                    : 'bg-white text-[#6b7280] border border-[#D6DAF0] hover:border-[#2B3990] hover:text-[#2B3990]'
                 }`}
-                style={{ border: 'none', fontFamily: 'inherit' }}
+                style={{ fontFamily: 'inherit' }}
               >
-                {w}d
+                {w} Days
               </button>
             ))}
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* Table */}
-      {filtered.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="text-[48px] mb-4">&#128100;</div>
-          <h3 className="text-[16px] font-semibold text-[#1e1b4b] mb-1.5">No resources found</h3>
-          <p className="text-[13px] text-[#6b7280]">Adjust your search or filter criteria to find resources.</p>
-        </div>
-      ) : (
-        <div
-          className="rounded-xl border border-[#E8EAF6] bg-white overflow-hidden"
-          style={{ boxShadow: '0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04)' }}
-        >
+        {/* Bench Tab */}
+        {activeTab === 'bench' && (
           <table className="w-full border-collapse">
-            <thead>
-              <tr>
-                {['Resource Name', 'Designation', 'Allocation', 'Available', 'Status', 'Projects', 'Details'].map((h) => (
-                  <th
-                    key={h}
-                    className="px-4 py-3 text-left text-[12px] font-semibold uppercase tracking-wide text-white whitespace-nowrap"
-                    style={{ background: 'linear-gradient(135deg, #2B3990 0%, #4A5BB5 100%)' }}
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
+            <TableHeader
+              columns={[
+                { label: 'Resource' },
+                { label: 'Designation' },
+                { label: 'Expertise' },
+                { label: 'Days on Bench', align: 'center' },
+                { label: 'Tags' },
+                ...(data.can_see_bench_cost
+                  ? [
+                      { label: 'Bench Cost (Daily)', align: 'right' as const },
+                      { label: 'Bench Cost (Total)', align: 'right' as const },
+                    ]
+                  : []),
+              ]}
+            />
             <tbody>
-              {filtered.map((row, i) => {
-                const allocColor = allocBarColor(row.allocationPct, row.status)
-                const availColor = availBarColor(row.availablePct)
-                const cfg = STATUS_CONFIG[row.status]
-                return (
+              {filteredData.bench.length === 0 ? (
+                <EmptyRow colSpan={data.can_see_bench_cost ? 7 : 5} message="No resources currently on bench." />
+              ) : (
+                filteredData.bench.map((r, i) => (
                   <tr
-                    key={`${row.name}-${row.bucket}-${i}`}
-                    className={`border-b border-[#E8EAF6] transition-colors hover:bg-[#F0F1FA] ${
-                      i % 2 === 1 ? 'bg-[#F5F6FC]' : ''
-                    }`}
+                    key={r.id}
+                    className={`border-b border-[#E8EAF6] hover:bg-[#F0F1FA] ${i % 2 === 1 ? 'bg-[#F5F6FC]' : ''}`}
                   >
-                    <td className="px-4 py-3 text-[13px]">
-                      {row.id ? (
-                        <button
-                          onClick={() => navigate(`/resources/${row.id}`)}
-                          className="font-semibold text-[#1e1b4b] hover:text-[#2B3990] bg-transparent border-none cursor-pointer text-left p-0"
-                          style={{ fontFamily: 'inherit', fontSize: '13px' }}
-                        >
-                          {row.name}
-                        </button>
-                      ) : (
-                        <span className="font-semibold text-[#1e1b4b]">{row.name}</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-[13px] text-[#6b7280]">{row.designation}</td>
-                    <td className="px-4 py-3">
-                      <AllocationBar pct={row.allocationPct} color={allocColor} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <AllocationBar pct={row.availablePct} color={availColor} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex items-center gap-1.5 font-semibold text-[12px] ${cfg.textClass}`}>
-                        <span className={`w-2.5 h-2.5 rounded-full inline-block ${cfg.dotClass}`} />
-                        {cfg.label}
+                    <td className="px-4 py-3"><ResourceLink id={r.id} name={r.name} navigate={navigate} /></td>
+                    <td className="px-4 py-3 text-[13px] text-[#6b7280]">{r.designation}</td>
+                    <td className="px-4 py-3 text-[13px] text-[#6b7280]">{r.technical_expertise ?? '—'}</td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`inline-flex px-2.5 py-1 rounded-full text-[12px] font-bold ${benchDaysBadgeClass(r.days_on_bench)}`}>
+                        {r.days_on_bench} days
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      {row.projects.length > 0 ? (
-                        row.projects.map((p) => (
-                          <span
-                            key={p}
-                            className="inline-flex px-2 py-0.5 rounded-[10px] text-[11px] bg-[#F5F6FC] text-[#6b7280] mr-1 mb-0.5"
-                          >
-                            {p}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-[#7C85C0] italic text-[12px]">No active projects</span>
-                      )}
+                      {r.tags.map((t) => (
+                        <span key={t} className="inline-flex px-2 py-0.5 rounded-[10px] text-[11px] bg-[#F5F6FC] text-[#6b7280] mr-1 mb-0.5">
+                          {t}
+                        </span>
+                      ))}
                     </td>
-                    <td className="px-4 py-3 text-[12px]">{row.details}</td>
+                    {data.can_see_bench_cost && (
+                      <>
+                        <td className="px-4 py-3 text-right text-[13px] font-semibold text-[#1e1b4b]">
+                          {formatInr(r.bench_cost_daily)}
+                        </td>
+                        <td className="px-4 py-3 text-right text-[13px] font-semibold text-[#1e1b4b]">
+                          {formatInr(r.bench_cost_total)}
+                        </td>
+                      </>
+                    )}
                   </tr>
-                )
-              })}
+                ))
+              )}
             </tbody>
           </table>
-        </div>
-      )}
+        )}
+
+        {/* Partially Available Tab */}
+        {activeTab === 'partial' && (
+          <table className="w-full border-collapse">
+            <TableHeader
+              columns={[
+                { label: 'Resource' },
+                { label: 'Designation' },
+                { label: 'Total Allocation', align: 'center' },
+                { label: 'Spare Capacity', align: 'center' },
+                { label: 'Current Projects' },
+              ]}
+            />
+            <tbody>
+              {filteredData.partial.length === 0 ? (
+                <EmptyRow colSpan={5} message="No partially available resources." />
+              ) : (
+                filteredData.partial.map((r, i) => (
+                  <tr
+                    key={r.id}
+                    className={`border-b border-[#E8EAF6] hover:bg-[#F0F1FA] ${i % 2 === 1 ? 'bg-[#F5F6FC]' : ''}`}
+                  >
+                    <td className="px-4 py-3"><ResourceLink id={r.id} name={r.name} navigate={navigate} /></td>
+                    <td className="px-4 py-3 text-[13px] text-[#6b7280]">{r.designation}</td>
+                    <td className="px-4 py-3"><AllocBar pct={r.total_allocation_pct} /></td>
+                    <td className="px-4 py-3 text-center text-[13px] font-bold text-[#22c55e]">
+                      {r.spare_capacity_pct}%
+                    </td>
+                    <td className="px-4 py-3"><ProjectPills projects={r.projects} /></td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
+
+        {/* Releasing Soon Tab */}
+        {activeTab === 'releasing_soon' && (
+          <table className="w-full border-collapse">
+            <TableHeader
+              columns={[
+                { label: 'Resource' },
+                { label: 'Project' },
+                { label: 'Allocation', align: 'center' },
+                { label: 'Release Date' },
+                { label: 'Days Remaining', align: 'center' },
+              ]}
+            />
+            <tbody>
+              {filteredData.releasing_soon.length === 0 ? (
+                <EmptyRow colSpan={5} message={`No resources releasing in the next ${window} days.`} />
+              ) : (
+                filteredData.releasing_soon.map((r, i) => (
+                  <tr
+                    key={`${r.resource_id}-${r.project_name}`}
+                    className={`border-b border-[#E8EAF6] hover:bg-[#F0F1FA] ${i % 2 === 1 ? 'bg-[#F5F6FC]' : ''}`}
+                  >
+                    <td className="px-4 py-3"><ResourceLink id={r.resource_id} name={r.name} navigate={navigate} /></td>
+                    <td className="px-4 py-3 text-[13px] text-[#6b7280]">{r.project_name}</td>
+                    <td className="px-4 py-3 text-center text-[13px] font-semibold text-[#1e1b4b]">{r.allocation_pct}%</td>
+                    <td className="px-4 py-3 text-[13px] text-[#6b7280]">
+                      {new Date(r.end_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </td>
+                    <td className={`px-4 py-3 text-center text-[13px] font-bold ${countdownClass(r.days_remaining)}`}>
+                      {r.days_remaining} days
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
+
+        {/* Fully Allocated Tab */}
+        {activeTab === 'fully_allocated' && (
+          <table className="w-full border-collapse">
+            <TableHeader
+              columns={[
+                { label: 'Resource' },
+                { label: 'Designation' },
+                { label: 'Total Allocation', align: 'center' },
+                { label: 'Projects' },
+              ]}
+            />
+            <tbody>
+              {filteredData.fully_allocated.length === 0 ? (
+                <EmptyRow colSpan={4} message="No fully allocated resources." />
+              ) : (
+                filteredData.fully_allocated.map((r, i) => (
+                  <tr
+                    key={r.id}
+                    className={`border-b border-[#E8EAF6] hover:bg-[#F0F1FA] ${i % 2 === 1 ? 'bg-[#F5F6FC]' : ''}`}
+                  >
+                    <td className="px-4 py-3"><ResourceLink id={r.id} name={r.name} navigate={navigate} /></td>
+                    <td className="px-4 py-3 text-[13px] text-[#6b7280]">{r.designation}</td>
+                    <td className="px-4 py-3"><AllocBar pct={r.total_allocation_pct} /></td>
+                    <td className="px-4 py-3"><ProjectPills projects={r.projects} /></td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   )
 }

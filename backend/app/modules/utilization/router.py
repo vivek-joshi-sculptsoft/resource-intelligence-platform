@@ -75,8 +75,9 @@ async def availability_dashboard(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    # See ACCESS-MATRIX.md — All authenticated roles including Engineer
-    data = await get_availability(db, window=window)
+    # See ACCESS-MATRIX.md — All authenticated roles; bench cost restricted to CEO/CTO/Finance
+    can_see_cost = can_see_field(current_user.role.code, "loaded_cost_monthly")
+    data = await get_availability(db, window=window, can_see_cost=can_see_cost)
     return {"data": data.model_dump()}
 
 

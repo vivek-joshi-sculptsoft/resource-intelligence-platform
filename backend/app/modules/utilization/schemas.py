@@ -39,6 +39,8 @@ class AvailabilityBenchResource(BaseModel):
     technical_expertise: str | None
     days_on_bench: int
     tags: list[str]
+    bench_cost_daily: Decimal | None = None
+    bench_cost_total: Decimal | None = None
 
 
 class AvailabilityPartialResource(BaseModel):
@@ -73,6 +75,8 @@ class AvailabilityResponse(BaseModel):
     partial: list[AvailabilityPartialResource]
     releasing_soon: list[AvailabilityReleasingSoon]
     fully_allocated: list[AvailabilityFullyAllocated]
+    can_see_bench_cost: bool = False
+    total_bench_cost_monthly: Decimal | None = None
 
 
 class BenchListItem(BaseModel):

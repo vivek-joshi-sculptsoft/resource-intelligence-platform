@@ -59,6 +59,8 @@ export interface AvailabilityBenchResource {
   technical_expertise: string | null
   days_on_bench: number
   tags: string[]
+  bench_cost_daily: number | null
+  bench_cost_total: number | null
 }
 
 export interface AvailabilityPartialResource {
@@ -93,6 +95,8 @@ export interface AvailabilityData {
   partial: AvailabilityPartialResource[]
   releasing_soon: AvailabilityReleasingSoon[]
   fully_allocated: AvailabilityFullyAllocated[]
+  can_see_bench_cost: boolean
+  total_bench_cost_monthly: number | null
 }
 
 export async function fetchAvailability(window = 30): Promise<AvailabilityData> {

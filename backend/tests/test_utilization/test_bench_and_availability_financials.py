@@ -263,6 +263,67 @@ async def test_availability_partial_visible_to_engineer(client: AsyncClient, db:
     assert resp.status_code == 200
 
 
+# --- GET /api/v1/dashboard/availability — bench cost (VRIP-103) ---
+
+
+@pytest.mark.asyncio
+async def test_dashboard_availability_includes_bench_cost_for_ceo(
+    client: AsyncClient, db: AsyncSession
+):
+    r = await _seed_resource(
+        db,
+        "Avail Bench Dev",
+        date_of_joining=date.today() - timedelta(days=22),
+        loaded_cost_monthly=66000,
+    )
+    await db.commit()
+
+    await login_as(client)
+    resp = await client.get("/api/v1/dashboard/availability")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["can_see_bench_cost"] is True
+    entry = next(b for b in data["bench"] if b["id"] == str(r.id))
+    assert float(entry["bench_cost_daily"]) == pytest.approx(3000.0)
+    assert float(entry["bench_cost_total"]) == pytest.approx(66000.0)
+    assert float(data["total_bench_cost_monthly"]) >= 66000.0
+
+
+@pytest.mark.asyncio
+async def test_dashboard_availability_null_bench_cost_for_unauthorized_role(
+    client: AsyncClient, db: AsyncSession
+):
+    r = await _seed_resource(db, "Avail Bench Dev 2", loaded_cost_monthly=50000)
+    await db.commit()
+
+    dm_client, _ = await login_as_role(client, db, "DM")
+    resp = await dm_client.get("/api/v1/dashboard/availability")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["can_see_bench_cost"] is False
+    assert data["total_bench_cost_monthly"] is None
+    entry = next(b for b in data["bench"] if b["id"] == str(r.id))
+    assert entry["bench_cost_daily"] is None
+    assert entry["bench_cost_total"] is None
+
+
+@pytest.mark.asyncio
+async def test_dashboard_availability_visible_to_engineer_without_cost(
+    client: AsyncClient, db: AsyncSession
+):
+    r = await _seed_resource(db, "Avail Bench Dev 3", loaded_cost_monthly=50000)
+    await db.commit()
+
+    eng_client, _ = await login_as_role(client, db, "ENGINEER")
+    resp = await eng_client.get("/api/v1/dashboard/availability")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["can_see_bench_cost"] is False
+    entry = next(b for b in data["bench"] if b["id"] == str(r.id))
+    assert entry["bench_cost_daily"] is None
+    assert entry["days_on_bench"] >= 0
+
+
 # --- Unauthenticated ---
 
 
