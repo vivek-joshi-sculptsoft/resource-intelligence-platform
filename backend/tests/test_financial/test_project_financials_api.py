@@ -176,6 +176,7 @@ async def test_ceo_sees_full_breakdown(client: AsyncClient, db: AsyncSession):
     breakdown = {item["resource_name"]: item for item in data["resource_cost_breakdown"]}
     assert _f(breakdown["Billable Dev"]["cost_contribution_inr"]) == 20000.0
     assert _f(breakdown["Shadow Dev"]["cost_contribution_inr"]) == 20000.0
+    assert breakdown["Billable Dev"]["resource_designation"] == "Senior Developer"
 
 
 @pytest.mark.asyncio

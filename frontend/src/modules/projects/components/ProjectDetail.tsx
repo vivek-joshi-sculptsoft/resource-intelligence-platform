@@ -13,6 +13,7 @@ import { WorklogTab } from '../../worklogs/components/WorklogTab'
 import { NonHumanCostTab } from '../../nonhuman_costs/components/NonHumanCostTab'
 import { MilestoneTab } from '../../invoicing/components/MilestoneTab'
 import { InvoiceTab } from '../../invoicing/components/InvoiceTab'
+import { ProjectFinancialsTab } from '../../financial/components/ProjectFinancialsTab'
 import type { AssignmentListItem } from '../../allocations/api'
 
 // See FSD §10 — valid status transitions
@@ -39,11 +40,13 @@ export function ProjectDetail() {
   const canViewCosts = user && ['CEO', 'CTO', 'DM', 'PM', 'FINANCE'].includes(user.role.code)
   const canViewMilestones = user && ['CEO', 'CTO', 'DM', 'PM', 'FINANCE'].includes(user.role.code)
   const canViewInvoices = user && ['CEO', 'CTO', 'FINANCE'].includes(user.role.code)
+  // See ACCESS-MATRIX.md — project_margin: CEO/CTO/FINANCE (ALL), DM (OWN_PORTFOLIO)
+  const canViewFinancials = user && ['CEO', 'CTO', 'FINANCE', 'DM'].includes(user.role.code)
 
-  type TabKey = 'assignments' | 'milestones' | 'invoices' | 'worklogs' | 'costs'
+  type TabKey = 'assignments' | 'milestones' | 'invoices' | 'worklogs' | 'costs' | 'financials'
   const requestedTab = searchParams.get('tab') as TabKey | null
   const [activeTab, setActiveTab] = useState<TabKey>(
-    requestedTab && ['assignments', 'milestones', 'invoices', 'worklogs', 'costs'].includes(requestedTab)
+    requestedTab && ['assignments', 'milestones', 'invoices', 'worklogs', 'costs', 'financials'].includes(requestedTab)
       ? requestedTab
       : 'assignments',
   )
@@ -84,6 +87,7 @@ export function ProjectDetail() {
     ...(canViewInvoices ? [{ key: 'invoices' as const, label: 'Invoices' }] : []),
     ...(p.worklog_enabled ? [{ key: 'worklogs' as const, label: 'Worklogs' }] : []),
     ...(canViewCosts ? [{ key: 'costs' as const, label: 'Non-Human Costs' }] : []),
+    ...(canViewFinancials ? [{ key: 'financials' as const, label: 'Financials' }] : []),
   ]
 
   return (
@@ -198,6 +202,7 @@ export function ProjectDetail() {
           canEdit={!!canEdit}
         />
       )}
+      {activeTab === 'financials' && <ProjectFinancialsTab projectId={id!} />}
 
       <ConfirmDialog
         open={!!confirmTransition}

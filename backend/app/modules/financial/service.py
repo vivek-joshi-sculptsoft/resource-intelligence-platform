@@ -90,6 +90,7 @@ async def get_project_financials(
                 resource_cost_breakdown.append(
                     ResourceCostBreakdownItem(
                         resource_name=a.resource.name,
+                        resource_designation=a.resource.designation,
                         allocation_pct=a.allocation_pct,
                         loaded_cost_monthly=None,
                         cost_contribution_inr=None,
@@ -101,6 +102,7 @@ async def get_project_financials(
             resource_cost_breakdown.append(
                 ResourceCostBreakdownItem(
                     resource_name=a.resource.name,
+                    resource_designation=a.resource.designation,
                     allocation_pct=a.allocation_pct,
                     loaded_cost_monthly=Decimal(str(loaded_cost)),
                     cost_contribution_inr=contribution,
@@ -111,6 +113,7 @@ async def get_project_financials(
         resource_cost_breakdown = [
             ResourceCostBreakdownItem(
                 resource_name=a.resource.name,
+                resource_designation=a.resource.designation,
                 allocation_pct=a.allocation_pct,
                 loaded_cost_monthly=None,
                 cost_contribution_inr=None,

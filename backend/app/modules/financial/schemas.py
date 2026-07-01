@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 class ResourceCostBreakdownItem(BaseModel):
     resource_name: str
+    resource_designation: str
     allocation_pct: int
     loaded_cost_monthly: Decimal | None
     cost_contribution_inr: Decimal | None
