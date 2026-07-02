@@ -78,11 +78,13 @@ Three-phase build plan progressing from core data infrastructure through financi
 
 **Goal:** Proactive alerting, system configuration, and historical analysis.
 
-| Order | Module | Estimate | Key Deliverables | Depends On |
+**Tickets created 2026-07-02** — see `tickets/phase-3/OVERVIEW.md` for the full epic/story/sprint breakdown. Sequenced as Sprint 10 (Audit History + Role Config) then Sprint 11 (Alerts) per explicit priority — audit history and role-based access config ship ahead of alerts.
+
+| Order | Module | Sprint | Key Deliverables | Depends On |
 |---|---|---|---|---|
-| 15 | `12-alerts` | L (5-10d) | 4 scheduled alert jobs (contract expiry, bench duration, milestone overdue, utilization drop), 2 event-triggered alerts, notification panel, SystemConfig admin UI | All Phase 1 & 2 |
-| 16 | `13-audit-history` | M (3-5d) | Audit log viewer UI, change history panel in entity details, point-in-time reconstruction | 13 (Phase 1 infra) |
-| 17 | Role-based access config UI | S (1-2d) | Optional: UserPermissionOverride for per-user permission tweaks | 01 |
+| 15 | `13-audit-history` | 10 | Audit log query API + viewer UI, change history panel in entity details, point-in-time reconstruction (EP-15, VRIP-117…120) | 13 (Phase 1 infra) |
+| 16 | Role-based access config UI | 10 | RolePermission matrix viewer & editor (EP-16, VRIP-121). `UserPermissionOverride` explicitly deferred — not built | 01 |
+| 17 | `12-alerts` | 11 | 4 scheduled alert jobs (contract expiry, bench duration, milestone overdue, utilization drop), 2 event-triggered alerts, notification panel, alert list page, SystemConfig admin UI (EP-17, VRIP-122…127) | All Phase 1 & 2 |
 
 **Phase 3 Milestone:** System is self-monitoring. Alerts fire proactively for contract expiry, bench buildup, overdue milestones, and utilization drops. Full audit trail queryable with point-in-time reconstruction.
 
@@ -92,9 +94,9 @@ Three-phase build plan progressing from core data infrastructure through financi
 
 | Phase | Modules | Sprints | Status |
 |---|---|---|---|
-| Phase 1 — Foundation | 8 modules + IaC | 6 sprints (0–5) | Sprint 0 done, 1–5 planned |
-| Phase 2 — Financial | 5 modules (incl. dashboard update) | TBD | Not started |
-| Phase 3 — Intelligence | 3 modules (incl. audit update) | TBD | Not started |
+| Phase 1 — Foundation | 8 modules + IaC | 6 sprints (0–5) | Done |
+| Phase 2 — Financial | 5 modules (incl. dashboard update) | 4 sprints (6–9) | In progress |
+| Phase 3 — Intelligence | 3 modules (incl. audit update) | 2 sprints (10–11) | Tickets created, not started |
 
 ---
 

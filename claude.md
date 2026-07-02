@@ -179,7 +179,7 @@ Build in this exact order (each module depends on the previous):
 | Sprint 4 — Projects & Allocations FE | **Done** | Project list/detail/form/edit, Assignment list/form/modal, My Assignments page (engineer), status transition UI, all mockup-matched |
 | Sprint 5 — Dashboards & Worklog | **Done** | Company/DM/Availability dashboard APIs + UIs, Worklog model + CRUD API + validation, Worklog entry UI + project detail tab, E2E smoke tests (13), Phase 1 hardening |
 
-**JIRA project:** VRIP on sspl-organisation.atlassian.net (80 issues, 10 epics).
+**JIRA project:** VRIP on sspl-organisation.atlassian.net (issues up to VRIP-127, 18 epics — includes Phase 3 tickets created 2026-07-02, see `tickets/phase-3/OVERVIEW.md`).
 
 ---
 

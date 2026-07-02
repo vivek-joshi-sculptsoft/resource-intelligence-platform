@@ -4,12 +4,12 @@
 
 | Metric | Value |
 |--------|-------|
-| Phases | Phase 1 (Foundation) + Phase 2 (Financial Engine) |
+| Phases | Phase 1 (Foundation) + Phase 2 (Financial Engine) + Phase 3 (Intelligence & Alerts) |
 | Modules | 13 total |
-| Total Stories | 109 (VRIP-1 to VRIP-109) |
+| Total Stories | 120 (VRIP-1 to VRIP-127, with some gaps for hardening/UX fixes) |
 | Sprint Duration | 1 week (5 working days) |
 | Team | 1 developer + Claude Code |
-| Estimated Sprints | 10 (Sprint 0–9) |
+| Estimated Sprints | 12 (Sprint 0–11) |
 | JIRA Project | VRIP on sspl-organisation.atlassian.net |
 
 ### Estimation with AI-Assisted Development
@@ -235,6 +235,43 @@ Original estimates assume manual development. With Claude Code handling code gen
 
 ---
 
+## Phase 3 — Intelligence & Alerts
+
+---
+
+## Sprint 10 — Audit History + Role-Based Access Config
+**Goal:** Full audit history query/browse/reconstruct. CEO/CTO can edit the RolePermission matrix without a deploy.
+
+**Why this sprint is first:** explicit priority request — audit history and role-based access config ahead of alerts.
+
+| # | JIRA | Story | Module |
+|---|------|-------|--------|
+| 1 | VRIP-117 | Audit Log Query API — filters, scoping, pagination | 13-audit-history |
+| 2 | VRIP-118 | Audit Log Viewer UI — full history browser | 13-audit-history |
+| 3 | VRIP-119 | Change History panel on entity detail views | 13-audit-history |
+| 4 | VRIP-120 | Point-in-Time Reconstruction — API and admin view | 13-audit-history |
+| 5 | VRIP-121 | RolePermission Matrix Viewer & Editor | 01-auth-and-roles |
+
+**Deliverable:** Audit trail is fully queryable and browsable, entity detail pages show inline history, past entity states can be reconstructed, and CEO/CTO can adjust access control without a code deploy.
+
+---
+
+## Sprint 11 — Alerts & Notifications
+**Goal:** All 6 alert types operational (4 scheduled, 2 event-triggered). Notification UI and SystemConfig admin UI live.
+
+| # | JIRA | Story | Module |
+|---|------|-------|--------|
+| 1 | VRIP-122 | Alert entity and shared alert creation service | 12-alerts |
+| 2 | VRIP-123 | Daily jobs — Contract Expiry, Bench Duration, Milestone Overdue | 12-alerts |
+| 3 | VRIP-124 | Weekly Utilization Drop job + Over-Allocation/Auto-Release event alerts | 12-alerts |
+| 4 | VRIP-125 | Alert Notification Panel — bell icon, unread count, mark read/dismiss | 12-alerts |
+| 5 | VRIP-126 | Alert List Page — full history with filters and bulk actions | 12-alerts |
+| 6 | VRIP-127 | SystemConfig Admin UI — edit alert thresholds and system settings | 12-alerts |
+
+**Deliverable:** System is self-monitoring. Alerts fire proactively for contract expiry, bench buildup, overdue milestones, over-allocation, auto-releases, and utilization drops. Phase 3 complete.
+
+---
+
 ## Sprint Velocity Tracking
 
 | Sprint | Phase | Planned SP | Actual SP | Status |
@@ -249,9 +286,12 @@ Original estimates assume manual development. With Claude Code handling code gen
 | 7 | 2 | 14 | — | Pending |
 | 8 | 2 | 12 | — | Pending |
 | 9 | 2 | 14 | — | Pending |
+| 10 | 3 | 23 | — | Tickets created (VRIP-117…121), Jira sprint not yet created |
+| 11 | 3 | 17 | — | Tickets created (VRIP-122…127), Jira sprint not yet created |
 
 **Total Phase 1:** ~137 story points across 6 sprints (complete)
 **Total Phase 2:** ~52 story points across 4 sprints (in progress)
+**Total Phase 3:** ~40 story points across 2 sprints (tickets created, not started) — see `tickets/phase-3/OVERVIEW.md` for full breakdown
 
 ---
 
