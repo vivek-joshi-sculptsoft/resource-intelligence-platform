@@ -222,7 +222,12 @@ async def get_company_dashboard(db: AsyncSession) -> CompanyDashboardResponse:
 
 
 async def get_dm_dashboard(
-    db: AsyncSession, portfolio_project_ids: list | None = None
+    db: AsyncSession,
+    portfolio_project_ids: list | None = None,
+    can_see_cost: bool = False,
+    can_see_rate: bool = False,
+    can_see_nonhuman: bool = False,
+    can_see_margin: bool = False,
 ) -> DMDashboardResponse:
     """See FSD §7.1 — DM portfolio dashboard. Scoped to projects where dm_id = user's resource_id.
     If portfolio_project_ids is None, returns company-wide data (for CEO/CTO)."""
@@ -366,12 +371,62 @@ async def get_dm_dashboard(
             )
         )
 
+    # See FSD §12 — Delivery Delays: milestones past planned_delivery_date on portfolio projects
+    overdue_rows = (
+        await db.execute(
+            select(Milestone, Project.name)
+            .join(Project, Milestone.project_id == Project.id)
+            .where(
+                Milestone.status == "PLANNED",
+                Milestone.planned_delivery_date.isnot(None),
+                Milestone.planned_delivery_date < today,
+                Milestone.is_active == True,  # noqa: E712
+                Milestone.project_id.in_(portfolio_pids),
+            )
+        )
+    ).all()
+    delivery_delays = [
+        OverdueMilestoneItem(
+            id=m.id,
+            project_id=m.project_id,
+            project_name=pname,
+            name=m.name,
+            planned_delivery_date=m.planned_delivery_date,
+            days_overdue=(today - m.planned_delivery_date).days,
+        )
+        for m, pname in overdue_rows
+    ]
+
+    # See BUSINESS-RULES.md §7.2-§7.5 — Portfolio financials
+    financials = await get_company_financials(
+        db,
+        list(portfolio_projects),
+        can_see_cost=can_see_cost,
+        can_see_rate=can_see_rate,
+        can_see_invoicing=False,
+        can_see_nonhuman=can_see_nonhuman,
+    )
+
+    projected_margin_inr = None
+    projected_margin_pct = None
+    if can_see_margin:
+        projected_margin_inr = financials.total_projected_margin_inr
+        projected_margin_pct = financials.total_projected_margin_pct
+
     return DMDashboardResponse(
         portfolio_utilization_pct=portfolio_utilization_pct,
         active_project_count=active_project_count,
         resource_count=resource_count,
         bench_count=bench_count,
         upcoming_releases_30d=upcoming_releases,
+        delivery_delays_count=len(delivery_delays),
+        delivery_delays=delivery_delays,
+        resource_cost_inr=financials.total_resource_cost_inr,
+        non_human_cost_inr=financials.total_non_human_cost_inr,
+        total_cost_inr=financials.total_cost_inr,
+        projected_revenue_inr=financials.total_projected_revenue_inr,
+        projected_margin_inr=projected_margin_inr,
+        projected_margin_pct=projected_margin_pct,
     )
 
 

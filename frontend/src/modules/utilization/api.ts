@@ -81,14 +81,29 @@ export interface DMDashboard {
   resource_count: number
   bench_count: number
   upcoming_releases_30d: UpcomingRelease[]
-  delivery_delays: unknown[] | null
-  projected_revenue_inr: number | null
+  delivery_delays_count: number
+  delivery_delays: OverdueMilestone[] | null
+  resource_cost_inr: number | null
+  non_human_cost_inr: number | null
   total_cost_inr: number | null
+  projected_revenue_inr: number | null
+  projected_margin_inr: number | null
+  projected_margin_pct: number | null
 }
 
 export async function fetchDMDashboard(): Promise<DMDashboard> {
   const { data } = await api.get<{ data: DMDashboard }>('/dashboard/dm')
-  return data.data
+  const raw = data.data
+  return {
+    ...raw,
+    portfolio_utilization_pct: Number(raw.portfolio_utilization_pct),
+    resource_cost_inr: n(raw.resource_cost_inr),
+    non_human_cost_inr: n(raw.non_human_cost_inr),
+    total_cost_inr: n(raw.total_cost_inr),
+    projected_revenue_inr: n(raw.projected_revenue_inr),
+    projected_margin_inr: n(raw.projected_margin_inr),
+    projected_margin_pct: n(raw.projected_margin_pct),
+  }
 }
 
 export interface AvailabilityBenchResource {

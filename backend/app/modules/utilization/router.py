@@ -65,7 +65,20 @@ async def dm_dashboard(
         )
         portfolio_project_ids = list(rows)
 
-    data = await get_dm_dashboard(db, portfolio_project_ids)
+    # See ACCESS-MATRIX.md — DM: billing_rates VIEW (configurable), project_margin VIEW (configurable)
+    # ctc_loaded_cost NONE. CEO/CTO see all.
+    can_see_cost = can_see_field(role_code, "loaded_cost_monthly")
+    can_see_rate = can_see_field(role_code, "billing_rate")
+    can_see_margin = role_code in {"CEO", "CTO", "FINANCE", "DM"}
+
+    data = await get_dm_dashboard(
+        db,
+        portfolio_project_ids,
+        can_see_cost=can_see_cost,
+        can_see_rate=can_see_rate,
+        can_see_nonhuman=True,
+        can_see_margin=can_see_margin,
+    )
     return {"data": data.model_dump()}
 
 

@@ -27,9 +27,14 @@ class DMDashboardResponse(BaseModel):
     resource_count: int
     bench_count: int
     upcoming_releases_30d: list[UpcomingRelease]
-    delivery_delays: list | None = None
-    projected_revenue_inr: Decimal | None = None
+    delivery_delays_count: int = 0
+    delivery_delays: list["OverdueMilestoneItem"] | None = None
+    resource_cost_inr: Decimal | None = None
+    non_human_cost_inr: Decimal | None = None
     total_cost_inr: Decimal | None = None
+    projected_revenue_inr: Decimal | None = None
+    projected_margin_inr: Decimal | None = None
+    projected_margin_pct: Decimal | None = None
 
 
 class AvailabilityBenchResource(BaseModel):

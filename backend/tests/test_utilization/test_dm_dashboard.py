@@ -137,20 +137,30 @@ async def test_response_has_all_fields(client: AsyncClient, db: AsyncSession):
         "resource_count",
         "bench_count",
         "upcoming_releases_30d",
+        "delivery_delays_count",
         "delivery_delays",
-        "projected_revenue_inr",
+        "resource_cost_inr",
+        "non_human_cost_inr",
         "total_cost_inr",
+        "projected_revenue_inr",
+        "projected_margin_inr",
+        "projected_margin_pct",
     }
     assert expected_keys == set(data.keys())
 
 
 @pytest.mark.asyncio
-async def test_phase2_fields_are_null(client: AsyncClient, db: AsyncSession):
+async def test_financial_fields_present(client: AsyncClient, db: AsyncSession):
     await login_as(client)
     data = (await client.get(URL)).json()["data"]
-    assert data["delivery_delays"] is None
-    assert data["projected_revenue_inr"] is None
-    assert data["total_cost_inr"] is None
+    assert isinstance(data["delivery_delays_count"], int)
+    assert "delivery_delays" in data
+    assert "projected_revenue_inr" in data
+    assert "total_cost_inr" in data
+    assert "resource_cost_inr" in data
+    assert "non_human_cost_inr" in data
+    assert "projected_margin_inr" in data
+    assert "projected_margin_pct" in data
 
 
 # --- Scope tests ---
