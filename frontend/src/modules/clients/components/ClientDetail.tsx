@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { useAuthStore } from '../../auth/store'
 import { fetchClient, deleteClient } from '../api'
+import { ClientFinancialsCard } from '../../financial/components/ClientFinancialsCard'
 import { Breadcrumb } from '../../../shared/components'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle'
 
@@ -103,6 +104,9 @@ export function ClientDetail() {
           </div>
         </div>
       </div>
+
+      {/* Financial Summary + Per-Project Breakdown — See VRIP-108 */}
+      <ClientFinancialsCard clientId={c.id} />
 
       {/* Projects Table */}
       <div className="rounded-xl" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04)' }}>
