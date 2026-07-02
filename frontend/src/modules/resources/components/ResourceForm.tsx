@@ -266,8 +266,8 @@ export function ResourceForm() {
         )}
 
         <div className="mb-4">
-          <label style={labelStyle}>Name <span style={{ color: '#ef4444' }}>*</span></label>
-          <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
+          <label htmlFor="resource-name" style={labelStyle}>Name <span style={{ color: '#ef4444' }}>*</span></label>
+          <input id="resource-name" type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
             className="w-full rounded-lg px-3.5 py-[9px] text-[13.5px] outline-none" style={inputStyle}
             onFocus={(e) => { e.target.style.borderColor = '#4A5BB5'; e.target.style.background = '#fff' }}
             onBlur={(e) => { e.target.style.borderColor = '#D6DAF0'; e.target.style.background = '#F0F1FA' }} />
@@ -275,15 +275,15 @@ export function ResourceForm() {
 
         <div className="mb-4 grid grid-cols-2 gap-4">
           <div>
-            <label style={labelStyle}>Employee ID <span style={{ color: '#ef4444' }}>*</span></label>
-            <input type="text" value={form.employee_id} onChange={(e) => setForm({ ...form, employee_id: e.target.value })}
+            <label htmlFor="resource-employee-id" style={labelStyle}>Employee ID <span style={{ color: '#ef4444' }}>*</span></label>
+            <input id="resource-employee-id" type="text" value={form.employee_id} onChange={(e) => setForm({ ...form, employee_id: e.target.value })}
               className="w-full rounded-lg px-3.5 py-[9px] text-[13.5px] outline-none" style={{ ...inputStyle, borderColor: error?.field === 'employee_id' ? '#ef4444' : '#D6DAF0' }}
               onFocus={(e) => { e.target.style.borderColor = '#4A5BB5'; e.target.style.background = '#fff' }}
               onBlur={(e) => { e.target.style.borderColor = error?.field === 'employee_id' ? '#ef4444' : '#D6DAF0'; e.target.style.background = '#F0F1FA' }} />
           </div>
           <div>
-            <label style={labelStyle}>Designation <span style={{ color: '#ef4444' }}>*</span></label>
-            <input type="text" value={form.designation} onChange={(e) => setForm({ ...form, designation: e.target.value })}
+            <label htmlFor="resource-designation" style={labelStyle}>Designation <span style={{ color: '#ef4444' }}>*</span></label>
+            <input id="resource-designation" type="text" value={form.designation} onChange={(e) => setForm({ ...form, designation: e.target.value })}
               className="w-full rounded-lg px-3.5 py-[9px] text-[13.5px] outline-none" style={inputStyle}
               onFocus={(e) => { e.target.style.borderColor = '#4A5BB5'; e.target.style.background = '#fff' }}
               onBlur={(e) => { e.target.style.borderColor = '#D6DAF0'; e.target.style.background = '#F0F1FA' }} />

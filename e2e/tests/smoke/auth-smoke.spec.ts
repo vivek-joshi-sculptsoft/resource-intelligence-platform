@@ -13,8 +13,8 @@ test.describe("Auth Smoke", () => {
 
   test("invalid credentials rejected", async ({ page }) => {
     await page.goto("/login");
-    await page.getByLabel(/email/i).fill("bad@bad.com");
-    await page.getByLabel(/password/i).fill("wrong");
+    await page.getByRole("textbox", { name: /email/i }).fill("bad@bad.com");
+    await page.getByRole("textbox", { name: /password/i }).fill("wrong");
     await page.getByRole("button", { name: /sign in/i }).click();
     await expect(
       page.getByText(/invalid|incorrect|unauthorized/i)

@@ -21,6 +21,7 @@ export default defineConfig({
     // --- Setup: health checks ---
     {
       name: "setup",
+      testDir: ".",
       testMatch: /global\.setup\.ts/,
     },
 
@@ -51,8 +52,10 @@ export default defineConfig({
 
   webServer: [
     {
+      // TESTING=1 disables the login rate limiter (app/modules/auth/router.py) —
+      // the suite logs in more than 10×/minute across tests.
       command:
-        "cd ../backend && python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000",
+        "cd ../backend && TESTING=1 python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000",
       url: "http://localhost:8000/api/v1/health",
       reuseExistingServer: !process.env.CI,
       timeout: 30_000,
