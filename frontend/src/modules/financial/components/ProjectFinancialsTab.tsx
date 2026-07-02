@@ -3,6 +3,36 @@ import type { CSSProperties } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchProjectFinancials } from '../api'
 import { fetchCostSummary } from '../../nonhuman_costs/api'
+import { InfoTooltip, type InfoTooltipContent } from '../../../shared/components/InfoTooltip'
+
+// See modules/08-financial-engine/SCREENS.md — Info Tooltips; formulas per shared/BUSINESS-RULES.md §7
+const FINANCIALS_TOOLTIPS: Record<string, InfoTooltipContent> = {
+  totalCost: {
+    formula: 'Resource Cost + Non-Human Cost',
+    meaning: 'Combined cost of staffing and non-human expenses for the project',
+    purpose: 'Baseline against which revenue and margin are measured',
+  },
+  projectedRevenue: {
+    formula: 'SUM(billability_pct / 100 × working_days × working_hours × billing_rate) for non-shadow ACTIVE assignments, converted to INR',
+    meaning: 'Expected billable revenue for the project based on current assignments and rates',
+    purpose: 'Forecasts whether the engagement is on track to be profitable',
+  },
+  actualRevenue: {
+    formula: 'SUM(invoice.amount_inr) where status ∈ {APPROVED, PAID}',
+    meaning: 'Revenue actually invoiced and recognized to date',
+    purpose: 'Source of truth for billed revenue, independent of allocation assumptions',
+  },
+  projectedMargin: {
+    formula: 'Projected Revenue (INR) − Total Project Cost',
+    meaning: 'Forecasted profitability of the project before invoicing',
+    purpose: 'Early warning signal for underpriced or over-resourced engagements',
+  },
+  actualMargin: {
+    formula: 'Actual Revenue (INR) − Total Project Cost',
+    meaning: 'Realized profitability based on invoiced revenue to date',
+    purpose: 'Tracks whether actual delivery is matching or missing the projected margin',
+  },
+}
 
 function formatInr(val: number | null): string {
   if (val === null) return '—'
@@ -26,6 +56,7 @@ const cardStyle: CSSProperties = {
 
 const sectionHeaderStyle: CSSProperties = {
   padding: '16px 20px',
+  borderRadius: '12px 12px 0 0',
   borderBottom: '1px solid #E8EAF6',
   display: 'flex',
   alignItems: 'center',
@@ -91,15 +122,16 @@ export function ProjectFinancialsTab({ projectId }: ProjectFinancialsTabProps) {
   const badge = marginColor(financials.projected_margin_pct)
 
   const kpiCards = [
-    { label: 'Total Cost', value: formatInr(financials.total_cost_inr), sub: 'Resource + Non-Human Costs', accentTop: 'linear-gradient(90deg, #2B3990, #4A5BB5)' },
-    { label: 'Projected Revenue', value: formatInr(financials.projected_revenue_inr), sub: 'Based on contract value', accentTop: 'linear-gradient(90deg, #059669, #34d399)' },
-    { label: 'Actual Revenue', value: formatInr(financials.actual_revenue_inr), sub: 'Approved + Paid invoices', accentTop: 'linear-gradient(90deg, #f59e0b, #fcd34d)' },
+    { label: 'Total Cost', value: formatInr(financials.total_cost_inr), sub: 'Resource + Non-Human Costs', accentTop: 'linear-gradient(90deg, #2B3990, #4A5BB5)', tooltip: FINANCIALS_TOOLTIPS.totalCost },
+    { label: 'Projected Revenue', value: formatInr(financials.projected_revenue_inr), sub: 'Based on contract value', accentTop: 'linear-gradient(90deg, #059669, #34d399)', tooltip: FINANCIALS_TOOLTIPS.projectedRevenue },
+    { label: 'Actual Revenue', value: formatInr(financials.actual_revenue_inr), sub: 'Approved + Paid invoices', accentTop: 'linear-gradient(90deg, #f59e0b, #fcd34d)', tooltip: FINANCIALS_TOOLTIPS.actualRevenue },
     {
       label: 'Projected Margin',
       value: financials.projected_margin_pct === null ? '—' : `${financials.projected_margin_pct.toFixed(1)}%`,
       sub: null,
       accentTop: 'linear-gradient(90deg, #22c55e, #86efac)',
       badge,
+      tooltip: FINANCIALS_TOOLTIPS.projectedMargin,
     },
   ]
 
@@ -123,10 +155,11 @@ export function ProjectFinancialsTab({ projectId }: ProjectFinancialsTabProps) {
       {/* KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
         {kpiCards.map((card) => (
-          <div key={card.label} style={{ ...cardStyle, padding: 20, position: 'relative' }}>
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: card.accentTop }} />
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#7C85C0', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+          <div key={card.label} style={{ ...cardStyle, overflow: 'visible', padding: 20, position: 'relative' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, borderRadius: '12px 12px 0 0', background: card.accentTop }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: '#7C85C0', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
               {card.label}
+              <InfoTooltip content={card.tooltip} />
             </div>
             <div style={{ fontSize: 24, fontWeight: 700, color: '#1e1b4b' }}>{card.value}</div>
             {card.sub && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>{card.sub}</div>}
@@ -252,7 +285,7 @@ export function ProjectFinancialsTab({ projectId }: ProjectFinancialsTabProps) {
           )}
         </div>
 
-        <div style={cardStyle}>
+        <div style={{ ...cardStyle, overflow: 'visible' }}>
           <div style={sectionHeaderStyle}>
             <div style={{ fontSize: 16, fontWeight: 600, color: '#1e1b4b' }}>Revenue vs Cost</div>
           </div>
@@ -290,7 +323,10 @@ export function ProjectFinancialsTab({ projectId }: ProjectFinancialsTabProps) {
                 </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginTop: 8 }}>
-                <span style={{ color: '#1e1b4b' }}>Actual Margin (to date)</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#1e1b4b' }}>
+                  Actual Margin (to date)
+                  <InfoTooltip content={FINANCIALS_TOOLTIPS.actualMargin} />
+                </span>
                 <span style={{ color: '#f59e0b' }}>
                   {formatInr(financials.actual_margin_inr)}
                   {financials.actual_margin_pct !== null && ` (${financials.actual_margin_pct.toFixed(1)}%)`}

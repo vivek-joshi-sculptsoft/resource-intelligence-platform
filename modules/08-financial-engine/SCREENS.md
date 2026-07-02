@@ -48,6 +48,19 @@ This module does not introduce new standalone screens. It adds financial data an
 
 ### Actions
 - Missing cost warning: "3 resources are missing loaded cost" → link to resource profiles
+- Hover/click info icon on each KPI card → tooltip with formula, meaning, and purpose (see Info Tooltips below)
+
+### Info Tooltips
+
+Same pattern as the Company Dashboard (`modules/07-utilization-dashboards/SCREENS.md`): each KPI card shows an info icon (`lucide-react` `Info`) next to its label; hovering/clicking opens a tooltip with three parts: **Formula**, **What it means**, **Why it matters**. Applies to the 4 KPI cards (Total Cost, Projected Revenue, Actual Revenue, Projected Margin) plus the Actual Margin line item in the Revenue vs Cost card, which is not its own KPI card. Tooltip text shown to end users does not reference internal doc paths (e.g. `BUSINESS-RULES.md`) — those references are kept in this spec table only, for engineering traceability.
+
+| Card | Formula | What it means | Why it matters |
+|---|---|---|---|
+| Total Cost | `Resource Cost + Non-Human Cost` — `shared/BUSINESS-RULES.md §7.2` | Combined cost of staffing and non-human expenses for the project | Baseline against which revenue and margin are measured |
+| Projected Revenue | `SUM(billability_pct / 100 × working_days × working_hours × billing_rate)` for non-shadow ACTIVE assignments, converted to INR — `shared/BUSINESS-RULES.md §7.3` | Expected billable revenue for the project based on current assignments and rates | Forecasts whether the engagement is on track to be profitable |
+| Actual Revenue | `SUM(invoice.amount_inr)` where status ∈ {APPROVED, PAID} — `shared/BUSINESS-RULES.md §7.4` | Revenue actually invoiced and recognized to date | Source of truth for billed revenue, independent of allocation assumptions |
+| Projected Margin | `Projected Revenue (INR) − Total Project Cost` — `shared/BUSINESS-RULES.md §7.5` | Forecasted profitability of the project before invoicing | Early warning signal for underpriced or over-resourced engagements |
+| Actual Margin (to date) | `Actual Revenue (INR) − Total Project Cost` — `shared/BUSINESS-RULES.md §7.5` | Realized profitability based on invoiced revenue to date | Tracks whether actual delivery is matching or missing the projected margin |
 
 ### Empty State
 "Financial data is not yet available. Ensure resources have loaded costs and assignments have billing rates."
