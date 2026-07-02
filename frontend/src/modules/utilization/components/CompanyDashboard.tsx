@@ -31,16 +31,6 @@ const KPI_TOOLTIPS: Record<string, InfoTooltipContent> = {
     meaning: 'Total headcount currently available for assignment',
     purpose: 'Denominator for utilization and capacity-planning metrics',
   },
-  totalMonthlyRevenue: {
-    formula: 'SUM(per-assignment projected revenue) for non-shadow ACTIVE assignments',
-    meaning: 'Projected billable revenue for the current month across all active assignments',
-    purpose: 'Top-line financial health indicator',
-  },
-  companyMargin: {
-    formula: 'Projected Revenue (INR) − Total Project Cost',
-    meaning: 'Company-wide projected margin after resource and non-human costs',
-    purpose: 'Bottom-line profitability indicator after costs',
-  },
   shadowAllocation: {
     formula: 'COUNT(assignments WHERE is_shadow = true); allocation % = SUM(billability_pct) for shadow assignments',
     meaning: 'Number of shadow (non-billable) assignments and their share of total allocation',
@@ -196,24 +186,10 @@ export function CompanyDashboard() {
     .map(([k, v]) => `${PROJECT_TYPE_LABELS[k] || k}: ${v}`)
     .join(' · ')
 
-  // See BUSINESS-RULES.md §7.3-§7.4 — variance between projected and actual revenue
-  const revenueVariancePct =
-    data.projected_revenue_inr !== null && data.actual_revenue_inr !== null && data.projected_revenue_inr !== 0
-      ? ((data.actual_revenue_inr - data.projected_revenue_inr) / data.projected_revenue_inr) * 100
-      : null
-
-  // A single project missing loaded_cost/billing_rate nulls the company-wide total
-  // (null-safe aggregation, see BUSINESS-RULES.md §7.2-§7.3) — explain the blank instead
-  // of showing an unexplained dash.
-  const incompleteDataNote =
-    data.projects_with_incomplete_financial_data > 0
-      ? `${data.projects_with_incomplete_financial_data} project${data.projects_with_incomplete_financial_data !== 1 ? 's' : ''} missing cost/rate data`
-      : null
-
   return (
     <div>
       {/* KPI Grid */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-4 gap-4 mb-6">
         <KpiCard
           label="Billable Utilization"
           value={`${data.billable_utilization_pct}%`}
@@ -254,39 +230,6 @@ export function CompanyDashboard() {
           textClass="text-[#7c3aed]"
           tooltip={KPI_TOOLTIPS.activeResources}
         />
-        <KpiCard
-          label="Total Monthly Revenue"
-          value={formatInr(data.projected_revenue_inr)}
-          sub={
-            revenueVariancePct !== null ? (
-              <span className={revenueVariancePct >= 0 ? 'text-[#16a34a] font-semibold' : 'text-[#ef4444] font-semibold'}>
-                {revenueVariancePct >= 0 ? '▲' : '▼'} {Math.abs(revenueVariancePct).toFixed(1)}% vs actual
-              </span>
-            ) : data.projected_revenue_inr === null && incompleteDataNote ? (
-              <span className="text-[#ea580c]">{incompleteDataNote}</span>
-            ) : (
-              'Projected from active assignments'
-            )
-          }
-          detail={`Actual: ${formatInr(data.actual_revenue_inr)}`}
-          accentClass="bg-gradient-to-r from-[#0d9488] to-[#2dd4bf]"
-          textClass="text-[#0d9488]"
-          tooltip={KPI_TOOLTIPS.totalMonthlyRevenue}
-        />
-        <KpiCard
-          label="Company Margin"
-          value={data.overall_margin_pct !== null ? `${data.overall_margin_pct.toFixed(1)}%` : '—'}
-          sub={
-            data.actual_margin_pct !== null
-              ? `Actual: ${data.actual_margin_pct.toFixed(1)}%`
-              : data.overall_margin_pct === null && incompleteDataNote
-                ? <span className="text-[#ea580c]">{incompleteDataNote}</span>
-                : 'After non-human costs'
-          }
-          accentClass="bg-gradient-to-r from-[#FF4B2B] to-[#FF7043]"
-          textClass="text-[#FF4B2B]"
-          tooltip={KPI_TOOLTIPS.companyMargin}
-        />
       </div>
 
       {/* Expandable Bench List */}
@@ -305,65 +248,9 @@ export function CompanyDashboard() {
         </div>
       )}
 
-      {/* Financial Overview + Overdue Milestones — See VRIP-106 */}
-      <div className="grid grid-cols-[1.2fr_1fr] gap-6 mb-6">
-        {/* Revenue vs Cost / Company Cost / Company Margin */}
-        <div
-          className="rounded-xl border border-[#E8EAF6] bg-white overflow-hidden"
-          style={{ boxShadow: '0 2px 8px rgba(43,57,144,0.06)' }}
-        >
-          <div className="px-5 py-3.5 border-b border-[#E8EAF6] flex items-center justify-between">
-            <h3 className="text-[15px] font-bold text-[#1e1b4b]">Revenue vs Cost</h3>
-          </div>
-          <div className="p-5">
-            {[
-              { label: 'Total Cost', value: data.total_cost_inr, color: 'linear-gradient(90deg, #2B3990, #4A5BB5)' },
-              { label: 'Projected Revenue', value: data.projected_revenue_inr, color: 'linear-gradient(90deg, #059669, #34d399)' },
-              { label: 'Actual Revenue', value: data.actual_revenue_inr, color: 'linear-gradient(90deg, #f59e0b, #fcd34d)' },
-            ].map((bar) => {
-              const max = Math.max(data.total_cost_inr ?? 0, data.projected_revenue_inr ?? 0, data.actual_revenue_inr ?? 0, 1)
-              const width = bar.value === null ? 0 : Math.min(100, (bar.value / max) * 100)
-              return (
-                <div key={bar.label} className="mb-4">
-                  <div className="flex justify-between text-[13px] mb-1.5">
-                    <span className="font-semibold text-[#1e1b4b]">{bar.label}</span>
-                    <span className="text-[#6b7280]">{formatInr(bar.value)}</span>
-                  </div>
-                  <div className="h-6 rounded-xl bg-[#F0F1FA] overflow-hidden">
-                    <div className="h-full rounded-xl transition-[width]" style={{ width: `${width}%`, background: bar.color }} />
-                  </div>
-                </div>
-              )
-            })}
-            <div className="mt-3 pt-3 border-t border-[#E8EAF6] text-[12px] text-[#6b7280]">
-              Resource Cost: {formatInr(data.resource_cost_inr)} · Non-Human Cost: {formatInr(data.non_human_cost_inr)}
-            </div>
-            {incompleteDataNote && (
-              <div className="mt-2 text-[12px] text-[#ea580c]">
-                ⚠ {incompleteDataNote} — totals above are incomplete until every active assignment has a
-                loaded cost / billing rate set.
-              </div>
-            )}
-            <div className="mt-4 pt-4 border-t border-[#E8EAF6]">
-              <div className="flex justify-between text-[13px]">
-                <span className="font-bold text-[#1e1b4b]">Projected Margin</span>
-                <span className="font-bold text-[#22c55e]">
-                  {formatInr(data.projected_margin_inr)}
-                  {data.projected_margin_pct !== null && ` (${data.projected_margin_pct.toFixed(1)}%)`}
-                </span>
-              </div>
-              <div className="flex justify-between text-[13px] mt-2">
-                <span className="text-[#1e1b4b]">Actual Margin</span>
-                <span className="text-[#f59e0b]">
-                  {formatInr(data.actual_margin_inr)}
-                  {data.actual_margin_pct !== null && ` (${data.actual_margin_pct.toFixed(1)}%)`}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Overdue Milestones */}
+      {/* Overdue Milestones — See VRIP-106. Two-col layout returns in VRIP-129 when
+          Top 5 Projects by Team Size fills the slot Revenue vs Cost used to occupy. */}
+      <div className="mb-6">
         <div
           className="rounded-xl border border-[#E8EAF6] bg-white overflow-hidden"
           style={{ boxShadow: '0 2px 8px rgba(43,57,144,0.06)' }}

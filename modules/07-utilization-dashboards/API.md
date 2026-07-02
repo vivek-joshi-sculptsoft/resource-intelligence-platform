@@ -19,14 +19,43 @@ All endpoints are read-only aggregations. No writes. Financial fields return `nu
   "shadow_total_allocation_pct": int,
   "active_project_count": int,
   "active_projects_by_type": { "FIXED_PRICE": int, "TIME_AND_MATERIAL": int, "CLIENT_ONBOARDING": int },
+  "top_5_projects_by_team_size": [{ "project_id", "project_name", "team_size", "dm_name", "pm_name" }],
   "upcoming_releases_30d": [{ "resource_name", "project_name", "end_date", "days_remaining" }],
-  "overdue_milestones_count": int,         // Phase 2
-  "overdue_milestones": [...],             // Phase 2
-  "projected_revenue_inr": decimal,        // Phase 2 — null in Phase 1
-  "actual_revenue_inr": decimal,           // Phase 2 — null in Phase 1
-  "total_cost_inr": decimal               // Phase 2 — null in Phase 1
+  "overdue_milestones_count": int,
+  "overdue_milestones": [...]
 }
 ```
+> **Note:** `projected_revenue_inr`, `actual_revenue_inr`, `total_cost_inr`, and all margin fields were removed from this endpoint — company-wide revenue/cost/margin now lives on `GET /api/dashboard/company-finance` with date-range filtering. `top_5_projects_by_team_size` is new (`shared/BUSINESS-RULES.md §7.8`).
+
+---
+
+### GET /api/dashboard/company-finance
+**Description:** Company-wide revenue, cost, and margin with date-range and project/client filtering.
+**Auth:** CEO, CTO, Finance only — gated on `project_margin` data type, scope `ALL` (`shared/ACCESS-MATRIX.md`). DM's `OWN_PORTFOLIO` scope excludes this endpoint (403).
+**Scope:** ALL
+**Query params:**
+- `range`: `THIS_MONTH` | `LAST_3_MONTHS` | `CUSTOM` (default `THIS_MONTH`)
+- `start_date`, `end_date`: required if `range=CUSTOM` (ISO date, `end_date >= start_date`)
+- `project_id`: optional UUID filter
+- `client_id`: optional UUID filter
+**Response:**
+```json
+{
+  "period_start": "date",
+  "period_end": "date",
+  "actual_revenue_inr": decimal,
+  "projected_revenue_inr": decimal,
+  "resource_cost_inr": decimal,
+  "non_human_cost_inr": decimal,
+  "total_cost_inr": decimal,
+  "projected_margin_inr": decimal,
+  "projected_margin_pct": decimal,
+  "actual_margin_inr": decimal,
+  "actual_margin_pct": decimal,
+  "projects_with_incomplete_financial_data": int
+}
+```
+**Formulas:** `shared/BUSINESS-RULES.md §7.3a` (projected revenue), `§7.4` (actual revenue), `§7.5a` (cost + margin).
 
 ---
 

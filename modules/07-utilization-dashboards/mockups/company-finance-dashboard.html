@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Company Finance Dashboard | SculptSoft RIP</title>
+<style>
+:root {
+  --bg-page: #F0F1FA; --bg-card: #ffffff; --bg-sidebar: #F5F6FC;
+  --bg-header: #ffffff; --bg-hover: #F0F1FA; --bg-stripe: #F5F6FC;
+  --c-primary: #2B3990; --c-primary-dark: #1B2B65; --c-primary-light: #4A5BB5;
+  --c-accent: #FF4B2B; --c-accent-hover: #E63E1F; --c-accent-soft: #FFF0EC;
+  --c-text: #1e1b4b; --c-text-secondary: #6b7280; --c-text-muted: #7C85C0;
+  --c-border: #D6DAF0; --c-border-light: #E8EAF6;
+  --c-danger: #ef4444; --c-success: #22c55e; --c-warning: #f59e0b;
+  --shadow-card: 0 2px 8px rgba(43,57,144,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --radius-card: 12px; --radius-input: 8px; --radius-btn: 8px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg-page); color: var(--c-text); min-height: 100vh; }
+
+/* Role Switcher Bar */
+.role-switcher { position: sticky; top: 0; z-index: 1000; background: var(--c-primary-dark); display: flex; align-items: center; padding: 0 24px; height: 40px; gap: 8px; }
+.role-switcher .label { color: rgba(255,255,255,0.6); font-size: 12px; font-weight: 500; margin-right: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.role-switcher button { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; transition: all 0.2s; font-family: var(--font); }
+.role-switcher button:hover { background: rgba(255,255,255,0.2); color: #fff; }
+.role-switcher button.active { background: var(--c-accent); color: #fff; border-color: var(--c-accent); font-weight: 600; }
+
+/* App Header */
+.app-header { background: var(--bg-header); border-bottom: 1px solid var(--c-border-light); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.app-header .logo { font-size: 18px; font-weight: 700; color: var(--c-primary); }
+.app-header .logo span { color: var(--c-accent); }
+.app-header .user-info { display: flex; align-items: center; gap: 10px; }
+.app-header .avatar { width: 32px; height: 32px; background: var(--c-primary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+.app-header .user-name { font-size: 13px; color: var(--c-text-secondary); }
+
+/* Layout */
+.app-layout { display: flex; min-height: calc(100vh - 96px); }
+.sidebar { width: 220px; background: var(--bg-sidebar); border-right: 1px solid var(--c-border-light); padding: 16px 0; flex-shrink: 0; }
+.sidebar a { display: flex; align-items: center; gap: 10px; padding: 10px 20px; color: var(--c-text-secondary); text-decoration: none; font-size: 14px; transition: all 0.15s; }
+.sidebar a:hover { background: var(--bg-hover); color: var(--c-text); }
+.sidebar a.active { background: var(--c-accent-soft); color: var(--c-accent); font-weight: 600; border-right: 3px solid var(--c-accent); }
+.sidebar .section-title { padding: 16px 20px 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-text-muted); font-weight: 600; }
+.main-content { flex: 1; padding: 24px 32px; overflow-x: auto; }
+
+/* Page Header */
+.page-header { margin-bottom: 20px; }
+.page-header h1 { font-size: 22px; font-weight: 700; }
+.page-header .subtitle { font-size: 13px; color: var(--c-text-secondary); margin-top: 2px; }
+
+/* Filter Bar */
+.filter-bar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; background: var(--bg-card); border: 1px solid var(--c-border-light); border-radius: var(--radius-card); box-shadow: var(--shadow-card); padding: 14px 20px; margin-bottom: 24px; }
+.time-filter { display: flex; gap: 4px; background: var(--bg-sidebar); border-radius: var(--radius-btn); padding: 3px; border: 1px solid var(--c-border-light); }
+.time-filter button { padding: 6px 14px; font-size: 12px; font-weight: 500; border: none; background: transparent; color: var(--c-text-secondary); border-radius: 6px; cursor: pointer; font-family: var(--font); transition: all 0.15s; }
+.time-filter button.active { background: var(--c-primary); color: #fff; font-weight: 600; }
+.time-filter button:hover:not(.active) { background: var(--bg-hover); }
+.custom-range { display: none; align-items: center; gap: 8px; }
+.custom-range.show { display: flex; }
+.custom-range input[type="date"] { font-family: var(--font); font-size: 12px; color: var(--c-text); border: 1px solid var(--c-border); border-radius: var(--radius-input); padding: 6px 10px; background: var(--bg-page); }
+.custom-range span { font-size: 12px; color: var(--c-text-muted); }
+.filter-divider { width: 1px; align-self: stretch; background: var(--c-border-light); }
+.dropdown-filter { display: flex; flex-direction: column; gap: 3px; }
+.dropdown-filter label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--c-text-muted); }
+.dropdown-filter select { font-family: var(--font); font-size: 13px; color: var(--c-text); border: 1px solid var(--c-border); border-radius: var(--radius-input); padding: 6px 10px; background: #fff; min-width: 180px; }
+
+/* KPI Grid */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.kpi-card { background: var(--bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card); border: 1px solid var(--c-border-light); padding: 20px 24px; position: relative; overflow: hidden; }
+.kpi-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.kpi-card.green::after { background: linear-gradient(90deg, #059669, #34d399); }
+.kpi-card.blue::after { background: linear-gradient(90deg, var(--c-primary), var(--c-primary-light)); }
+.kpi-card.orange::after { background: linear-gradient(90deg, #ea580c, #f59e0b); }
+.kpi-card.red::after { background: linear-gradient(90deg, var(--c-accent), #FF7043); }
+.kpi-card .kpi-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-text-muted); margin-bottom: 8px; font-weight: 600; }
+.kpi-card .kpi-value { font-size: 30px; font-weight: 800; color: var(--c-text); line-height: 1; }
+.kpi-card .kpi-value.text-green { color: #059669; }
+.kpi-card .kpi-value.text-blue { color: var(--c-primary); }
+.kpi-card .kpi-value.text-orange { color: #ea580c; }
+.kpi-card .kpi-value.text-red { color: var(--c-accent); }
+.kpi-card .kpi-sub { font-size: 12px; color: var(--c-text-secondary); margin-top: 6px; }
+.kpi-card .kpi-sub .trend-up { color: var(--c-success); font-weight: 600; }
+.kpi-card .kpi-sub .trend-down { color: var(--c-danger); font-weight: 600; }
+.kpi-card .kpi-detail { font-size: 11px; color: var(--c-text-muted); margin-top: 4px; }
+
+/* Card */
+.card { background: var(--bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card); border: 1px solid var(--c-border-light); margin-bottom: 24px; }
+.card-header { padding: 16px 20px; border-bottom: 1px solid var(--c-border-light); display: flex; align-items: center; justify-content: space-between; }
+.card-header h3 { font-size: 15px; font-weight: 700; }
+.card-body { padding: 20px; }
+
+/* Margin summary bars */
+.margin-row { display: flex; justify-content: space-between; font-size: 13px; padding: 10px 0; border-bottom: 1px solid var(--c-border-light); }
+.margin-row:last-child { border-bottom: none; }
+.margin-row .lbl { font-weight: 600; color: var(--c-text); }
+.margin-row .val { font-weight: 700; }
+.margin-row .val.projected { color: var(--c-success); }
+.margin-row .val.actual { color: var(--c-warning); }
+
+.incomplete-note { margin-top: 12px; font-size: 12px; color: #ea580c; }
+
+/* Access Denied */
+.access-denied { display: none; text-align: center; padding: 80px 20px; }
+.access-denied .icon { font-size: 48px; margin-bottom: 16px; }
+.access-denied h3 { font-size: 18px; color: var(--c-text); margin-bottom: 8px; }
+.access-denied p { font-size: 14px; color: var(--c-text-secondary); }
+
+/* Empty State */
+.empty-state { display: none; text-align: center; padding: 60px 20px; }
+.empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state h3 { font-size: 16px; color: var(--c-text); margin-bottom: 6px; }
+.empty-state p { font-size: 13px; color: var(--c-text-secondary); }
+</style>
+</head>
+<body>
+
+<!-- Role Switcher Bar -->
+<div class="role-switcher">
+  <span class="label">Viewing as:</span>
+  <button data-role="CEO">CEO</button>
+  <button data-role="CTO">CTO</button>
+  <button data-role="DM">DM</button>
+  <button data-role="PM">PM</button>
+  <button class="active" data-role="FINANCE">Finance</button>
+  <button data-role="HR">HR</button>
+  <button data-role="ENGINEER">Engineer</button>
+</div>
+
+<!-- App Header -->
+<header class="app-header">
+  <div class="logo">Sculpt<span>RIP</span></div>
+  <div class="user-info">
+    <span class="user-name" id="currentUser">Neha Gupta (FINANCE)</span>
+    <div class="avatar" id="currentAvatar">NG</div>
+  </div>
+</header>
+
+<!-- Layout -->
+<div class="app-layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="section-title">Main</div>
+    <a href="company-dashboard.html">&#9633; Dashboard</a>
+    <a href="#">&#9633; Clients</a>
+    <a href="#">&#9633; Projects</a>
+    <a href="#">&#9633; Resources</a>
+    <a href="#">&#9633; Allocations</a>
+    <div class="section-title">Analytics</div>
+    <a href="#">&#9633; Utilization</a>
+    <a href="availability.html">&#9633; Availability</a>
+    <div class="section-title">Finance</div>
+    <a href="#" class="active">&#9633; Finance Dashboard</a>
+    <a href="#">&#9633; Invoicing</a>
+    <div class="section-title">System</div>
+    <a href="#">&#9633; Audit Log</a>
+    <a href="#">&#9633; Settings</a>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content" id="mainContent">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1>Company Finance Dashboard</h1>
+      <div class="subtitle">Revenue, cost, and margin — filter by period, project, or client</div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar" id="filterBar">
+      <div class="time-filter">
+        <button class="active" data-range="THIS_MONTH">This Month</button>
+        <button data-range="LAST_3_MONTHS">Last 3 Months</button>
+        <button data-range="CUSTOM">Custom</button>
+      </div>
+      <div class="custom-range" id="customRange">
+        <input type="date" id="startDate" value="2026-05-01">
+        <span>to</span>
+        <input type="date" id="endDate" value="2026-07-02">
+      </div>
+      <div class="filter-divider"></div>
+      <div class="dropdown-filter">
+        <label for="projectFilter">Project</label>
+        <select id="projectFilter">
+          <option value="">All Projects</option>
+          <option>Reliance Digital Transformation</option>
+          <option>HDFC Mobile Banking Redesign</option>
+          <option>Wipro Cloud Migration</option>
+          <option>Bajaj Finserv Analytics</option>
+          <option>TCS Partnership Portal</option>
+        </select>
+      </div>
+      <div class="dropdown-filter">
+        <label for="clientFilter">Client</label>
+        <select id="clientFilter">
+          <option value="">All Clients</option>
+          <option>Reliance Industries</option>
+          <option>HDFC Bank</option>
+          <option>Wipro Ltd.</option>
+          <option>Bajaj Finserv</option>
+          <option>Tata Consultancy</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- KPI Grid -->
+    <div class="kpi-grid" id="kpiGrid">
+      <div class="kpi-card green">
+        <div class="kpi-label">Total Revenue (Actual)</div>
+        <div class="kpi-value text-green">&#8377;40,80,000</div>
+        <div class="kpi-sub">From approved &amp; paid invoices</div>
+        <div class="kpi-detail">01 May &ndash; 02 Jul 2026</div>
+      </div>
+      <div class="kpi-card blue">
+        <div class="kpi-label">Total Projected Revenue</div>
+        <div class="kpi-value text-blue">&#8377;42,50,000</div>
+        <div class="kpi-sub"><span class="trend-up">&#9650; 4.2%</span> vs actual</div>
+        <div class="kpi-detail">From active assignments in period</div>
+      </div>
+      <div class="kpi-card orange">
+        <div class="kpi-label">Total Cost</div>
+        <div class="kpi-value text-orange">&#8377;28,90,000</div>
+        <div class="kpi-sub">Resource: &#8377;24,10,000 &middot; Non-Human: &#8377;4,80,000</div>
+      </div>
+      <div class="kpi-card red">
+        <div class="kpi-label">Company Margin</div>
+        <div class="kpi-value text-red">32.1%</div>
+        <div class="kpi-sub">Actual: 29.6%</div>
+      </div>
+    </div>
+
+    <!-- Margin Detail -->
+    <div class="card">
+      <div class="card-header">
+        <h3>Margin Detail</h3>
+      </div>
+      <div class="card-body">
+        <div class="margin-row"><span class="lbl">Projected Margin</span><span class="val projected">&#8377;13,60,000 (32.1%)</span></div>
+        <div class="margin-row"><span class="lbl">Actual Margin</span><span class="val actual">&#8377;11,90,000 (29.6%)</span></div>
+        <div class="incomplete-note" id="incompleteNote" style="display:none;">&#9888; 1 project missing cost/rate data &mdash; totals above are incomplete until every active assignment has a loaded cost / billing rate set.</div>
+      </div>
+    </div>
+
+    <!-- Access Denied -->
+    <div class="access-denied" id="accessDenied">
+      <div class="icon">&#128274;</div>
+      <h3>Access Restricted</h3>
+      <p>The Company Finance Dashboard is available to CEO, CTO, and Finance roles only.</p>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState">
+      <div class="icon">&#128202;</div>
+      <h3>No financial data for this period</h3>
+      <p>Try widening the date range or clearing the project/client filter.</p>
+    </div>
+  </main>
+</div>
+
+<script>
+// Role config — DM has OWN_PORTFOLIO scope on project_margin, so no company-wide finance view
+const roleConfig = {
+  CEO:      { user: 'Vivek Sharma', avatar: 'VS', access: true },
+  CTO:      { user: 'Rajesh Kumar', avatar: 'RK', access: true },
+  DM:       { user: 'Arjun Mehta', avatar: 'AM', access: false },
+  PM:       { user: 'Priya Patel', avatar: 'PP', access: false },
+  FINANCE:  { user: 'Neha Gupta', avatar: 'NG', access: true },
+  HR:       { user: 'Sunita Reddy', avatar: 'SR', access: false },
+  ENGINEER: { user: 'Rohit Joshi', avatar: 'RJ', access: false }
+};
+
+function applyRole(role) {
+  const cfg = roleConfig[role];
+  document.getElementById('currentUser').textContent = cfg.user + ' (' + role + ')';
+  document.getElementById('currentAvatar').textContent = cfg.avatar;
+  document.getElementById('accessDenied').style.display = cfg.access ? 'none' : 'block';
+  document.querySelectorAll('.filter-bar, .kpi-grid, .card').forEach(el => {
+    el.style.display = cfg.access ? '' : 'none';
+  });
+}
+
+document.querySelectorAll('.role-switcher button[data-role]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.role-switcher button[data-role]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyRole(btn.dataset.role);
+  });
+});
+
+// Date range filter
+document.querySelectorAll('.time-filter button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.time-filter button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('customRange').classList.toggle('show', btn.dataset.range === 'CUSTOM');
+  });
+});
+</script>
+</body>
+</html>

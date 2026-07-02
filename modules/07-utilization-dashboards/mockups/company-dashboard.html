@@ -51,30 +51,20 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--c-text
 .page-header h1 { font-size: 22px; font-weight: 700; }
 .page-header .subtitle { font-size: 13px; color: var(--c-text-secondary); margin-top: 2px; }
 
-/* Time Filter */
-.time-filter { display: flex; gap: 4px; background: var(--bg-sidebar); border-radius: var(--radius-btn); padding: 3px; border: 1px solid var(--c-border-light); }
-.time-filter button { padding: 6px 14px; font-size: 12px; font-weight: 500; border: none; background: transparent; color: var(--c-text-secondary); border-radius: 6px; cursor: pointer; font-family: var(--font); transition: all 0.15s; }
-.time-filter button.active { background: var(--c-primary); color: #fff; font-weight: 600; }
-.time-filter button:hover:not(.active) { background: var(--bg-hover); }
-
 /* KPI Grid */
-.kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
 .kpi-card { background: var(--bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card); border: 1px solid var(--c-border-light); padding: 20px 24px; position: relative; overflow: hidden; }
 .kpi-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
 .kpi-card.blue::after { background: linear-gradient(90deg, var(--c-primary), var(--c-primary-light)); }
 .kpi-card.green::after { background: linear-gradient(90deg, #16a34a, #22c55e); }
 .kpi-card.orange::after { background: linear-gradient(90deg, #ea580c, #f59e0b); }
-.kpi-card.red::after { background: linear-gradient(90deg, var(--c-accent), #FF7043); }
 .kpi-card.purple::after { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
-.kpi-card.teal::after { background: linear-gradient(90deg, #0d9488, #2dd4bf); }
 .kpi-card .kpi-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-text-muted); margin-bottom: 8px; font-weight: 600; }
 .kpi-card .kpi-value { font-size: 32px; font-weight: 800; color: var(--c-text); line-height: 1; }
 .kpi-card .kpi-value.text-blue { color: var(--c-primary); }
 .kpi-card .kpi-value.text-green { color: #16a34a; }
 .kpi-card .kpi-value.text-orange { color: #ea580c; }
-.kpi-card .kpi-value.text-red { color: var(--c-accent); }
 .kpi-card .kpi-value.text-purple { color: #7c3aed; }
-.kpi-card .kpi-value.text-teal { color: #0d9488; }
 .kpi-card .kpi-sub { font-size: 12px; color: var(--c-text-secondary); margin-top: 6px; display: flex; align-items: center; gap: 4px; }
 .kpi-card .kpi-sub .trend-up { color: var(--c-success); font-weight: 600; }
 .kpi-card .kpi-sub .trend-down { color: var(--c-danger); font-weight: 600; }
@@ -89,33 +79,28 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--c-text
 /* Two-column layout */
 .two-col { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; }
 
-/* Utilization Chart (CSS bars) */
-.chart-bar-group { margin-bottom: 16px; }
-.chart-bar-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
-.chart-bar-label .name { font-weight: 600; color: var(--c-text); }
-.chart-bar-label .pct { font-weight: 700; color: var(--c-primary); }
-.chart-bar-track { height: 24px; background: var(--bg-stripe); border-radius: 6px; overflow: hidden; position: relative; }
-.chart-bar-fill { height: 100%; border-radius: 6px; transition: width 0.6s ease; }
-.chart-bar-fill.high { background: linear-gradient(90deg, var(--c-primary), var(--c-primary-light)); }
-.chart-bar-fill.medium { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
-.chart-bar-fill.low { background: linear-gradient(90deg, var(--c-danger), #f87171); }
-
 /* Table */
 .data-table { width: 100%; border-collapse: collapse; }
 .data-table thead th { background: linear-gradient(135deg, var(--c-primary) 0%, var(--c-primary-light) 100%); color: #fff; padding: 10px 14px; text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
-.data-table tbody tr { border-bottom: 1px solid var(--c-border-light); }
+.data-table tbody tr { border-bottom: 1px solid var(--c-border-light); cursor: pointer; }
 .data-table tbody tr:hover { background: var(--bg-hover); }
 .data-table tbody tr:nth-child(even) { background: var(--bg-stripe); }
 .data-table tbody tr:nth-child(even):hover { background: var(--bg-hover); }
 .data-table td { padding: 10px 14px; font-size: 13px; }
 .data-table .text-right { text-align: right; }
 
-/* Badges */
-.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-.badge-fp { background: #EEF0FF; color: var(--c-primary); }
-.badge-tm { background: #FEF3C7; color: #92400E; }
-.badge-onb { background: #F0FDF4; color: #166534; }
-.badge-active { background: #DCFCE7; color: #166534; }
+/* Overdue Milestones */
+.count-badge { display: inline-flex; align-items: center; border-radius: 999px; background: #fee2e2; color: #991b1b; font-size: 12px; font-weight: 700; padding: 2px 10px; }
+.milestone-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--c-border-light); }
+.milestone-item:last-child { border-bottom: none; }
+.milestone-item .resource-name { font-weight: 600; font-size: 13px; }
+.milestone-item .project-name { font-size: 12px; color: var(--c-text-secondary); }
+.milestone-item .days-overdue { font-size: 12px; font-weight: 600; color: var(--c-danger); }
+
+/* Shadow Allocation */
+.shadow-stats { display: flex; gap: 32px; align-items: center; }
+.shadow-stat .num { font-size: 28px; font-weight: 800; color: #7c3aed; }
+.shadow-stat .lbl { font-size: 12px; color: var(--c-text-secondary); }
 
 /* Upcoming Releases */
 .release-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--c-border-light); }
@@ -140,8 +125,6 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--c-text
 .empty-state h3 { font-size: 16px; color: var(--c-text); margin-bottom: 6px; }
 .empty-state p { font-size: 13px; color: var(--c-text-secondary); }
 
-/* Phase 2 badge */
-.phase2-tag { display: inline-flex; align-items: center; gap: 4px; background: #F3F4F6; color: #9CA3AF; border: 1px dashed #D1D5DB; border-radius: 6px; padding: 3px 8px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
 </style>
 </head>
 <body>
@@ -185,6 +168,7 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--c-text
     <a href="#">&#9633; Utilization</a>
     <a href="#">&#9633; Availability</a>
     <div class="section-title">Finance</div>
+    <a href="company-finance-dashboard.html">&#9633; Finance Dashboard</a>
     <a href="#">&#9633; Invoicing</a>
     <div class="section-title">System</div>
     <a href="#">&#9633; Audit Log</a>
@@ -199,12 +183,7 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--c-text
         <h1>Company Dashboard</h1>
         <div class="subtitle">Real-time overview of resources, projects, and utilization</div>
       </div>
-      <div class="time-filter">
-        <button class="active">This Month</button>
-        <button>Last 3 Mo</button>
-        <button>Last 6 Mo</button>
-        <button>YTD</button>
-      </div>
+      <a href="company-finance-dashboard.html" style="font-size:13px; font-weight:600; color: var(--c-primary); text-decoration:none;">View Finance Dashboard &rarr;</a>
     </div>
 
     <!-- KPI Grid -->
@@ -233,45 +212,108 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--c-text
         <div class="kpi-sub">29 allocated &middot; 5 on bench</div>
         <div class="kpi-detail">2 joining next month</div>
       </div>
-      <div class="kpi-card teal">
-        <div class="kpi-label">Total Monthly Revenue <span class="phase2-tag">Phase 2</span></div>
-        <div class="kpi-value text-teal" style="opacity:0.4;">&#8377;42.5L</div>
-        <div class="kpi-sub" style="opacity:0.4;">Projected from active assignments</div>
+    </div>
+
+    <!-- Top 5 Projects by Team Size + Overdue Milestones -->
+    <div class="two-col">
+      <!-- Top 5 Projects by Team Size -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Top 5 Projects by Team Size</h3>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Project</th>
+              <th>Delivery Manager</th>
+              <th>Project Manager</th>
+              <th class="text-right">Team Size</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:600;">Reliance Digital Transformation</td>
+              <td>Arjun Mehta</td>
+              <td>Priya Patel</td>
+              <td class="text-right">8</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;">HDFC Mobile Banking Redesign</td>
+              <td>Deepika Nair</td>
+              <td>Ravi Shankar</td>
+              <td class="text-right">6</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;">Wipro Cloud Migration</td>
+              <td>Suresh Iyer</td>
+              <td>Priya Patel</td>
+              <td class="text-right">5</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;">Bajaj Finserv Analytics</td>
+              <td>Arjun Mehta</td>
+              <td>Kavita Shah</td>
+              <td class="text-right">4</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;">TCS Partnership Portal</td>
+              <td>Kavita Shah</td>
+              <td>Rahul Deshmukh</td>
+              <td class="text-right">3</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <div class="kpi-card red">
-        <div class="kpi-label">Company Margin <span class="phase2-tag">Phase 2</span></div>
-        <div class="kpi-value text-red" style="opacity:0.4;">32.1%</div>
-        <div class="kpi-sub" style="opacity:0.4;">After non-human costs</div>
+
+      <!-- Overdue Milestones -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Overdue Milestones</h3>
+          <span class="count-badge">3</span>
+        </div>
+        <div class="card-body">
+          <div class="milestone-item">
+            <div>
+              <div class="resource-name">UAT Sign-off</div>
+              <div class="project-name">HDFC Mobile Banking Redesign</div>
+            </div>
+            <div class="days-overdue">5d overdue</div>
+          </div>
+          <div class="milestone-item">
+            <div>
+              <div class="resource-name">Phase 2 Delivery</div>
+              <div class="project-name">Wipro Cloud Migration</div>
+            </div>
+            <div class="days-overdue">2d overdue</div>
+          </div>
+          <div class="milestone-item">
+            <div>
+              <div class="resource-name">Go-Live Checklist</div>
+              <div class="project-name">TCS Partnership Portal</div>
+            </div>
+            <div class="days-overdue">1d overdue</div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Two Column Layout -->
+    <!-- Shadow Allocation + Upcoming Releases -->
     <div class="two-col">
-      <!-- Utilization by DM -->
+      <!-- Shadow Allocation -->
       <div class="card">
         <div class="card-header">
-          <h3>Utilization by Delivery Manager</h3>
+          <h3>Shadow Allocation</h3>
         </div>
         <div class="card-body">
-          <div class="chart-bar-group">
-            <div class="chart-bar-label"><span class="name">Arjun Mehta</span><span class="pct">85%</span></div>
-            <div class="chart-bar-track"><div class="chart-bar-fill high" style="width:85%"></div></div>
-          </div>
-          <div class="chart-bar-group">
-            <div class="chart-bar-label"><span class="name">Deepika Nair</span><span class="pct">79%</span></div>
-            <div class="chart-bar-track"><div class="chart-bar-fill high" style="width:79%"></div></div>
-          </div>
-          <div class="chart-bar-group">
-            <div class="chart-bar-label"><span class="name">Suresh Iyer</span><span class="pct">72%</span></div>
-            <div class="chart-bar-track"><div class="chart-bar-fill high" style="width:72%"></div></div>
-          </div>
-          <div class="chart-bar-group">
-            <div class="chart-bar-label"><span class="name">Kavita Shah</span><span class="pct">65%</span></div>
-            <div class="chart-bar-track"><div class="chart-bar-fill medium" style="width:65%"></div></div>
-          </div>
-          <div class="chart-bar-group">
-            <div class="chart-bar-label"><span class="name">Rahul Deshmukh</span><span class="pct">52%</span></div>
-            <div class="chart-bar-track"><div class="chart-bar-fill low" style="width:52%"></div></div>
+          <div class="shadow-stats">
+            <div class="shadow-stat">
+              <div class="num">3</div>
+              <div class="lbl">shadow assignments</div>
+            </div>
+            <div class="shadow-stat">
+              <div class="num">18%</div>
+              <div class="lbl">total allocation</div>
+            </div>
           </div>
         </div>
       </div>
@@ -347,79 +389,6 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--c-text
       </div>
     </div>
 
-    <!-- Top 5 Projects Table -->
-    <div class="card">
-      <div class="card-header">
-        <h3>Top 5 Projects by Team Size</h3>
-      </div>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Project</th>
-            <th>Client</th>
-            <th>Type</th>
-            <th>DM</th>
-            <th>PM</th>
-            <th class="text-right">Team Size</th>
-            <th class="text-right">Avg Utilization</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style="font-weight:600;">Reliance Digital Transformation</td>
-            <td>Reliance Industries</td>
-            <td><span class="badge badge-tm">T&M</span></td>
-            <td>Arjun Mehta</td>
-            <td>Priya Patel</td>
-            <td class="text-right">8</td>
-            <td class="text-right" style="font-weight:600; color: var(--c-primary);">92%</td>
-            <td><span class="badge badge-active">Active</span></td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;">HDFC Mobile Banking Redesign</td>
-            <td>HDFC Bank</td>
-            <td><span class="badge badge-fp">FP</span></td>
-            <td>Deepika Nair</td>
-            <td>Ravi Shankar</td>
-            <td class="text-right">6</td>
-            <td class="text-right" style="font-weight:600; color: var(--c-primary);">88%</td>
-            <td><span class="badge badge-active">Active</span></td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;">Wipro Cloud Migration</td>
-            <td>Wipro Ltd.</td>
-            <td><span class="badge badge-tm">T&M</span></td>
-            <td>Suresh Iyer</td>
-            <td>Priya Patel</td>
-            <td class="text-right">5</td>
-            <td class="text-right" style="font-weight:600; color: #f59e0b;">74%</td>
-            <td><span class="badge badge-active">Active</span></td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;">Bajaj Finserv Analytics</td>
-            <td>Bajaj Finserv</td>
-            <td><span class="badge badge-fp">FP</span></td>
-            <td>Arjun Mehta</td>
-            <td>Kavita Shah</td>
-            <td class="text-right">4</td>
-            <td class="text-right" style="font-weight:600; color: var(--c-primary);">81%</td>
-            <td><span class="badge badge-active">Active</span></td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;">TCS Partnership Portal</td>
-            <td>Tata Consultancy</td>
-            <td><span class="badge badge-tm">T&M</span></td>
-            <td>Kavita Shah</td>
-            <td>Rahul Deshmukh</td>
-            <td class="text-right">3</td>
-            <td class="text-right" style="font-weight:600; color: var(--c-danger);">62%</td>
-            <td><span class="badge badge-active">Active</span></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
     <!-- Access Denied -->
     <div class="access-denied" id="accessDenied">
       <div class="icon">&#128274;</div>
@@ -461,7 +430,6 @@ function applyRole(role) {
       el.style.display = cfg.access ? '' : 'none';
     }
   });
-  document.querySelector('.page-header .time-filter').style.display = cfg.access ? 'flex' : 'none';
 }
 
 document.querySelectorAll('.role-switcher button[data-role]').forEach(btn => {
@@ -469,14 +437,6 @@ document.querySelectorAll('.role-switcher button[data-role]').forEach(btn => {
     document.querySelectorAll('.role-switcher button[data-role]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     applyRole(btn.dataset.role);
-  });
-});
-
-// Time filter toggle
-document.querySelectorAll('.time-filter button').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.time-filter button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
   });
 });
 

@@ -162,6 +162,9 @@ class OverdueMilestoneItem(BaseModel):
 
 
 class CompanyDashboardResponse(BaseModel):
+    """See VRIP-128 — company-wide revenue/cost/margin moved to the Company Finance
+    Dashboard (GET /api/v1/dashboard/company-finance); this endpoint no longer carries them."""
+
     billable_utilization_pct: Decimal
     total_active_resources: int
     bench_count: int
@@ -173,15 +176,4 @@ class CompanyDashboardResponse(BaseModel):
     upcoming_releases_30d: list[UpcomingRelease]
     overdue_milestones_count: int | None = None
     overdue_milestones: list[OverdueMilestoneItem] | None = None
-    resource_cost_inr: Decimal | None = None
-    non_human_cost_inr: Decimal | None = None
-    projected_revenue_inr: Decimal | None = None
-    actual_revenue_inr: Decimal | None = None
-    total_cost_inr: Decimal | None = None
-    projected_margin_inr: Decimal | None = None
-    projected_margin_pct: Decimal | None = None
-    actual_margin_inr: Decimal | None = None
-    actual_margin_pct: Decimal | None = None
-    overall_margin_pct: Decimal | None = None
     total_bench_cost_monthly: Decimal | None = None
-    projects_with_incomplete_financial_data: int = 0

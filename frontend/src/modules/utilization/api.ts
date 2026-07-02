@@ -23,6 +23,7 @@ export interface OverdueMilestone {
   days_overdue: number
 }
 
+// See VRIP-128 — company-wide revenue/cost/margin moved to the Company Finance Dashboard.
 export interface CompanyDashboard {
   billable_utilization_pct: number
   total_active_resources: number
@@ -35,18 +36,7 @@ export interface CompanyDashboard {
   upcoming_releases_30d: UpcomingRelease[]
   overdue_milestones_count: number | null
   overdue_milestones: OverdueMilestone[] | null
-  resource_cost_inr: number | null
-  non_human_cost_inr: number | null
-  projected_revenue_inr: number | null
-  actual_revenue_inr: number | null
-  total_cost_inr: number | null
-  projected_margin_inr: number | null
-  projected_margin_pct: number | null
-  actual_margin_inr: number | null
-  actual_margin_pct: number | null
-  overall_margin_pct: number | null
   total_bench_cost_monthly: number | null
-  projects_with_incomplete_financial_data: number
 }
 
 // Decimal fields are serialized as JSON strings by Pydantic — coerce to numbers so
@@ -61,16 +51,6 @@ export async function fetchCompanyDashboard(): Promise<CompanyDashboard> {
   return {
     ...raw,
     billable_utilization_pct: Number(raw.billable_utilization_pct),
-    resource_cost_inr: n(raw.resource_cost_inr),
-    non_human_cost_inr: n(raw.non_human_cost_inr),
-    projected_revenue_inr: n(raw.projected_revenue_inr),
-    actual_revenue_inr: n(raw.actual_revenue_inr),
-    total_cost_inr: n(raw.total_cost_inr),
-    projected_margin_inr: n(raw.projected_margin_inr),
-    projected_margin_pct: n(raw.projected_margin_pct),
-    actual_margin_inr: n(raw.actual_margin_inr),
-    actual_margin_pct: n(raw.actual_margin_pct),
-    overall_margin_pct: n(raw.overall_margin_pct),
     total_bench_cost_monthly: n(raw.total_bench_cost_monthly),
   }
 }

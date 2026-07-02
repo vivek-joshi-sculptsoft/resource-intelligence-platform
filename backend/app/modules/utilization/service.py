@@ -176,22 +176,8 @@ async def get_company_dashboard(db: AsyncSession) -> CompanyDashboardResponse:
         for m, pname in overdue_rows
     ]
 
-    # See BUSINESS-RULES.md §7.2-§7.5 — company-wide financials. Dashboard is CEO/CTO-only
-    # (enforced by the router), so all fields are always visible here.
-    all_active_projects = (
-        (await db.execute(select(Project).where(Project.is_active == True)))  # noqa: E712
-        .scalars()
-        .all()
-    )
-    financials = await get_company_financials(
-        db,
-        list(all_active_projects),
-        can_see_cost=True,
-        can_see_rate=True,
-        can_see_invoicing=True,
-        can_see_nonhuman=True,
-    )
-
+    # See VRIP-128 — company-wide revenue/cost/margin moved to the Company Finance
+    # Dashboard (get_company_finance_dashboard); this endpoint no longer aggregates financials.
     bench_summary = await get_bench_summary(db, can_see_cost=True)
 
     return CompanyDashboardResponse(
@@ -206,18 +192,7 @@ async def get_company_dashboard(db: AsyncSession) -> CompanyDashboardResponse:
         upcoming_releases_30d=upcoming_releases,
         overdue_milestones_count=len(overdue_milestones),
         overdue_milestones=overdue_milestones,
-        resource_cost_inr=financials.total_resource_cost_inr,
-        non_human_cost_inr=financials.total_non_human_cost_inr,
-        total_cost_inr=financials.total_cost_inr,
-        projected_revenue_inr=financials.total_projected_revenue_inr,
-        actual_revenue_inr=financials.total_actual_revenue_inr,
-        projected_margin_inr=financials.total_projected_margin_inr,
-        projected_margin_pct=financials.total_projected_margin_pct,
-        actual_margin_inr=financials.total_actual_margin_inr,
-        actual_margin_pct=financials.total_actual_margin_pct,
-        overall_margin_pct=financials.total_projected_margin_pct,
         total_bench_cost_monthly=bench_summary.total_bench_cost_monthly,
-        projects_with_incomplete_financial_data=financials.projects_with_incomplete_data,
     )
 
 

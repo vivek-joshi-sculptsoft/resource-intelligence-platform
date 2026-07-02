@@ -44,13 +44,30 @@ Projected Revenue INR     = Projected Revenue × latest_exchange_rate (or 1.0 if
 
 ---
 
+## 7.3a Projected Revenue (Date Range)
+
+```
+Working Days in Period (assignment) = COUNT(weekdays) in [max(assignment.start_date, period.start), min(assignment.end_date or period.end, period.end)]
+Per Assignment (period)   = billability_pct / 100 × Working Days in Period × 8 × billing_rate
+Projected Revenue (period) = SUM(per-assignment period) for non-shadow assignments overlapping the period
+Projected Revenue INR (period) = Projected Revenue (period) × latest_exchange_rate (or 1.0 if INR)
+```
+
+- Generalizes §7.3 to an arbitrary `[period.start, period.end]` window (month / 3-month / custom range) instead of the current month only.
+- An assignment "overlaps the period" if `start_date ≤ period.end AND (end_date IS NULL OR end_date ≥ period.start)`.
+- Used by the Company Finance Dashboard filters.
+
+---
+
 ## 7.4 Actual Revenue
 
 ```
-Actual Revenue (project, period) = SUM(invoice.amount_inr) where status ∈ {APPROVED, PAID}
+Actual Revenue (project, period) = SUM(invoice.amount_inr) where status ∈ {APPROVED, PAID} AND invoice_date ∈ period
 ```
 
 Source of truth for financial reporting. **Not** calculated from allocation.
+
+- `period` defaults to the current month; the Company Finance Dashboard passes an explicit `[period.start, period.end]` for its month / 3-month / custom filters.
 
 ---
 
@@ -64,6 +81,22 @@ Margin %         = Margin / Revenue × 100
 
 - **Client-level:** sum across all the client's projects.
 - **Company-level:** sum across all projects.
+
+---
+
+## 7.5a Margin (Date Range)
+
+```
+Resource Cost (period)   = SUM(loaded_cost_monthly / working_days_per_month × Working Days in Period × allocation_pct / 100) for assignments overlapping period  [see §7.3a]
+Non-Human Cost (period)  = SUM(amount_inr) for one-time costs where cost_date ∈ period + SUM(amount_inr) for recurring costs active at any point during period
+Total Project Cost (period) = Resource Cost (period) + Non-Human Cost (period)
+Projected Margin (period)   = Projected Revenue (period) − Total Project Cost (period)   [§7.3a]
+Actual Margin (period)      = Actual Revenue (period) − Total Project Cost (period)      [§7.4]
+Margin % (period)           = Margin (period) / Revenue (period) × 100
+```
+
+- Generalizes §7.5 to an arbitrary date range. Company-level = sum across all projects overlapping the period.
+- Used by the Company Finance Dashboard.
 
 ---
 
@@ -88,6 +121,17 @@ amount_inr = amount × exchange_rate
 - Exchange rate = 1 unit of billing currency = X INR.
 - **Manually entered** at invoice/cost entry time. Never auto-fetched.
 - Auto-set to **1.0** for INR (field disabled in UI).
+
+---
+
+## 7.8 Team Size (Project)
+
+```
+Team Size (project)          = COUNT(DISTINCT resource_id) for ACTIVE assignments where project_id = project.id
+Top 5 Projects by Team Size  = projects WHERE status = ACTIVE, ORDER BY Team Size DESC LIMIT 5
+```
+
+> Used by the Company Dashboard's "Top 5 Projects by Team Size" widget.
 
 ---
 
