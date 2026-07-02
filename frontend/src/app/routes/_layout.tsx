@@ -6,7 +6,6 @@ import {
   Users,
   FolderOpen,
   Building2,
-  BarChart3,
   UserCheck,
   Clock,
   ClipboardList,
@@ -40,12 +39,6 @@ const MAIN_NAV: NavItem[] = [
     label: 'Projects',
     to: '/projects',
     icon: <FolderOpen size={18} />,
-    allowedRoles: ['CEO', 'CTO', 'DM', 'PM', 'FINANCE', 'HR'],
-  },
-  {
-    label: 'Dashboards',
-    to: '/utilization',
-    icon: <BarChart3 size={18} />,
     allowedRoles: ['CEO', 'CTO', 'DM', 'PM', 'FINANCE', 'HR'],
   },
   {
