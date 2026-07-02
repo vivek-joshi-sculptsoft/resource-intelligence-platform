@@ -145,6 +145,17 @@ class AvailabilityPartialItem(BaseModel):
     projects: list[AvailabilityPartialProject]
 
 
+class OverdueMilestoneItem(BaseModel):
+    """See FSD §12 — Overdue Milestones: planned_delivery_date < today AND status = PLANNED."""
+
+    id: UUID
+    project_id: UUID
+    project_name: str
+    name: str
+    planned_delivery_date: date
+    days_overdue: int
+
+
 class CompanyDashboardResponse(BaseModel):
     billable_utilization_pct: Decimal
     total_active_resources: int
@@ -156,7 +167,15 @@ class CompanyDashboardResponse(BaseModel):
     active_projects_by_type: dict[str, int]
     upcoming_releases_30d: list[UpcomingRelease]
     overdue_milestones_count: int | None = None
-    overdue_milestones: list | None = None
+    overdue_milestones: list[OverdueMilestoneItem] | None = None
+    resource_cost_inr: Decimal | None = None
+    non_human_cost_inr: Decimal | None = None
     projected_revenue_inr: Decimal | None = None
     actual_revenue_inr: Decimal | None = None
     total_cost_inr: Decimal | None = None
+    projected_margin_inr: Decimal | None = None
+    projected_margin_pct: Decimal | None = None
+    actual_margin_inr: Decimal | None = None
+    actual_margin_pct: Decimal | None = None
+    overall_margin_pct: Decimal | None = None
+    total_bench_cost_monthly: Decimal | None = None

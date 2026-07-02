@@ -2,7 +2,12 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import { InfoTooltip, type InfoTooltipContent } from '../../../shared/components/InfoTooltip'
-import { fetchCompanyDashboard, type BenchResource, type UpcomingRelease } from '../api'
+import { fetchCompanyDashboard, type BenchResource, type OverdueMilestone, type UpcomingRelease } from '../api'
+
+function formatInr(val: number | null): string {
+  if (val === null) return '—'
+  return '₹' + val.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+}
 
 // See modules/07-utilization-dashboards/SCREENS.md — Info Tooltips; formulas per shared/BUSINESS-RULES.md §7
 const KPI_TOOLTIPS: Record<string, InfoTooltipContent> = {
@@ -135,6 +140,28 @@ function ReleaseList({ releases }: { releases: UpcomingRelease[] }) {
   )
 }
 
+function OverdueMilestoneList({ milestones, onClickMilestone }: { milestones: OverdueMilestone[]; onClickMilestone: (m: OverdueMilestone) => void }) {
+  if (milestones.length === 0) return <div className="text-[13px] text-[#6b7280] text-center py-6">No overdue milestones</div>
+
+  return (
+    <div className="divide-y divide-[#E8EAF6]">
+      {milestones.map((m) => (
+        <div
+          key={m.id}
+          className="flex items-center justify-between py-2.5 px-1 cursor-pointer hover:bg-[#F0F1FA] rounded transition-colors"
+          onClick={() => onClickMilestone(m)}
+        >
+          <div>
+            <div className="text-[13px] font-semibold text-[#1e1b4b]">{m.name}</div>
+            <div className="text-[12px] text-[#6b7280]">{m.project_name}</div>
+          </div>
+          <div className="text-[12px] font-semibold text-[#ef4444]">{m.days_overdue}d overdue</div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function LoadingSkeleton() {
   return (
     <div className="animate-pulse space-y-6">
@@ -169,6 +196,12 @@ export function CompanyDashboard() {
     .map(([k, v]) => `${PROJECT_TYPE_LABELS[k] || k}: ${v}`)
     .join(' · ')
 
+  // See BUSINESS-RULES.md §7.3-§7.4 — variance between projected and actual revenue
+  const revenueVariancePct =
+    data.projected_revenue_inr !== null && data.actual_revenue_inr !== null && data.projected_revenue_inr !== 0
+      ? ((data.actual_revenue_inr - data.projected_revenue_inr) / data.projected_revenue_inr) * 100
+      : null
+
   return (
     <div>
       {/* KPI Grid */}
@@ -192,6 +225,7 @@ export function CompanyDashboard() {
               </button>
             ) : undefined
           }
+          detail={data.total_bench_cost_monthly !== null ? `${formatInr(data.total_bench_cost_monthly)}/mo bench cost` : undefined}
           accentClass="bg-gradient-to-r from-[#ea580c] to-[#f59e0b]"
           textClass="text-[#ea580c]"
           tooltip={KPI_TOOLTIPS.benchCount}
@@ -214,20 +248,27 @@ export function CompanyDashboard() {
         />
         <KpiCard
           label="Total Monthly Revenue"
-          value="—"
-          sub="Projected from active assignments"
+          value={formatInr(data.projected_revenue_inr)}
+          sub={
+            revenueVariancePct !== null ? (
+              <span className={revenueVariancePct >= 0 ? 'text-[#16a34a] font-semibold' : 'text-[#ef4444] font-semibold'}>
+                {revenueVariancePct >= 0 ? '▲' : '▼'} {Math.abs(revenueVariancePct).toFixed(1)}% vs actual
+              </span>
+            ) : (
+              'Projected from active assignments'
+            )
+          }
+          detail={`Actual: ${formatInr(data.actual_revenue_inr)}`}
           accentClass="bg-gradient-to-r from-[#0d9488] to-[#2dd4bf]"
           textClass="text-[#0d9488]"
-          phase2
           tooltip={KPI_TOOLTIPS.totalMonthlyRevenue}
         />
         <KpiCard
           label="Company Margin"
-          value="—"
-          sub="After non-human costs"
+          value={data.overall_margin_pct !== null ? `${data.overall_margin_pct.toFixed(1)}%` : '—'}
+          sub={data.actual_margin_pct !== null ? `Actual: ${data.actual_margin_pct.toFixed(1)}%` : 'After non-human costs'}
           accentClass="bg-gradient-to-r from-[#FF4B2B] to-[#FF7043]"
           textClass="text-[#FF4B2B]"
-          phase2
           tooltip={KPI_TOOLTIPS.companyMargin}
         />
       </div>
@@ -247,6 +288,80 @@ export function CompanyDashboard() {
           </div>
         </div>
       )}
+
+      {/* Financial Overview + Overdue Milestones — See VRIP-106 */}
+      <div className="grid grid-cols-[1.2fr_1fr] gap-6 mb-6">
+        {/* Revenue vs Cost / Company Cost / Company Margin */}
+        <div
+          className="rounded-xl border border-[#E8EAF6] bg-white overflow-hidden"
+          style={{ boxShadow: '0 2px 8px rgba(43,57,144,0.06)' }}
+        >
+          <div className="px-5 py-3.5 border-b border-[#E8EAF6] flex items-center justify-between">
+            <h3 className="text-[15px] font-bold text-[#1e1b4b]">Revenue vs Cost</h3>
+          </div>
+          <div className="p-5">
+            {[
+              { label: 'Total Cost', value: data.total_cost_inr, color: 'linear-gradient(90deg, #2B3990, #4A5BB5)' },
+              { label: 'Projected Revenue', value: data.projected_revenue_inr, color: 'linear-gradient(90deg, #059669, #34d399)' },
+              { label: 'Actual Revenue', value: data.actual_revenue_inr, color: 'linear-gradient(90deg, #f59e0b, #fcd34d)' },
+            ].map((bar) => {
+              const max = Math.max(data.total_cost_inr ?? 0, data.projected_revenue_inr ?? 0, data.actual_revenue_inr ?? 0, 1)
+              const width = bar.value === null ? 0 : Math.min(100, (bar.value / max) * 100)
+              return (
+                <div key={bar.label} className="mb-4">
+                  <div className="flex justify-between text-[13px] mb-1.5">
+                    <span className="font-semibold text-[#1e1b4b]">{bar.label}</span>
+                    <span className="text-[#6b7280]">{formatInr(bar.value)}</span>
+                  </div>
+                  <div className="h-6 rounded-xl bg-[#F0F1FA] overflow-hidden">
+                    <div className="h-full rounded-xl transition-[width]" style={{ width: `${width}%`, background: bar.color }} />
+                  </div>
+                </div>
+              )
+            })}
+            <div className="mt-3 pt-3 border-t border-[#E8EAF6] text-[12px] text-[#6b7280]">
+              Resource Cost: {formatInr(data.resource_cost_inr)} · Non-Human Cost: {formatInr(data.non_human_cost_inr)}
+            </div>
+            <div className="mt-4 pt-4 border-t border-[#E8EAF6]">
+              <div className="flex justify-between text-[13px]">
+                <span className="font-bold text-[#1e1b4b]">Projected Margin</span>
+                <span className="font-bold text-[#22c55e]">
+                  {formatInr(data.projected_margin_inr)}
+                  {data.projected_margin_pct !== null && ` (${data.projected_margin_pct.toFixed(1)}%)`}
+                </span>
+              </div>
+              <div className="flex justify-between text-[13px] mt-2">
+                <span className="text-[#1e1b4b]">Actual Margin</span>
+                <span className="text-[#f59e0b]">
+                  {formatInr(data.actual_margin_inr)}
+                  {data.actual_margin_pct !== null && ` (${data.actual_margin_pct.toFixed(1)}%)`}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Overdue Milestones */}
+        <div
+          className="rounded-xl border border-[#E8EAF6] bg-white overflow-hidden"
+          style={{ boxShadow: '0 2px 8px rgba(43,57,144,0.06)' }}
+        >
+          <div className="px-5 py-3.5 border-b border-[#E8EAF6] flex items-center justify-between">
+            <h3 className="text-[15px] font-bold text-[#1e1b4b]">Overdue Milestones</h3>
+            {data.overdue_milestones_count !== null && data.overdue_milestones_count > 0 && (
+              <span className="inline-flex items-center rounded-full bg-[#fee2e2] px-2.5 py-0.5 text-[12px] font-bold text-[#991b1b]">
+                {data.overdue_milestones_count}
+              </span>
+            )}
+          </div>
+          <div className="px-5 py-2">
+            <OverdueMilestoneList
+              milestones={data.overdue_milestones ?? []}
+              onClickMilestone={(m) => navigate(`/projects/${m.project_id}?tab=milestones`)}
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Shadow + Releases row */}
       <div className="grid grid-cols-[1.2fr_1fr] gap-6 mb-6">

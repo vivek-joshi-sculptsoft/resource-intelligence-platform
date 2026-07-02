@@ -14,6 +14,15 @@ export interface UpcomingRelease {
   days_remaining: number
 }
 
+export interface OverdueMilestone {
+  id: string
+  project_id: string
+  project_name: string
+  name: string
+  planned_delivery_date: string
+  days_overdue: number
+}
+
 export interface CompanyDashboard {
   billable_utilization_pct: number
   total_active_resources: number
@@ -25,15 +34,44 @@ export interface CompanyDashboard {
   active_projects_by_type: Record<string, number>
   upcoming_releases_30d: UpcomingRelease[]
   overdue_milestones_count: number | null
-  overdue_milestones: unknown[] | null
+  overdue_milestones: OverdueMilestone[] | null
+  resource_cost_inr: number | null
+  non_human_cost_inr: number | null
   projected_revenue_inr: number | null
   actual_revenue_inr: number | null
   total_cost_inr: number | null
+  projected_margin_inr: number | null
+  projected_margin_pct: number | null
+  actual_margin_inr: number | null
+  actual_margin_pct: number | null
+  overall_margin_pct: number | null
+  total_bench_cost_monthly: number | null
+}
+
+// Decimal fields are serialized as JSON strings by Pydantic — coerce to numbers so
+// the rest of the app can do arithmetic on this response without surprises.
+function n(val: string | number | null | undefined): number | null {
+  return val === null || val === undefined ? null : Number(val)
 }
 
 export async function fetchCompanyDashboard(): Promise<CompanyDashboard> {
   const { data } = await api.get<{ data: CompanyDashboard }>('/dashboard/company')
-  return data.data
+  const raw = data.data
+  return {
+    ...raw,
+    billable_utilization_pct: Number(raw.billable_utilization_pct),
+    resource_cost_inr: n(raw.resource_cost_inr),
+    non_human_cost_inr: n(raw.non_human_cost_inr),
+    projected_revenue_inr: n(raw.projected_revenue_inr),
+    actual_revenue_inr: n(raw.actual_revenue_inr),
+    total_cost_inr: n(raw.total_cost_inr),
+    projected_margin_inr: n(raw.projected_margin_inr),
+    projected_margin_pct: n(raw.projected_margin_pct),
+    actual_margin_inr: n(raw.actual_margin_inr),
+    actual_margin_pct: n(raw.actual_margin_pct),
+    overall_margin_pct: n(raw.overall_margin_pct),
+    total_bench_cost_monthly: n(raw.total_bench_cost_monthly),
+  }
 }
 
 export interface DMDashboard {

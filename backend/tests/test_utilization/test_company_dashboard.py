@@ -9,6 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.allocations.models import Assignment
 from app.modules.clients.models import Client
+from app.modules.invoicing.models import Invoice, Milestone
+from app.modules.nonhuman_costs.models import NonHumanCost
 from app.modules.projects.models import Project
 from app.modules.resources.models import Resource
 from tests.conftest import login_as, login_as_role
@@ -24,6 +26,7 @@ async def _seed_resource(db: AsyncSession, name: str = "Dev 1", **kwargs) -> Res
         designation=kwargs.get("designation", "Senior Developer"),
         date_of_joining=kwargs.get("date_of_joining", date.today() - timedelta(days=90)),
         is_active=kwargs.get("is_active", True),
+        loaded_cost_monthly=kwargs.get("loaded_cost_monthly"),
     )
     db.add(r)
     await db.flush()
@@ -66,6 +69,7 @@ async def _seed_assignment(db: AsyncSession, project_id: uuid.UUID, resource_id:
         start_date=kwargs.get("start_date", date.today() - timedelta(days=30)),
         end_date=kwargs.get("end_date"),
         status=kwargs.get("status", "ACTIVE"),
+        billing_rate=kwargs.get("billing_rate"),
     )
     db.add(a)
     await db.flush()
@@ -124,22 +128,32 @@ async def test_response_has_all_fields(client: AsyncClient, db: AsyncSession):
         "upcoming_releases_30d",
         "overdue_milestones_count",
         "overdue_milestones",
+        "resource_cost_inr",
+        "non_human_cost_inr",
         "projected_revenue_inr",
         "actual_revenue_inr",
         "total_cost_inr",
+        "projected_margin_inr",
+        "projected_margin_pct",
+        "actual_margin_inr",
+        "actual_margin_pct",
+        "overall_margin_pct",
+        "total_bench_cost_monthly",
     }
     assert expected_keys == set(data.keys())
 
 
 @pytest.mark.asyncio
-async def test_phase2_fields_are_null(client: AsyncClient, db: AsyncSession):
+async def test_phase2_fields_zero_when_no_data(client: AsyncClient, db: AsyncSession):
+    """See VRIP-106 — Phase 2 financial widgets are now active. With no projects/milestones
+    seeded, revenue/cost aggregate to zero (null-safe) and milestone fields are an empty list."""
     await login_as(client)
     data = (await client.get(URL)).json()["data"]
-    assert data["projected_revenue_inr"] is None
-    assert data["actual_revenue_inr"] is None
-    assert data["total_cost_inr"] is None
-    assert data["overdue_milestones_count"] is None
-    assert data["overdue_milestones"] is None
+    assert float(data["projected_revenue_inr"]) == 0.0
+    assert float(data["actual_revenue_inr"]) == 0.0
+    assert float(data["total_cost_inr"]) == 0.0
+    assert data["overdue_milestones_count"] == 0
+    assert data["overdue_milestones"] == []
 
 
 # --- Utilization calculation tests ---
@@ -260,3 +274,132 @@ async def test_releases_beyond_30d_excluded(client: AsyncClient, db: AsyncSessio
     data = (await client.get(URL)).json()["data"]
     names = [u["resource_name"] for u in data["upcoming_releases_30d"]]
     assert "Far Future Dev" not in names
+
+
+# --- Overdue milestones (VRIP-106) ---
+
+
+@pytest.mark.asyncio
+async def test_overdue_milestones(client: AsyncClient, db: AsyncSession):
+    """See FSD §12 — Overdue: planned_delivery_date < today AND status = PLANNED."""
+    r1 = await _seed_resource(db, "DM")
+    r2 = await _seed_resource(db, "PM")
+    cl = await _seed_client(db)
+    p = await _seed_project(db, cl.id, r1.id, r2.id, type="FIXED_PRICE", name="FP Project")
+    await db.flush()
+
+    overdue = Milestone(
+        id=uuid.uuid4(),
+        project_id=p.id,
+        name="Overdue Milestone",
+        amount=50000,
+        planned_delivery_date=date.today() - timedelta(days=5),
+        status="PLANNED",
+    )
+    not_overdue_future = Milestone(
+        id=uuid.uuid4(),
+        project_id=p.id,
+        name="Future Milestone",
+        amount=50000,
+        planned_delivery_date=date.today() + timedelta(days=5),
+        status="PLANNED",
+    )
+    not_overdue_delivered = Milestone(
+        id=uuid.uuid4(),
+        project_id=p.id,
+        name="Delivered Milestone",
+        amount=50000,
+        planned_delivery_date=date.today() - timedelta(days=5),
+        status="DELIVERED",
+    )
+    db.add_all([overdue, not_overdue_future, not_overdue_delivered])
+    await db.commit()
+
+    await login_as(client)
+    data = (await client.get(URL)).json()["data"]
+    names = [m["name"] for m in data["overdue_milestones"]]
+    assert names == ["Overdue Milestone"]
+    assert data["overdue_milestones_count"] == 1
+    entry = data["overdue_milestones"][0]
+    assert entry["days_overdue"] == 5
+    assert entry["project_name"] == "FP Project"
+
+
+# --- Financial widgets (VRIP-106) ---
+
+
+@pytest.mark.asyncio
+async def test_financial_widgets_known_values(client: AsyncClient, db: AsyncSession):
+    """See BUSINESS-RULES.md §7.2-§7.5.
+
+    Resource A: loaded_cost=20000, allocation=100% -> cost=20000
+        billing_rate=500, billability=100% -> revenue = 100% * 22 * 8 * 500 = 88000
+    NonHumanCost: amount_inr=4000
+    => resource_cost=20000, total_cost=24000
+    => projected_revenue=88000, projected_margin=64000 (72.73%)
+    Invoice (APPROVED): amount_inr=88000 => actual_revenue=88000, actual_margin=64000 (72.73%)
+    """
+    dm = await _seed_resource(db, "DM Person")
+    pm = await _seed_resource(db, "PM Person")
+    dev = await _seed_resource(db, "Billable Dev", loaded_cost_monthly=20000)
+    cl = await _seed_client(db)
+    p = await _seed_project(
+        db, cl.id, dm.id, pm.id, type="TIME_AND_MATERIAL", name="Financial Project"
+    )
+    await _seed_assignment(db, p.id, dev.id, billing_rate=500, billability_pct=100)
+
+    nhc = NonHumanCost(
+        id=uuid.uuid4(),
+        project_id=p.id,
+        description="Cloud hosting",
+        category="CLOUD_INFRA",
+        amount=4000,
+        currency="INR",
+        exchange_rate=1.0,
+        amount_inr=4000,
+        cost_date=date.today(),
+        is_recurring=False,
+    )
+    invoice = Invoice(
+        id=uuid.uuid4(),
+        project_id=p.id,
+        invoice_date=date.today(),
+        amount=88000,
+        currency="INR",
+        exchange_rate=1.0,
+        amount_inr=88000,
+        status="APPROVED",
+    )
+    db.add_all([nhc, invoice])
+    await db.commit()
+
+    await login_as(client)
+    data = (await client.get(URL)).json()["data"]
+
+    assert float(data["resource_cost_inr"]) == 20000.0
+    assert float(data["non_human_cost_inr"]) == 4000.0
+    assert float(data["total_cost_inr"]) == 24000.0
+    assert float(data["projected_revenue_inr"]) == 88000.0
+    assert float(data["actual_revenue_inr"]) == 88000.0
+    assert float(data["projected_margin_inr"]) == 64000.0
+    assert round(float(data["projected_margin_pct"]), 2) == 72.73
+    assert float(data["actual_margin_inr"]) == 64000.0
+    assert round(float(data["actual_margin_pct"]), 2) == 72.73
+    assert round(float(data["overall_margin_pct"]), 2) == 72.73
+
+
+# --- Bench cost summary (VRIP-106) ---
+
+
+@pytest.mark.asyncio
+async def test_total_bench_cost_monthly_widget(client: AsyncClient, db: AsyncSession):
+    """See BUSINESS-RULES.md §7.6 — total_bench_cost_monthly sums loaded_cost_monthly
+    of resources with 0 ACTIVE assignments."""
+    await _seed_resource(db, "Bench Dev 1", loaded_cost_monthly=30000)
+    await _seed_resource(db, "Bench Dev 2", loaded_cost_monthly=50000)
+    await _seed_resource(db, "Bench Dev No Cost")
+    await db.commit()
+
+    await login_as(client)
+    data = (await client.get(URL)).json()["data"]
+    assert float(data["total_bench_cost_monthly"]) == 80000.0

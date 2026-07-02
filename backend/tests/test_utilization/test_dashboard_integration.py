@@ -405,12 +405,17 @@ async def test_availability_engineer_can_access(client: AsyncClient, db: AsyncSe
 
 
 @pytest.mark.asyncio
-async def test_financial_fields_null_company(client: AsyncClient, db: AsyncSession):
+async def test_financial_fields_zero_when_no_projects_company(client: AsyncClient, db: AsyncSession):
+    """See VRIP-106 — company dashboard financial fields are now populated (Phase 2).
+    With no projects, the underlying company financials aggregation is null-safe and
+    returns zero rather than null (see financial/service.py::_sum_or_none)."""
     await login_as(client)
     data = (await client.get(COMPANY_URL)).json()["data"]
-    assert data["projected_revenue_inr"] is None
-    assert data["actual_revenue_inr"] is None
-    assert data["total_cost_inr"] is None
+    assert float(data["projected_revenue_inr"]) == 0.0
+    assert float(data["actual_revenue_inr"]) == 0.0
+    assert float(data["total_cost_inr"]) == 0.0
+    assert data["overdue_milestones_count"] == 0
+    assert data["overdue_milestones"] == []
 
 
 @pytest.mark.asyncio
