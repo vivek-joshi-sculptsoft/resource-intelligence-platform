@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { useAuthStore } from '../../auth/store'
-import { fetchResource, deleteResource, addResourceTag, removeResourceTag, updateResource } from '../api'
+import { fetchResource, deleteResource, addResourceTag, removeResourceTag, updateResource, fetchResourceBenchCost } from '../api'
 import { Breadcrumb } from '../../../shared/components'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle'
 import { ResourceAssignmentsPanel } from '../../allocations/components/ResourceAssignmentsPanel'
@@ -46,12 +46,24 @@ export function ResourceProfile() {
 
   const updateCostMut = useMutation({
     mutationFn: (cost: number | null) => updateResource(id!, { loaded_cost_monthly: cost }),
-    onSuccess: () => { toast.success('Cost updated'); queryClient.invalidateQueries({ queryKey: ['resource', id] }); setEditingCost(false) },
+    onSuccess: () => {
+      toast.success('Cost updated')
+      queryClient.invalidateQueries({ queryKey: ['resource', id] })
+      queryClient.invalidateQueries({ queryKey: ['resource-bench-cost', id] })
+      setEditingCost(false)
+    },
     onError: (e: any) => toast.error(e.response?.data?.message || 'Failed to update cost'),
   })
 
   const r = data?.data
   useDocumentTitle(r?.name)
+
+  const isOnBench = r?.total_allocation_pct === 0
+  const { data: benchCost, isLoading: benchCostLoading } = useQuery({
+    queryKey: ['resource-bench-cost', id],
+    queryFn: () => fetchResourceBenchCost(id!),
+    enabled: !!id && !!canSeeCost && isOnBench,
+  })
 
   if (isLoading) return <div className="py-8 text-center text-[13.5px]" style={{ color: '#7C85C0' }}>Loading...</div>
   if (!r) return <div className="py-8 text-center text-[14px]" style={{ color: '#ef4444' }}>Resource not found</div>
@@ -198,6 +210,36 @@ export function ResourceProfile() {
           ) : (
             <div className="text-[15px] font-semibold" style={{ color: r.loaded_cost_monthly ? '#1e1b4b' : '#7C85C0' }}>
               {r.loaded_cost_monthly ? `₹${r.loaded_cost_monthly.toLocaleString('en-IN')} /month` : 'Not set'}
+            </div>
+          )}
+
+          {/* Bench Cost — See BUSINESS-RULES.md §7.6, S8-03 API */}
+          {isOnBench && (
+            <div className="mt-4 border-t pt-4" style={{ borderColor: '#E8EAF6' }}>
+              <div className="mb-2 text-[12px] font-semibold uppercase tracking-wide" style={{ color: '#7C85C0' }}>Bench Cost</div>
+              {benchCostLoading ? (
+                <div className="text-[13px]" style={{ color: '#7C85C0' }}>Loading bench cost...</div>
+              ) : benchCost && benchCost.bench_start_date ? (
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
+                  <div className="text-[13px]" style={{ color: '#6b7280' }}>
+                    On bench since{' '}
+                    {new Date(benchCost.bench_start_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    {benchCost.days_on_bench !== null && ` (${benchCost.days_on_bench} days)`}
+                  </div>
+                  {benchCost.total_bench_cost_inr !== null ? (
+                    <div className="text-[15px] font-semibold" style={{ color: '#ef4444' }}>
+                      ₹{benchCost.daily_bench_cost_inr!.toLocaleString('en-IN', { maximumFractionDigits: 0 })}/day · ₹
+                      {benchCost.total_bench_cost_inr.toLocaleString('en-IN', { maximumFractionDigits: 0 })} total
+                    </div>
+                  ) : (
+                    <div className="text-[13px]" style={{ color: '#7C85C0' }}>Set loaded cost to calculate bench cost</div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-[13px]" style={{ color: '#7C85C0' }}>
+                  Bench start date unknown — set date of joining to calculate bench cost
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -102,3 +102,22 @@ export async function fetchResourcesDropdown(): Promise<{ id: string; name: stri
   const { data } = await api.get('/resources?limit=100&status=ACTIVE')
   return data.data.map((r: ResourceListItem) => ({ id: r.id, name: r.name, employee_id: r.employee_id }))
 }
+
+// See BUSINESS-RULES.md §7.6 — bench cost fields are Decimal, serialized as JSON strings
+export interface ResourceBenchCost {
+  days_on_bench: number | null
+  daily_bench_cost_inr: number | null
+  total_bench_cost_inr: number | null
+  bench_start_date: string | null
+}
+
+export async function fetchResourceBenchCost(id: string): Promise<ResourceBenchCost | null> {
+  const { data } = await api.get(`/resources/${id}/bench-cost`)
+  const raw = data.data
+  if (raw === null) return null
+  return {
+    ...raw,
+    daily_bench_cost_inr: raw.daily_bench_cost_inr === null ? null : Number(raw.daily_bench_cost_inr),
+    total_bench_cost_inr: raw.total_bench_cost_inr === null ? null : Number(raw.total_bench_cost_inr),
+  }
+}
