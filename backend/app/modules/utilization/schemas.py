@@ -161,6 +161,16 @@ class OverdueMilestoneItem(BaseModel):
     days_overdue: int
 
 
+class TopProjectByTeamSize(BaseModel):
+    """See BUSINESS-RULES.md §7.8 — Team Size ranking."""
+
+    project_id: UUID
+    project_name: str
+    team_size: int
+    dm_name: str
+    pm_name: str
+
+
 class CompanyDashboardResponse(BaseModel):
     """See VRIP-128 — company-wide revenue/cost/margin moved to the Company Finance
     Dashboard (GET /api/v1/dashboard/company-finance); this endpoint no longer carries them."""
@@ -173,6 +183,7 @@ class CompanyDashboardResponse(BaseModel):
     shadow_total_allocation_pct: int
     active_project_count: int
     active_projects_by_type: dict[str, int]
+    top_5_projects_by_team_size: list[TopProjectByTeamSize]
     upcoming_releases_30d: list[UpcomingRelease]
     overdue_milestones_count: int | None = None
     overdue_milestones: list[OverdueMilestoneItem] | None = None

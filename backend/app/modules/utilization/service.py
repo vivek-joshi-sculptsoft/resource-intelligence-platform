@@ -30,6 +30,7 @@ from app.modules.utilization.schemas import (
     CompanyDashboardResponse,
     DMDashboardResponse,
     OverdueMilestoneItem,
+    TopProjectByTeamSize,
     UpcomingRelease,
 )
 
@@ -176,6 +177,34 @@ async def get_company_dashboard(db: AsyncSession) -> CompanyDashboardResponse:
         for m, pname in overdue_rows
     ]
 
+    # See BUSINESS-RULES.md §7.8 — Top 5 active projects by team size (DISTINCT resources
+    # on ACTIVE assignments), for the "Top 5 Projects by Team Size" widget.
+    team_size_col = func.count(func.distinct(Assignment.resource_id)).label("team_size")
+    top_project_rows = (
+        await db.execute(
+            select(Project, team_size_col)
+            .join(Assignment, Assignment.project_id == Project.id)
+            .where(
+                Project.status == "ACTIVE",
+                Project.is_active == True,  # noqa: E712
+                Assignment.status == "ACTIVE",
+            )
+            .group_by(Project.id)
+            .order_by(team_size_col.desc())
+            .limit(5)
+        )
+    ).all()
+    top_5_projects_by_team_size = [
+        TopProjectByTeamSize(
+            project_id=p.id,
+            project_name=p.name,
+            team_size=team_size,
+            dm_name=p.dm.name,
+            pm_name=p.pm.name,
+        )
+        for p, team_size in top_project_rows
+    ]
+
     # See VRIP-128 — company-wide revenue/cost/margin moved to the Company Finance
     # Dashboard (get_company_finance_dashboard); this endpoint no longer aggregates financials.
     bench_summary = await get_bench_summary(db, can_see_cost=True)
@@ -189,6 +218,7 @@ async def get_company_dashboard(db: AsyncSession) -> CompanyDashboardResponse:
         shadow_total_allocation_pct=shadow_total_pct,
         active_project_count=active_project_count,
         active_projects_by_type=active_projects_by_type,
+        top_5_projects_by_team_size=top_5_projects_by_team_size,
         upcoming_releases_30d=upcoming_releases,
         overdue_milestones_count=len(overdue_milestones),
         overdue_milestones=overdue_milestones,

@@ -23,6 +23,15 @@ export interface OverdueMilestone {
   days_overdue: number
 }
 
+// See shared/BUSINESS-RULES.md §7.8 — Top 5 Projects by Team Size widget.
+export interface TopProjectByTeamSize {
+  project_id: string
+  project_name: string
+  team_size: number
+  dm_name: string
+  pm_name: string
+}
+
 // See VRIP-128 — company-wide revenue/cost/margin moved to the Company Finance Dashboard.
 export interface CompanyDashboard {
   billable_utilization_pct: number
@@ -33,6 +42,7 @@ export interface CompanyDashboard {
   shadow_total_allocation_pct: number
   active_project_count: number
   active_projects_by_type: Record<string, number>
+  top_5_projects_by_team_size: TopProjectByTeamSize[]
   upcoming_releases_30d: UpcomingRelease[]
   overdue_milestones_count: number | null
   overdue_milestones: OverdueMilestone[] | null

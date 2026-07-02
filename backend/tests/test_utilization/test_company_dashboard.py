@@ -126,6 +126,7 @@ async def test_response_has_all_fields(client: AsyncClient, db: AsyncSession):
         "shadow_total_allocation_pct",
         "active_project_count",
         "active_projects_by_type",
+        "top_5_projects_by_team_size",
         "upcoming_releases_30d",
         "overdue_milestones_count",
         "overdue_milestones",
@@ -152,6 +153,7 @@ async def test_empty_state_zero_utilization(client: AsyncClient, db: AsyncSessio
     data = (await client.get(URL)).json()["data"]
     assert data["active_project_count"] == 0
     assert data["active_projects_by_type"] == {}
+    assert data["top_5_projects_by_team_size"] == []
 
 
 @pytest.mark.asyncio
@@ -310,6 +312,139 @@ async def test_overdue_milestones(client: AsyncClient, db: AsyncSession):
     entry = data["overdue_milestones"][0]
     assert entry["days_overdue"] == 5
     assert entry["project_name"] == "FP Project"
+
+
+# --- Top 5 projects by team size (VRIP-129) ---
+
+
+@pytest.mark.asyncio
+async def test_top_5_projects_ranked_by_team_size(client: AsyncClient, db: AsyncSession):
+    """See BUSINESS-RULES.md §7.8 — projects ranked by DISTINCT resource count desc,
+    limited to 5, includes dm/pm names."""
+    dm = await _seed_resource(db, "DM Top5")
+    pm = await _seed_resource(db, "PM Top5")
+    cl = await _seed_client(db)
+
+    big = await _seed_project(db, cl.id, dm.id, pm.id, name="Big Team Project")
+    small = await _seed_project(db, cl.id, dm.id, pm.id, name="Small Team Project")
+
+    for i in range(3):
+        r = await _seed_resource(db, f"Big Dev {i}")
+        await _seed_assignment(db, big.id, r.id)
+    r_small = await _seed_resource(db, "Small Dev")
+    await _seed_assignment(db, small.id, r_small.id)
+    await db.commit()
+
+    await login_as(client)
+    data = (await client.get(URL)).json()["data"]
+    top5 = data["top_5_projects_by_team_size"]
+
+    names = [p["project_name"] for p in top5]
+    assert names.index("Big Team Project") < names.index("Small Team Project")
+
+    big_entry = next(p for p in top5 if p["project_name"] == "Big Team Project")
+    assert big_entry["team_size"] == 3
+    assert big_entry["dm_name"] == "DM Top5"
+    assert big_entry["pm_name"] == "PM Top5"
+    assert big_entry["project_id"] == str(big.id)
+
+    small_entry = next(p for p in top5 if p["project_name"] == "Small Team Project")
+    assert small_entry["team_size"] == 1
+
+
+@pytest.mark.asyncio
+async def test_top_5_projects_limits_to_five_and_excludes_smallest(
+    client: AsyncClient, db: AsyncSession
+):
+    """6 active projects with distinct team sizes — only the top 5 by size are returned."""
+    dm = await _seed_resource(db, "DM Six")
+    pm = await _seed_resource(db, "PM Six")
+    cl = await _seed_client(db)
+
+    sizes = [6, 5, 4, 3, 2, 1]
+    projects = []
+    for size in sizes:
+        proj = await _seed_project(db, cl.id, dm.id, pm.id, name=f"Project Size {size}")
+        for i in range(size):
+            r = await _seed_resource(db, f"Res {size}-{i}")
+            await _seed_assignment(db, proj.id, r.id)
+        projects.append(proj)
+    await db.commit()
+
+    await login_as(client)
+    data = (await client.get(URL)).json()["data"]
+    top5 = data["top_5_projects_by_team_size"]
+
+    assert len(top5) == 5
+    assert [p["team_size"] for p in top5] == [6, 5, 4, 3, 2]
+    assert "Project Size 1" not in [p["project_name"] for p in top5]
+
+
+@pytest.mark.asyncio
+async def test_top_5_projects_tie_breaking_both_appear(client: AsyncClient, db: AsyncSession):
+    """Two projects tied on team size — both must appear (no silent drop on ties)."""
+    dm = await _seed_resource(db, "DM Tie")
+    pm = await _seed_resource(db, "PM Tie")
+    cl = await _seed_client(db)
+
+    proj_a = await _seed_project(db, cl.id, dm.id, pm.id, name="Tie Project A")
+    proj_b = await _seed_project(db, cl.id, dm.id, pm.id, name="Tie Project B")
+    for proj in (proj_a, proj_b):
+        for i in range(2):
+            r = await _seed_resource(db, f"Tie Dev {proj.name}-{i}")
+            await _seed_assignment(db, proj.id, r.id)
+    await db.commit()
+
+    await login_as(client)
+    data = (await client.get(URL)).json()["data"]
+    top5 = data["top_5_projects_by_team_size"]
+    names = [p["project_name"] for p in top5]
+    assert "Tie Project A" in names
+    assert "Tie Project B" in names
+    for p in top5:
+        if p["project_name"] in ("Tie Project A", "Tie Project B"):
+            assert p["team_size"] == 2
+
+
+@pytest.mark.asyncio
+async def test_top_5_projects_counts_distinct_resources_not_assignment_rows(
+    client: AsyncClient, db: AsyncSession
+):
+    """A resource with 2 ACTIVE assignments on the same project counts once (DISTINCT resource_id)."""
+    dm = await _seed_resource(db, "DM Distinct")
+    pm = await _seed_resource(db, "PM Distinct")
+    cl = await _seed_client(db)
+    proj = await _seed_project(db, cl.id, dm.id, pm.id, name="Double Assignment Project")
+    r = await _seed_resource(db, "Double Assigned Dev")
+    await _seed_assignment(db, proj.id, r.id)
+    await _seed_assignment(db, proj.id, r.id)  # second ACTIVE assignment, same resource
+    await db.commit()
+
+    await login_as(client)
+    data = (await client.get(URL)).json()["data"]
+    entry = next(
+        p for p in data["top_5_projects_by_team_size"] if p["project_name"] == "Double Assignment Project"
+    )
+    assert entry["team_size"] == 1
+
+
+@pytest.mark.asyncio
+async def test_top_5_projects_excludes_non_active_projects(client: AsyncClient, db: AsyncSession):
+    """A COMPLETED project with active-looking assignments is excluded from the ranking."""
+    dm = await _seed_resource(db, "DM Completed")
+    pm = await _seed_resource(db, "PM Completed")
+    cl = await _seed_client(db)
+    completed = await _seed_project(
+        db, cl.id, dm.id, pm.id, name="Completed Project", status="COMPLETED"
+    )
+    r = await _seed_resource(db, "Completed Dev")
+    await _seed_assignment(db, completed.id, r.id)
+    await db.commit()
+
+    await login_as(client)
+    data = (await client.get(URL)).json()["data"]
+    names = [p["project_name"] for p in data["top_5_projects_by_team_size"]]
+    assert "Completed Project" not in names
 
 
 # --- Bench cost summary (VRIP-106) ---

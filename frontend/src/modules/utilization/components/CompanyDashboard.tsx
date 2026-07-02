@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import { InfoTooltip, type InfoTooltipContent } from '../../../shared/components/InfoTooltip'
-import { fetchCompanyDashboard, type BenchResource, type OverdueMilestone, type UpcomingRelease } from '../api'
+import { fetchCompanyDashboard, type BenchResource, type OverdueMilestone, type TopProjectByTeamSize, type UpcomingRelease } from '../api'
 
 function formatInr(val: number | null): string {
   if (val === null) return '—'
@@ -35,6 +35,11 @@ const KPI_TOOLTIPS: Record<string, InfoTooltipContent> = {
     formula: 'COUNT(assignments WHERE is_shadow = true); allocation % = SUM(billability_pct) for shadow assignments',
     meaning: 'Number of shadow (non-billable) assignments and their share of total allocation',
     purpose: 'Shadow resources add cost but contribute no revenue — high values signal hidden cost exposure',
+  },
+  topProjectsByTeamSize: {
+    formula: 'COUNT(DISTINCT resource_id) for ACTIVE assignments GROUP BY project_id, ORDER BY count DESC LIMIT 5',
+    meaning: 'The 5 currently active projects with the largest allocated headcount',
+    purpose: "Surfaces the org's biggest delivery commitments at a glance — where the most people (and risk) are concentrated",
   },
 }
 
@@ -152,6 +157,43 @@ function OverdueMilestoneList({ milestones, onClickMilestone }: { milestones: Ov
   )
 }
 
+function TopProjectsTable({ projects, onClickProject }: { projects: TopProjectByTeamSize[]; onClickProject: (id: string) => void }) {
+  if (projects.length === 0) return <div className="text-[13px] text-[#6b7280] text-center py-6">No active projects</div>
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse text-left text-[13px]">
+        <thead>
+          <tr>
+            {['Project', 'Delivery Manager', 'Project Manager', 'Team Size'].map((h, i) => (
+              <th
+                key={h}
+                className={`whitespace-nowrap px-4 py-[10px] text-[12px] font-semibold uppercase tracking-wide first:pl-5 last:pr-5 border-b border-[#E8EAF6] bg-[#F0F1FA] text-[#7C85C0] ${i === 3 ? 'text-right' : ''}`}
+              >
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {projects.map((p) => (
+            <tr
+              key={p.project_id}
+              className="cursor-pointer border-b border-[#E8EAF6] last:border-none hover:bg-[#F0F1FA] transition-colors"
+              onClick={() => onClickProject(p.project_id)}
+            >
+              <td className="whitespace-nowrap px-4 py-[10px] pl-5 font-semibold text-[#1e1b4b]">{p.project_name}</td>
+              <td className="whitespace-nowrap px-4 py-[10px] text-[#6b7280]">{p.dm_name}</td>
+              <td className="whitespace-nowrap px-4 py-[10px] text-[#6b7280]">{p.pm_name}</td>
+              <td className="whitespace-nowrap px-4 py-[10px] pr-5 text-right font-semibold text-[#2B3990]">{p.team_size}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 function LoadingSkeleton() {
   return (
     <div className="animate-pulse space-y-6">
@@ -248,9 +290,24 @@ export function CompanyDashboard() {
         </div>
       )}
 
-      {/* Overdue Milestones — See VRIP-106. Two-col layout returns in VRIP-129 when
-          Top 5 Projects by Team Size fills the slot Revenue vs Cost used to occupy. */}
-      <div className="mb-6">
+      {/* Top 5 Projects by Team Size + Overdue Milestones — See VRIP-106, VRIP-129 */}
+      <div className="grid grid-cols-[1.2fr_1fr] gap-6 mb-6">
+        {/* Top 5 Projects by Team Size */}
+        <div
+          className="rounded-xl border border-[#E8EAF6] bg-white overflow-hidden"
+          style={{ boxShadow: '0 2px 8px rgba(43,57,144,0.06)' }}
+        >
+          <div className="px-5 py-3.5 border-b border-[#E8EAF6] flex items-center gap-1.5">
+            <h3 className="text-[15px] font-bold text-[#1e1b4b]">Top 5 Projects by Team Size</h3>
+            <InfoTooltip content={KPI_TOOLTIPS.topProjectsByTeamSize} />
+          </div>
+          <TopProjectsTable
+            projects={data.top_5_projects_by_team_size}
+            onClickProject={(id) => navigate(`/projects/${id}`)}
+          />
+        </div>
+
+        {/* Overdue Milestones */}
         <div
           className="rounded-xl border border-[#E8EAF6] bg-white overflow-hidden"
           style={{ boxShadow: '0 2px 8px rgba(43,57,144,0.06)' }}
