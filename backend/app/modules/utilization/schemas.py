@@ -179,3 +179,4 @@ class CompanyDashboardResponse(BaseModel):
     actual_margin_pct: Decimal | None = None
     overall_margin_pct: Decimal | None = None
     total_bench_cost_monthly: Decimal | None = None
+    projects_with_incomplete_financial_data: int = 0

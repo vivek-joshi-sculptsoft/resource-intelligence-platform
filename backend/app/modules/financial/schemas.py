@@ -68,6 +68,10 @@ class CompanyFinancialsResponse(BaseModel):
     total_actual_margin_inr: Decimal | None
     total_actual_margin_pct: Decimal | None
     revenue_by_project_type: list[ProjectTypeRevenueItem]
+    # See BUSINESS-RULES.md §7.2-§7.3 — a single project missing loaded_cost/billing_rate
+    # nulls the whole company-wide total (null-safe aggregation). This count lets callers
+    # explain a null total instead of showing an unexplained blank.
+    projects_with_incomplete_data: int
 
 
 class ResourceBenchCostResponse(BaseModel):

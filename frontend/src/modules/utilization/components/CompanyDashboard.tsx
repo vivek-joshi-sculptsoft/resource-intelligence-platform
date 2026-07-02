@@ -202,6 +202,14 @@ export function CompanyDashboard() {
       ? ((data.actual_revenue_inr - data.projected_revenue_inr) / data.projected_revenue_inr) * 100
       : null
 
+  // A single project missing loaded_cost/billing_rate nulls the company-wide total
+  // (null-safe aggregation, see BUSINESS-RULES.md §7.2-§7.3) — explain the blank instead
+  // of showing an unexplained dash.
+  const incompleteDataNote =
+    data.projects_with_incomplete_financial_data > 0
+      ? `${data.projects_with_incomplete_financial_data} project${data.projects_with_incomplete_financial_data !== 1 ? 's' : ''} missing cost/rate data`
+      : null
+
   return (
     <div>
       {/* KPI Grid */}
@@ -254,6 +262,8 @@ export function CompanyDashboard() {
               <span className={revenueVariancePct >= 0 ? 'text-[#16a34a] font-semibold' : 'text-[#ef4444] font-semibold'}>
                 {revenueVariancePct >= 0 ? '▲' : '▼'} {Math.abs(revenueVariancePct).toFixed(1)}% vs actual
               </span>
+            ) : data.projected_revenue_inr === null && incompleteDataNote ? (
+              <span className="text-[#ea580c]">{incompleteDataNote}</span>
             ) : (
               'Projected from active assignments'
             )
@@ -266,7 +276,13 @@ export function CompanyDashboard() {
         <KpiCard
           label="Company Margin"
           value={data.overall_margin_pct !== null ? `${data.overall_margin_pct.toFixed(1)}%` : '—'}
-          sub={data.actual_margin_pct !== null ? `Actual: ${data.actual_margin_pct.toFixed(1)}%` : 'After non-human costs'}
+          sub={
+            data.actual_margin_pct !== null
+              ? `Actual: ${data.actual_margin_pct.toFixed(1)}%`
+              : data.overall_margin_pct === null && incompleteDataNote
+                ? <span className="text-[#ea580c]">{incompleteDataNote}</span>
+                : 'After non-human costs'
+          }
           accentClass="bg-gradient-to-r from-[#FF4B2B] to-[#FF7043]"
           textClass="text-[#FF4B2B]"
           tooltip={KPI_TOOLTIPS.companyMargin}
@@ -322,6 +338,12 @@ export function CompanyDashboard() {
             <div className="mt-3 pt-3 border-t border-[#E8EAF6] text-[12px] text-[#6b7280]">
               Resource Cost: {formatInr(data.resource_cost_inr)} · Non-Human Cost: {formatInr(data.non_human_cost_inr)}
             </div>
+            {incompleteDataNote && (
+              <div className="mt-2 text-[12px] text-[#ea580c]">
+                ⚠ {incompleteDataNote} — totals above are incomplete until every active assignment has a
+                loaded cost / billing rate set.
+              </div>
+            )}
             <div className="mt-4 pt-4 border-t border-[#E8EAF6]">
               <div className="flex justify-between text-[13px]">
                 <span className="font-bold text-[#1e1b4b]">Projected Margin</span>

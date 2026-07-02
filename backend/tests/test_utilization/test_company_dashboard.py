@@ -139,6 +139,7 @@ async def test_response_has_all_fields(client: AsyncClient, db: AsyncSession):
         "actual_margin_pct",
         "overall_margin_pct",
         "total_bench_cost_monthly",
+        "projects_with_incomplete_financial_data",
     }
     assert expected_keys == set(data.keys())
 
@@ -386,6 +387,38 @@ async def test_financial_widgets_known_values(client: AsyncClient, db: AsyncSess
     assert float(data["actual_margin_inr"]) == 64000.0
     assert round(float(data["actual_margin_pct"]), 2) == 72.73
     assert round(float(data["overall_margin_pct"]), 2) == 72.73
+    assert data["projects_with_incomplete_financial_data"] == 0
+
+
+@pytest.mark.asyncio
+async def test_incomplete_project_data_nulls_totals_but_is_flagged(
+    client: AsyncClient, db: AsyncSession
+):
+    """See BUSINESS-RULES.md §7.2-§7.3 — one project missing billing_rate nulls the
+    company-wide total (null-safe aggregation), but the incomplete-project count lets
+    the UI explain why the total is blank instead of showing an unexplained dash."""
+    dm = await _seed_resource(db, "DM Person 2")
+    pm = await _seed_resource(db, "PM Person 2")
+    complete_dev = await _seed_resource(db, "Complete Dev", loaded_cost_monthly=10000)
+    incomplete_dev = await _seed_resource(db, "Incomplete Dev", loaded_cost_monthly=10000)
+    cl = await _seed_client(db)
+
+    complete_project = await _seed_project(
+        db, cl.id, dm.id, pm.id, type="TIME_AND_MATERIAL", name="Complete Project"
+    )
+    await _seed_assignment(db, complete_project.id, complete_dev.id, billing_rate=500)
+
+    incomplete_project = await _seed_project(
+        db, cl.id, dm.id, pm.id, type="TIME_AND_MATERIAL", name="Incomplete Project"
+    )
+    await _seed_assignment(db, incomplete_project.id, incomplete_dev.id)  # no billing_rate
+    await db.commit()
+
+    await login_as(client)
+    data = (await client.get(URL)).json()["data"]
+
+    assert data["projected_revenue_inr"] is None
+    assert data["projects_with_incomplete_financial_data"] == 1
 
 
 # --- Bench cost summary (VRIP-106) ---

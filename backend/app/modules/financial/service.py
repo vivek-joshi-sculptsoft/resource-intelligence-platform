@@ -340,6 +340,10 @@ async def get_company_financials(
         for project_type, pairs in by_type.items()
     ]
 
+    projects_with_incomplete_data = sum(
+        1 for _, f in per_project_data if f.missing_costs or f.missing_rates
+    )
+
     return CompanyFinancialsResponse(
         total_resource_cost_inr=total_resource_cost_inr,
         total_non_human_cost_inr=total_non_human_cost_inr,
@@ -351,6 +355,7 @@ async def get_company_financials(
         total_actual_margin_inr=total_actual_margin_inr,
         total_actual_margin_pct=total_actual_margin_pct,
         revenue_by_project_type=revenue_by_project_type,
+        projects_with_incomplete_data=projects_with_incomplete_data,
     )
 
 

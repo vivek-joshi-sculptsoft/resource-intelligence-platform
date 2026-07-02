@@ -217,6 +217,7 @@ async def get_company_dashboard(db: AsyncSession) -> CompanyDashboardResponse:
         actual_margin_pct=financials.total_actual_margin_pct,
         overall_margin_pct=financials.total_projected_margin_pct,
         total_bench_cost_monthly=bench_summary.total_bench_cost_monthly,
+        projects_with_incomplete_financial_data=financials.projects_with_incomplete_data,
     )
 
 

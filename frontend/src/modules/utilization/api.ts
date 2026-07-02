@@ -46,6 +46,7 @@ export interface CompanyDashboard {
   actual_margin_pct: number | null
   overall_margin_pct: number | null
   total_bench_cost_monthly: number | null
+  projects_with_incomplete_financial_data: number
 }
 
 // Decimal fields are serialized as JSON strings by Pydantic — coerce to numbers so
