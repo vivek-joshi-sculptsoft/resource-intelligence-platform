@@ -2,12 +2,39 @@
 
 ## Endpoints
 
+### GET /api/worklogs
+**Description:** View worklogs company-wide (or within own portfolio) across all projects — backs the Worklogs page (`/worklogs`). Documented here as it predates this file; was implemented alongside `GET /api/projects/:projectId/worklogs` but not previously written up.
+**Auth:** CEO, CTO, FINANCE, HR (ALL); DM/PM (own portfolio); ENGINEER (SELF_ONLY — own entries only). Reference `shared/ACCESS-MATRIX.md` (`worklogs`).
+**Scope:** Per role, per `shared/ACCESS-MATRIX.md`
+**Response:** Paginated: `[{ id, resource: { id, name }, project: { id, name }, log_date, hours, note }]`
+**Notes:** `?project_id=<uuid>&resource_id=<uuid>&start_date=<date>&end_date=<date>` filters.
+
+---
+
+### GET /api/worklogs/export
+**Description:** Export worklogs company-wide (or within own portfolio) to Excel, using the same filters as `GET /api/worklogs`.
+**Auth:** Same as `GET /api/worklogs`.
+**Scope:** Same as `GET /api/worklogs`.
+**Response:** `.xlsx` file stream (`Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`) — all matching rows, no pagination.
+**Notes:** `?project_id=<uuid>&resource_id=<uuid>&start_date=<date>&end_date=<date>` filters — identical params to `GET /api/worklogs`. Columns: Date, Resource, Project, Hours, Note.
+
+---
+
 ### GET /api/worklogs/my
 **Description:** Get current user's own worklog entries.
 **Auth:** Any authenticated user with a resource_id (Engineer, PM, DM, etc.)
 **Scope:** SELF_ONLY
 **Response:** Paginated array: `[{ id, project: { id, name }, log_date, hours, note, created_at }]`
 **Notes:** `?project_id=<uuid>&start_date=<date>&end_date=<date>` filters.
+
+---
+
+### GET /api/worklogs/my/export
+**Description:** Export the current user's own worklog entries to Excel, using the same filters as `GET /api/worklogs/my`.
+**Auth:** Any authenticated user with a resource_id.
+**Scope:** SELF_ONLY
+**Response:** `.xlsx` file stream — all matching rows, no pagination.
+**Notes:** `?project_id=<uuid>&start_date=<date>&end_date=<date>` filters. Columns: Date, Project, Hours, Note.
 
 ---
 
@@ -53,6 +80,15 @@
 **Scope:** OWN_PORTFOLIO for DM/PM
 **Response:** Paginated: `[{ id, resource: { id, name }, log_date, hours, note }]`
 **Notes:** `?resource_id=<uuid>&start_date=<date>&end_date=<date>`
+
+---
+
+### GET /api/projects/:projectId/worklogs/export
+**Description:** Export all worklogs for a project to Excel, using the same filters as `GET /api/projects/:projectId/worklogs`.
+**Auth:** Same as `GET /api/projects/:projectId/worklogs`.
+**Scope:** OWN_PORTFOLIO for DM/PM
+**Response:** `.xlsx` file stream — all matching rows, no pagination.
+**Notes:** `?resource_id=<uuid>&start_date=<date>&end_date=<date>` filters. Columns: Date, Resource, Hours, Note.
 
 ---
 

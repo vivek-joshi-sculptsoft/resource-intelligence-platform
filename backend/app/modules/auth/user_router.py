@@ -39,6 +39,7 @@ def _user_to_list_response(user: User) -> dict:
             "permission_level": user.role.permission_level,
         },
         "resource_id": user.resource_id,
+        "resource_name": user.resource.name if user.resource else None,
         "is_active": user.is_active,
         "created_at": user.created_at.isoformat() if user.created_at else "",
     }

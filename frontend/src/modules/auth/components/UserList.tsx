@@ -179,7 +179,7 @@ export function UserList() {
                           style={{ color: '#4A5BB5' }}
                           onClick={(e) => { e.stopPropagation(); navigate(`/resources/${user.resource_id}`) }}
                         >
-                          {user.name}
+                          {user.resource_name}
                         </span>
                       ) : (
                         <span style={{ color: '#7C85C0' }}>&mdash;</span>

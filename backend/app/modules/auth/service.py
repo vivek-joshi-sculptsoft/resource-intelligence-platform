@@ -45,7 +45,7 @@ async def authenticate_user(db: AsyncSession, email: str, password: str) -> User
 
 async def get_user_by_id(db: AsyncSession, user_id: uuid.UUID) -> User | None:
     result = await db.execute(
-        select(User).options(selectinload(User.role)).where(User.id == user_id)
+        select(User).options(selectinload(User.role), selectinload(User.resource)).where(User.id == user_id)
     )
     return result.scalar_one_or_none()
 
@@ -66,7 +66,7 @@ async def list_users(
     status: str | None = None,
     search: str | None = None,
 ) -> tuple[list[User], int]:
-    query = select(User).options(selectinload(User.role))
+    query = select(User).options(selectinload(User.role), selectinload(User.resource))
     count_query = select(func.count()).select_from(User)
 
     if status == "ACTIVE":
@@ -131,7 +131,7 @@ async def create_user(
     )
 
     result = await db.execute(
-        select(User).options(selectinload(User.role)).where(User.id == user.id)
+        select(User).options(selectinload(User.role), selectinload(User.resource)).where(User.id == user.id)
     )
     return result.scalar_one()
 
@@ -193,7 +193,7 @@ async def update_user(
     await db.flush()
 
     result = await db.execute(
-        select(User).options(selectinload(User.role)).where(User.id == user.id)
+        select(User).options(selectinload(User.role), selectinload(User.resource)).where(User.id == user.id)
     )
     return result.scalar_one()
 

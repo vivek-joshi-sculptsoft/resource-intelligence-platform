@@ -7,6 +7,7 @@ export interface UserListItem {
   email: string
   role: Role
   resource_id: string | null
+  resource_name: string | null
   is_active: boolean
   created_at: string
 }

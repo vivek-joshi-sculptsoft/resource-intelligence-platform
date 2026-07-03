@@ -27,6 +27,7 @@
 - Submit → POST /api/worklogs → update recent entries
 - Edit existing → PUT /api/worklogs/:id
 - Delete entry → DELETE /api/worklogs/:id (with confirmation)
+- Export (Recent Entries table) → GET /api/worklogs/my/export → downloads .xlsx of the currently visible entries
 
 ### Empty State
 If no worklog-enabled projects: "No projects with worklog enabled. Ask your manager to enable worklog for your project."
@@ -57,13 +58,45 @@ Only logs for own resource. Cannot see other resources' worklogs.
 
 ### Actions
 - Filter by date range or resource
-- Export (future scope — not in initial build)
+- Export → GET /api/projects/:id/worklogs/export → downloads .xlsx of the currently filtered entries (date range + resource)
 
 ### Empty State
 "No worklog entries for this period."
 
 ### Access Restrictions
 Manager view only. Engineers view their own entries via `/my-assignments` not this tab.
+
+---
+
+## Screen: Worklogs (Company-Wide View)
+**Route:** `/worklogs`
+**Audience:** CEO, CTO, FINANCE, HR (all); DM/PM (own portfolio); ENGINEER (own entries only). Previously implemented but not documented in this file — added here alongside the Export feature.
+**Layout:** Table with filters above, paginated.
+
+### Components
+- Date range filter (start/end)
+- Worklog table
+- Export button
+
+### Data Displayed
+
+| Field | Source | Notes |
+|---|---|---|
+| Date | Worklog.log_date | Formatted date |
+| Resource | Resource.name | Avatar + name |
+| Project | Project.name | |
+| Hours | Worklog.hours | |
+| Notes | Worklog.note | Truncated with expand |
+
+### Actions
+- Filter by date range
+- Export → GET /api/worklogs/export → downloads .xlsx of the currently filtered entries
+
+### Empty State
+"No worklog entries found."
+
+### Access Restrictions
+Per `shared/ACCESS-MATRIX.md` (`worklogs`) scope for the current role.
 
 ---
 

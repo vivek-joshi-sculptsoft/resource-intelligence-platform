@@ -51,6 +51,16 @@ Phase 1.
 - [ ] When disabled, employees cannot see the worklog option for that project
 - [ ] Existing worklog entries are preserved when toggled off
 
+### Feature: Export Worklogs to Excel
+**Description:** Anyone with view access to a worklog list can export the currently filtered entries to an Excel (.xlsx) file. Available on the company-wide Worklogs page, the Worklog Tab (Project Detail), and the Recent Entries table on My Assignments.
+**Acceptance Criteria:**
+- [ ] "Export" button on the Worklogs page (`/worklogs`), Project Detail → Worklogs tab, and My Assignments (Recent Entries)
+- [ ] Export respects all currently applied filters (date range, resource, project)
+- [ ] Export includes every matching row, not just the current page
+- [ ] Exported columns match the on-screen table for that view (Date, Resource where applicable, Project where applicable, Hours, Note)
+- [ ] Access control on export is identical to the underlying list endpoint — export never returns rows the viewer couldn't already see on screen
+- [ ] An empty filtered result produces an empty spreadsheet with headers, not an error
+
 ---
 
 ## Validations
@@ -73,3 +83,4 @@ FSD §11 Worklog validations:
 - Backfill rule (FSD §14): allow backfill if resource had ACTIVE assignment on `log_date`; block if no ACTIVE assignment on that date
 - Total hours logged across projects on the same day > 24: warning (not blocking) per FSD §14 edge cases
 - Access: CEO/CTO create/edit own worklogs + view all (EDIT/ALL); DM/PM create/edit own worklogs + view own portfolio (EDIT/OWN_PORTFOLIO); ENGINEER creates/edits own worklogs only (EDIT/SELF_ONLY); FINANCE/HR view all, cannot log hours (VIEW/ALL) — `shared/ACCESS-MATRIX.md` (`worklogs`)
+- Export is a read-only operation layered on top of the existing list endpoints — it applies no new access rule, generates the file on demand, and is not audit-logged (same rationale as worklog reads: informational only, no financial impact)
