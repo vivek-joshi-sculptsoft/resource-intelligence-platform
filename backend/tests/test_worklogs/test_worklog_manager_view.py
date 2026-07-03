@@ -190,19 +190,23 @@ async def test_project_worklogs_engineer_forbidden(client: AsyncClient, db: Asyn
 
 
 @pytest.mark.asyncio
-async def test_project_worklogs_finance_forbidden(client: AsyncClient, db: AsyncSession):
+async def test_project_worklogs_finance_access(client: AsyncClient, db: AsyncSession):
+    """FINANCE has VIEW/ALL on worklogs — see shared/ACCESS-MATRIX.md."""
     _, _, _, project = await _setup_portfolio(db, client)
     client, _ = await login_as_role(client, db, "FINANCE")
     resp = await client.get(f"/api/v1/projects/{project.id}/worklogs")
-    assert resp.status_code == 403
+    assert resp.status_code == 200
+    assert resp.json()["total"] == 3
 
 
 @pytest.mark.asyncio
-async def test_project_worklogs_hr_forbidden(client: AsyncClient, db: AsyncSession):
+async def test_project_worklogs_hr_access(client: AsyncClient, db: AsyncSession):
+    """HR has VIEW/ALL on worklogs — see shared/ACCESS-MATRIX.md."""
     _, _, _, project = await _setup_portfolio(db, client)
     client, _ = await login_as_role(client, db, "HR")
     resp = await client.get(f"/api/v1/projects/{project.id}/worklogs")
-    assert resp.status_code == 403
+    assert resp.status_code == 200
+    assert resp.json()["total"] == 3
 
 
 @pytest.mark.asyncio
@@ -339,11 +343,13 @@ async def test_resource_worklogs_engineer_other_forbidden(client: AsyncClient, d
 
 
 @pytest.mark.asyncio
-async def test_resource_worklogs_finance_forbidden(client: AsyncClient, db: AsyncSession):
+async def test_resource_worklogs_finance_access(client: AsyncClient, db: AsyncSession):
+    """FINANCE has VIEW/ALL on worklogs — see shared/ACCESS-MATRIX.md."""
     _, _, eng_res, _ = await _setup_portfolio(db, client)
     client, _ = await login_as_role(client, db, "FINANCE")
     resp = await client.get(f"/api/v1/resources/{eng_res.id}/worklogs")
-    assert resp.status_code == 403
+    assert resp.status_code == 200
+    assert resp.json()["total"] == 3
 
 
 @pytest.mark.asyncio

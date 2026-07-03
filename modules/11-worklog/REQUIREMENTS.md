@@ -2,7 +2,7 @@
 
 ## Overview
 
-Worklog is a lightweight, optional daily time-logging feature. Employees record how many hours they spent on each assigned project per day. It is deliberately decoupled from billing, allocation, and invoicing — it does not block or feed into any financial workflow. A project-level toggle controls whether worklog is active. Managers can view worklogs for their projects.
+Worklog is a lightweight, optional daily time-logging feature. Anyone with an ACTIVE assignment — engineers, PMs, DMs, CEO, CTO — can record how many hours they spent on each assigned project per day. Finance and HR do not log hours; they can view worklogs company-wide. It is deliberately decoupled from billing, allocation, and invoicing — it does not block or feed into any financial workflow. A project-level toggle controls whether worklog is active. Managers can view worklogs for their projects.
 
 ## Phase
 
@@ -20,7 +20,7 @@ Phase 1.
 ## Features
 
 ### Feature: Daily Worklog Entry
-**Description:** Employees log hours per project per day.
+**Description:** Any role with an ACTIVE assignment (Engineer, PM, DM, CEO, CTO) logs hours per project per day. FINANCE and HR do not log hours (view-only, see Manager Worklog Viewing).
 **Acceptance Criteria:**
 - [ ] Employee selects a project from their ACTIVE assignments (where `worklog_enabled = true`)
 - [ ] Enter hours (0.5–24.0 in half-hour increments)
@@ -37,11 +37,11 @@ Phase 1.
 - [ ] No restriction on how far back employee can edit
 
 ### Feature: Manager Worklog Viewing
-**Description:** PMs and above can view worklogs for their projects.
+**Description:** PMs and above, plus FINANCE and HR, can view worklogs.
 **Acceptance Criteria:**
 - [ ] PM can view all worklogs for their projects (filtered by `pm_id = current user`)
 - [ ] DM can view worklogs for their portfolio (`dm_id = current user`)
-- [ ] CEO, CTO can view all worklogs
+- [ ] CEO, CTO, FINANCE, HR can view all worklogs company-wide
 - [ ] View shows: date, resource name, hours, note
 
 ### Feature: Project-Level Toggle
@@ -72,4 +72,4 @@ FSD §11 Worklog validations:
 - Worklog is **decoupled by design**: no FK or trigger relationship with Invoice, Assignment billability, or any financial entity
 - Backfill rule (FSD §14): allow backfill if resource had ACTIVE assignment on `log_date`; block if no ACTIVE assignment on that date
 - Total hours logged across projects on the same day > 24: warning (not blocking) per FSD §14 edge cases
-- Access: employees create/edit own worklogs only (SELF_ONLY); PM/DM view own portfolio; CEO/CTO view all — `shared/ACCESS-MATRIX.md` (`worklogs`)
+- Access: CEO/CTO create/edit own worklogs + view all (EDIT/ALL); DM/PM create/edit own worklogs + view own portfolio (EDIT/OWN_PORTFOLIO); ENGINEER creates/edits own worklogs only (EDIT/SELF_ONLY); FINANCE/HR view all, cannot log hours (VIEW/ALL) — `shared/ACCESS-MATRIX.md` (`worklogs`)

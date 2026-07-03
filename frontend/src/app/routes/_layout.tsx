@@ -50,7 +50,6 @@ const MAIN_NAV: NavItem[] = [
     label: 'My Assignments',
     to: '/my-assignments',
     icon: <ClipboardList size={18} />,
-    allowedRoles: ['ENGINEER'],
   },
   {
     label: 'Worklogs',

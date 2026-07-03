@@ -120,7 +120,7 @@ function AppRoutes() {
           }
         />
 
-        {/* My Assignments (Engineer worklog entry) */}
+        {/* My Assignments (worklog entry — all roles) */}
         <Route path="/my-assignments" element={<MyAssignmentsRoute />} />
 
         {/* Projects */}

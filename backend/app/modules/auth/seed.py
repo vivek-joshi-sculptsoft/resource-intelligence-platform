@@ -57,7 +57,7 @@ PERMISSIONS: dict[str, dict[str, tuple[str, str, bool]]] = {
         "bench_data": ("VIEW", "ALL", False),
         "invoicing": ("VIEW", "ALL", False),
         "milestones": ("EDIT", "ALL", False),
-        "worklogs": ("VIEW", "ALL", False),
+        "worklogs": ("EDIT", "ALL", False),
         "alerts": ("VIEW", "ALL", False),
     },
     "CTO": {
@@ -75,7 +75,7 @@ PERMISSIONS: dict[str, dict[str, tuple[str, str, bool]]] = {
         "bench_data": ("VIEW", "ALL", False),
         "invoicing": ("VIEW", "ALL", False),
         "milestones": ("EDIT", "ALL", False),
-        "worklogs": ("VIEW", "ALL", False),
+        "worklogs": ("EDIT", "ALL", False),
         "alerts": ("VIEW", "ALL", False),
     },
     "DM": {
@@ -93,7 +93,7 @@ PERMISSIONS: dict[str, dict[str, tuple[str, str, bool]]] = {
         "bench_data": ("VIEW", "ALL", False),
         "invoicing": ("NONE", "ALL", False),
         "milestones": ("EDIT", "OWN_PORTFOLIO", False),
-        "worklogs": ("VIEW", "OWN_PORTFOLIO", False),
+        "worklogs": ("EDIT", "OWN_PORTFOLIO", False),
         "alerts": ("VIEW", "OWN_PORTFOLIO", False),
     },
     "PM": {
@@ -111,7 +111,7 @@ PERMISSIONS: dict[str, dict[str, tuple[str, str, bool]]] = {
         "bench_data": ("NONE", "ALL", False),
         "invoicing": ("NONE", "ALL", False),
         "milestones": ("EDIT", "OWN_PORTFOLIO", False),
-        "worklogs": ("VIEW", "OWN_PORTFOLIO", False),
+        "worklogs": ("EDIT", "OWN_PORTFOLIO", False),
         "alerts": ("VIEW", "OWN_PORTFOLIO", False),
     },
     "FINANCE": {
@@ -129,7 +129,7 @@ PERMISSIONS: dict[str, dict[str, tuple[str, str, bool]]] = {
         "bench_data": ("VIEW", "ALL", False),
         "invoicing": ("EDIT", "ALL", False),
         "milestones": ("EDIT", "ALL", False),
-        "worklogs": ("NONE", "ALL", False),
+        "worklogs": ("VIEW", "ALL", False),
         "alerts": ("VIEW", "ALL", False),
     },
     "HR": {
@@ -147,7 +147,7 @@ PERMISSIONS: dict[str, dict[str, tuple[str, str, bool]]] = {
         "bench_data": ("VIEW", "ALL", False),
         "invoicing": ("NONE", "ALL", False),
         "milestones": ("NONE", "ALL", False),
-        "worklogs": ("NONE", "ALL", False),
+        "worklogs": ("VIEW", "ALL", False),
         "alerts": ("VIEW", "ALL", False),
     },
     "ENGINEER": {
@@ -212,7 +212,8 @@ async def _seed_permissions(db: AsyncSession) -> None:
                     RolePermission.data_type == data_type,
                 )
             )
-            if existing.scalar_one_or_none() is None:
+            row = existing.scalar_one_or_none()
+            if row is None:
                 db.add(
                     RolePermission(
                         id=uuid.uuid4(),
@@ -223,6 +224,17 @@ async def _seed_permissions(db: AsyncSession) -> None:
                         is_configurable=configurable,
                     )
                 )
+            elif (
+                row.access_level != AccessLevel(access)
+                or row.scope != Scope(scope)
+                or row.is_configurable != configurable
+            ):
+                # Keep already-seeded rows in sync with PERMISSIONS — this dict is the
+                # source of truth (shared/ACCESS-MATRIX.md); without this, changing a
+                # role's access here would only apply to fresh databases.
+                row.access_level = AccessLevel(access)
+                row.scope = Scope(scope)
+                row.is_configurable = configurable
 
 
 async def _seed_system_config(db: AsyncSession) -> None:

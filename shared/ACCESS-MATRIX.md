@@ -68,7 +68,7 @@ Scope is enforced as a **WHERE clause at database query level**, not post-fetch 
 | resource_availability | VIEW | ALL | false |
 | bench_data | VIEW | ALL | false |
 | invoicing | VIEW | ALL | false |
-| worklogs | VIEW | ALL | false |
+| worklogs | EDIT | ALL | false |
 | alerts | VIEW | ALL | false |
 
 ### CTO (15 rows)
@@ -88,7 +88,7 @@ Scope is enforced as a **WHERE clause at database query level**, not post-fetch 
 | resource_availability | VIEW | ALL | false |
 | bench_data | VIEW | ALL | false |
 | invoicing | VIEW | ALL | false |
-| worklogs | VIEW | ALL | false |
+| worklogs | EDIT | ALL | false |
 | alerts | VIEW | ALL | false |
 
 ### DM — Delivery Manager (15 rows)
@@ -108,7 +108,7 @@ Scope is enforced as a **WHERE clause at database query level**, not post-fetch 
 | resource_availability | VIEW | ALL | false |
 | bench_data | VIEW | ALL | false |
 | invoicing | NONE | ALL | false |
-| worklogs | VIEW | OWN_PORTFOLIO | false |
+| worklogs | EDIT | OWN_PORTFOLIO | false |
 | alerts | VIEW | OWN_PORTFOLIO | false |
 
 ### PM — Project Manager (15 rows)
@@ -128,7 +128,7 @@ Scope is enforced as a **WHERE clause at database query level**, not post-fetch 
 | resource_availability | VIEW | ALL | false |
 | bench_data | NONE | ALL | false |
 | invoicing | NONE | ALL | false |
-| worklogs | VIEW | OWN_PORTFOLIO | false |
+| worklogs | EDIT | OWN_PORTFOLIO | false |
 | alerts | VIEW | OWN_PORTFOLIO | false |
 
 ### FINANCE (15 rows)
@@ -148,7 +148,7 @@ Scope is enforced as a **WHERE clause at database query level**, not post-fetch 
 | resource_availability | VIEW | ALL | false |
 | bench_data | VIEW | ALL | false |
 | invoicing | EDIT | ALL | false |
-| worklogs | NONE | ALL | false |
+| worklogs | VIEW | ALL | false |
 | alerts | VIEW | ALL | false |
 
 ### HR (15 rows)
@@ -168,7 +168,7 @@ Scope is enforced as a **WHERE clause at database query level**, not post-fetch 
 | resource_availability | VIEW | ALL | false |
 | bench_data | VIEW | ALL | false |
 | invoicing | NONE | ALL | false |
-| worklogs | NONE | ALL | false |
+| worklogs | VIEW | ALL | false |
 | alerts | VIEW | ALL | false |
 
 ### ENGINEER (15 rows)

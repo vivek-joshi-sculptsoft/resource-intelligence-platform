@@ -69,7 +69,8 @@ export function MyAssignmentsPage() {
   const user = useAuthStore((s) => s.user)
   const queryClient = useQueryClient()
   const resourceId = user?.resource_id
-  const isEngineer = user?.role?.code === 'ENGINEER'
+  // See shared/ACCESS-MATRIX.md (worklogs) — only roles with EDIT can log hours; FINANCE/HR are VIEW-only.
+  const canLogHours = ['ENGINEER', 'CEO', 'CTO', 'DM', 'PM'].includes(user?.role?.code ?? '')
 
   const [selectedDate, setSelectedDate] = useState(() => {
     const d = new Date()
@@ -257,13 +258,13 @@ export function MyAssignmentsPage() {
     )
   }
 
-  if (!isEngineer) {
+  if (!canLogHours) {
     return (
       <div style={{ textAlign: 'center', padding: '80px 20px' }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>&#128100;</div>
-        <h3 style={{ fontSize: 18, color: '#1e1b4b', marginBottom: 8 }}>Engineer View</h3>
+        <h3 style={{ fontSize: 18, color: '#1e1b4b', marginBottom: 8 }}>View-Only Access</h3>
         <p style={{ fontSize: 14, color: '#6b7280', maxWidth: 400, margin: '0 auto' }}>
-          My Assignments is designed for engineers to see their own project assignments. Use the Dashboard or Availability pages for your role.
+          Your role can view worklogs but not log hours. Use the Worklogs page to see entries across the company.
         </p>
       </div>
     )

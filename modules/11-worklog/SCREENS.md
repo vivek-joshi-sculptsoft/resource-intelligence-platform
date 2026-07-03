@@ -1,6 +1,6 @@
 # Module 11: Worklog — Screen Specifications
 
-## Screen: Worklog Entry (Engineer / My Assignments View)
+## Screen: Worklog Entry (My Assignments View)
 **Route:** `/my-assignments` — Worklog section (only for projects with `worklog_enabled = true`)
 **Audience:** Any user with an active assignment on a worklog-enabled project
 **Layout:** Card per project or inline form.
@@ -38,7 +38,7 @@ Only logs for own resource. Cannot see other resources' worklogs.
 
 ## Screen: Worklog Tab (within Project Detail)
 **Route:** `/projects/:id` → Worklogs tab (shown only when `worklog_enabled = true`)
-**Audience:** CEO, CTO, DM (own portfolio), PM (own portfolio)
+**Audience:** CEO, CTO, FINANCE, HR (all), DM (own portfolio), PM (own portfolio)
 **Layout:** Table with filters above.
 
 ### Components

@@ -92,6 +92,7 @@ async def create_worklog_endpoint(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
+    await check_access(db, current_user, "worklogs", require_edit=True)
     resource_id = _require_resource_id(current_user)
     result = await create_worklog(db, resource_id, body)
     return {"data": result.model_dump()}
@@ -104,6 +105,7 @@ async def update_worklog_endpoint(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
+    await check_access(db, current_user, "worklogs", require_edit=True)
     resource_id = _require_resource_id(current_user)
     result = await update_worklog(db, worklog_id, resource_id, body)
     return {"data": result.model_dump()}
@@ -115,6 +117,7 @@ async def delete_worklog_endpoint(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
+    await check_access(db, current_user, "worklogs", require_edit=True)
     resource_id = _require_resource_id(current_user)
     await delete_worklog(db, worklog_id, resource_id)
     return {"success": True}

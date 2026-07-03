@@ -13,8 +13,8 @@
 
 ### POST /api/worklogs
 **Description:** Create a new worklog entry.
-**Auth:** Any user with a linked resource_id
-**Scope:** SELF_ONLY
+**Auth:** Requires EDIT on `worklogs` (CEO, CTO, DM, PM, ENGINEER) and a linked resource_id. FINANCE/HR have VIEW-only and get 403.
+**Scope:** SELF_ONLY (always writes the caller's own resource_id — scope on the RolePermission row governs viewing, not the write target)
 **Request Body:**
 ```json
 {
@@ -31,7 +31,7 @@
 
 ### PUT /api/worklogs/:id
 **Description:** Update own worklog entry.
-**Auth:** Owner of the worklog entry only
+**Auth:** Requires EDIT on `worklogs` and ownership of the entry. FINANCE/HR get 403.
 **Scope:** SELF_ONLY
 **Request Body:** `{ "hours": decimal, "note": string }`
 **Validations:** Hours range (0.5–24.0). Cannot change project_id or log_date.
@@ -40,7 +40,7 @@
 
 ### DELETE /api/worklogs/:id
 **Description:** Delete own worklog entry.
-**Auth:** Owner of the worklog entry only
+**Auth:** Requires EDIT on `worklogs` and ownership of the entry. FINANCE/HR get 403.
 **Scope:** SELF_ONLY
 **Response:** `{ "success": true }`
 **Notes:** No side effects on any financial or allocation data.
@@ -49,7 +49,7 @@
 
 ### GET /api/projects/:projectId/worklogs
 **Description:** View all worklogs for a project (manager view).
-**Auth:** CEO, CTO (ALL); DM (own portfolio); PM (own portfolio). Reference `shared/ACCESS-MATRIX.md` (`worklogs`).
+**Auth:** CEO, CTO, FINANCE, HR (ALL); DM (own portfolio); PM (own portfolio). Reference `shared/ACCESS-MATRIX.md` (`worklogs`).
 **Scope:** OWN_PORTFOLIO for DM/PM
 **Response:** Paginated: `[{ id, resource: { id, name }, log_date, hours, note }]`
 **Notes:** `?resource_id=<uuid>&start_date=<date>&end_date=<date>`
@@ -58,6 +58,6 @@
 
 ### GET /api/resources/:resourceId/worklogs
 **Description:** View worklogs for a specific resource.
-**Auth:** CEO, CTO; DM/PM (own portfolio); the resource themselves (SELF_ONLY)
+**Auth:** CEO, CTO, FINANCE, HR (ALL); DM/PM (own portfolio); the resource themselves (SELF_ONLY)
 **Scope:** Per role
 **Response:** Paginated: `[{ id, project: { id, name }, log_date, hours, note }]`
