@@ -16,13 +16,16 @@ from app.shared.exceptions import AppError
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     if settings.SENTRY_DSN:
         sentry_sdk.init(dsn=settings.SENTRY_DSN, traces_sample_rate=0.1)
+    from app.database import async_session_factory
+    from app.modules.auth.seed import seed_all
+
     if settings.DATABASE_URL.startswith("sqlite"):
-        from app.database import async_session_factory, create_tables
-        from app.modules.auth.seed import seed_all
+        from app.database import create_tables
 
         await create_tables()
-        async with async_session_factory() as session:
-            await seed_all(session)
+
+    async with async_session_factory() as session:
+        await seed_all(session)
 
     if settings.SCHEDULER_BACKEND == "apscheduler":
         from app.jobs.scheduler import start_scheduler

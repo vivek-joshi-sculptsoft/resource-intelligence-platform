@@ -17,23 +17,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # See shared/ACCESS-MATRIX.md — worklogs permission update:
-    # CEO, CTO, DM, PM, ENGINEER: VIEW → EDIT
-    # FINANCE, HR: NONE → VIEW
     conn = op.get_bind()
-    for role_code in ("CEO", "CTO"):
-        conn.execute(
-            sa.text(
-                """
-                UPDATE role_permissions
-                SET access_level = 'EDIT'
-                WHERE role_id = (SELECT id FROM roles WHERE code = :role)
-                  AND data_type = 'worklogs'
-                """
-            ),
-            {"role": role_code},
-        )
-    for role_code in ("DM", "PM"):
+    for role_code in ("CEO", "CTO", "DM", "PM"):
         conn.execute(
             sa.text(
                 """
