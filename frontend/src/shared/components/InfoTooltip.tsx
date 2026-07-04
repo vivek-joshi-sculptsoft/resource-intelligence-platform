@@ -56,7 +56,7 @@ export function InfoTooltip({ content }: InfoTooltipProps) {
       {open && (
         <div
           onClick={(e) => e.stopPropagation()}
-          className="absolute z-50 top-full left-0 mt-2 w-64 rounded-lg p-3.5 text-left normal-case"
+          className="absolute z-50 top-full right-0 mt-2 w-80 rounded-lg p-3.5 text-left normal-case"
           style={{
             background: '#1e1b4b',
             boxShadow: '0 8px 20px rgba(30,27,75,0.25)',
