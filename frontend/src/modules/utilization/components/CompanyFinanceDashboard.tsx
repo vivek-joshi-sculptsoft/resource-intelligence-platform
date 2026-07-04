@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { InfoTooltip, type InfoTooltipContent } from '../../../shared/components/InfoTooltip'
 import { fetchCompanyFinanceDashboard, type CompanyFinanceFilters } from '../api'
-import { fetchProjects } from '../../projects/api'
-import { fetchClients } from '../../clients/api'
+import { fetchProjects, type ProjectListItem } from '../../projects/api'
+import { fetchClients, type ClientListItem } from '../../clients/api'
 
 function formatInr(val: number | null | undefined): string {
   if (val === null || val === undefined) return '—'
@@ -74,13 +74,13 @@ export function CompanyFinanceDashboard() {
     queryFn: () => fetchClients({ limit: 200 }),
   })
 
-  const projects = projectsData?.items ?? []
-  const clients = clientsData?.items ?? []
+  const projects: ProjectListItem[] = projectsData?.data ?? []
+  const clients: ClientListItem[] = clientsData?.data ?? []
 
   // See SCREENS.md — selecting a project auto-scopes the client dropdown to that project's client
-  const selectedProject = projects.find((p) => p.id === projectId)
+  const selectedProject = projects.find((p: ProjectListItem) => p.id === projectId)
   const filteredClients = projectId && selectedProject?.client_id
-    ? clients.filter((c) => c.id === selectedProject.client_id)
+    ? clients.filter((c: ClientListItem) => c.id === selectedProject.client_id)
     : clients
 
   return (
@@ -157,7 +157,7 @@ export function CompanyFinanceDashboard() {
             onChange={(e) => {
               setProjectId(e.target.value)
               if (e.target.value) {
-                const proj = projects.find((p) => p.id === e.target.value)
+                const proj = projects.find((p: ProjectListItem) => p.id === e.target.value)
                 if (proj?.client_id) setClientId(proj.client_id)
               }
             }}
@@ -165,7 +165,7 @@ export function CompanyFinanceDashboard() {
             style={{ color: '#1e1b4b' }}
           >
             <option value="">All Projects</option>
-            {projects.map((p) => (
+            {projects.map((p: ProjectListItem) => (
               <option key={p.id} value={p.id}>{p.name}</option>
             ))}
           </select>
@@ -183,7 +183,7 @@ export function CompanyFinanceDashboard() {
             style={{ color: '#1e1b4b' }}
           >
             <option value="">All Clients</option>
-            {filteredClients.map((c) => (
+            {filteredClients.map((c: ClientListItem) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
