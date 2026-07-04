@@ -5,12 +5,13 @@ import { useAuthStore } from '../../auth/store'
 import { fetchResourceAssignments, type AssignmentListItem } from '../../allocations/api'
 import {
   fetchMyWorklogs,
+  exportMyWorklogs,
   createWorklog,
   updateWorklog,
   deleteWorklog,
   type WorklogEntry,
 } from '../api'
-import { ChevronLeft, ChevronRight, Clock, ClipboardList, Pencil, Trash2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Clock, ClipboardList, Pencil, Trash2, Download } from 'lucide-react'
 
 const ACCENT_COLORS = ['#2B3990', '#22c55e', '#7c3aed', '#f59e0b', '#ef4444', '#06b6d4']
 
@@ -81,6 +82,7 @@ export function MyAssignmentsPage() {
   const [editHours, setEditHours] = useState<number>(0)
   const [editNote, setEditNote] = useState<string>('')
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [exporting, setExporting] = useState(false)
 
   const today = useMemo(() => {
     const d = new Date()
@@ -243,6 +245,17 @@ export function MyAssignmentsPage() {
         if (d > today) return prev
         return d
       })
+    }
+  }
+
+  async function handleExportMy() {
+    setExporting(true)
+    try {
+      await exportMyWorklogs({ start_date: thirtyDaysAgo })
+    } catch {
+      toast.error('Export failed')
+    } finally {
+      setExporting(false)
     }
   }
 
@@ -890,9 +903,32 @@ export function MyAssignmentsPage() {
             style={{
               padding: '18px 24px',
               borderBottom: '1px solid #E8EAF6',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
             }}
           >
             <h3 style={{ fontSize: 15, fontWeight: 600 }}>Recent Entries (Last 30 Days)</h3>
+            <button
+              onClick={handleExportMy}
+              disabled={exporting || worklogsLoading || recentWorklogs.length === 0}
+              style={{
+                padding: '8px 16px',
+                border: '1px solid #D6DAF0',
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 600,
+                background: '#fff',
+                cursor: exporting || worklogsLoading || recentWorklogs.length === 0 ? 'not-allowed' : 'pointer',
+                opacity: exporting || worklogsLoading || recentWorklogs.length === 0 ? 0.5 : 1,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                color: '#2B3990',
+              }}
+            >
+              <Download size={14} /> {exporting ? 'Exporting...' : 'Export'}
+            </button>
           </div>
           {worklogsLoading ? (
             <div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Loading...</div>

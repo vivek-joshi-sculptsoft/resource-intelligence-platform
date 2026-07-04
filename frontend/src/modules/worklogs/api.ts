@@ -112,3 +112,64 @@ export async function fetchProjectWorklogs(
   const { data } = await api.get(`/projects/${projectId}/worklogs?${qs.toString()}`)
   return data
 }
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
+
+function extractFilename(headers: Record<string, string>, fallback: string): string {
+  const disposition = headers['content-disposition'] ?? ''
+  const match = disposition.match(/filename="?([^";\n]+)"?/)
+  return match?.[1] ?? fallback
+}
+
+export async function exportAllWorklogs(params?: {
+  project_id?: string
+  resource_id?: string
+  start_date?: string
+  end_date?: string
+}): Promise<void> {
+  const qs = new URLSearchParams()
+  if (params?.project_id) qs.set('project_id', params.project_id)
+  if (params?.resource_id) qs.set('resource_id', params.resource_id)
+  if (params?.start_date) qs.set('start_date', params.start_date)
+  if (params?.end_date) qs.set('end_date', params.end_date)
+  const resp = await api.get(`/worklogs/export?${qs.toString()}`, { responseType: 'blob' })
+  downloadBlob(resp.data, extractFilename(resp.headers as Record<string, string>, 'worklogs.xlsx'))
+}
+
+export async function exportMyWorklogs(params?: {
+  project_id?: string
+  start_date?: string
+  end_date?: string
+}): Promise<void> {
+  const qs = new URLSearchParams()
+  if (params?.project_id) qs.set('project_id', params.project_id)
+  if (params?.start_date) qs.set('start_date', params.start_date)
+  if (params?.end_date) qs.set('end_date', params.end_date)
+  const resp = await api.get(`/worklogs/my/export?${qs.toString()}`, { responseType: 'blob' })
+  downloadBlob(resp.data, extractFilename(resp.headers as Record<string, string>, 'my_worklogs.xlsx'))
+}
+
+export async function exportProjectWorklogs(
+  projectId: string,
+  params?: {
+    resource_id?: string
+    start_date?: string
+    end_date?: string
+  },
+): Promise<void> {
+  const qs = new URLSearchParams()
+  if (params?.resource_id) qs.set('resource_id', params.resource_id)
+  if (params?.start_date) qs.set('start_date', params.start_date)
+  if (params?.end_date) qs.set('end_date', params.end_date)
+  const resp = await api.get(`/projects/${projectId}/worklogs/export?${qs.toString()}`, { responseType: 'blob' })
+  downloadBlob(resp.data, extractFilename(resp.headers as Record<string, string>, 'project_worklogs.xlsx'))
+}

@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight, RotateCcw, Clock } from 'lucide-react'
-import { fetchAllWorklogs, type WorklogEntry } from '../api'
+import { ChevronLeft, ChevronRight, RotateCcw, Clock, Download } from 'lucide-react'
+import { toast } from 'sonner'
+import { fetchAllWorklogs, exportAllWorklogs, type WorklogEntry } from '../api'
 
 const AVATAR_COLORS = ['#6366f1', '#f59e0b', '#22c55e', '#ec4899', '#8b5cf6', '#06b6d4', '#ef4444']
 const PAGE_SIZE = 20
@@ -25,6 +26,7 @@ export function WorklogsPage() {
   const [endDate, setEndDate] = useState('')
   const [page, setPage] = useState(1)
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set())
+  const [exporting, setExporting] = useState(false)
 
   const { data, isLoading } = useQuery({
     queryKey: ['all-worklogs', startDate, endDate, page],
@@ -57,6 +59,20 @@ export function WorklogsPage() {
     setStartDate('')
     setEndDate('')
     setPage(1)
+  }
+
+  async function handleExport() {
+    setExporting(true)
+    try {
+      await exportAllWorklogs({
+        start_date: startDate || undefined,
+        end_date: endDate || undefined,
+      })
+    } catch {
+      toast.error('Export failed')
+    } finally {
+      setExporting(false)
+    }
   }
 
   function toggleNote(id: string) {
@@ -142,25 +158,46 @@ export function WorklogsPage() {
               }}
             />
           </div>
-          <button
-            onClick={resetFilters}
-            style={{
-              marginLeft: 'auto',
-              padding: '8px 16px',
-              border: '1px solid #D6DAF0',
-              borderRadius: 8,
-              fontSize: 13,
-              fontWeight: 600,
-              background: '#fff',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              color: '#1e1b4b',
-            }}
-          >
-            <RotateCcw size={14} /> Reset
-          </button>
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+            <button
+              onClick={handleExport}
+              disabled={exporting || isLoading || entries.length === 0}
+              style={{
+                padding: '8px 16px',
+                border: '1px solid #D6DAF0',
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 600,
+                background: '#fff',
+                cursor: exporting || isLoading || entries.length === 0 ? 'not-allowed' : 'pointer',
+                opacity: exporting || isLoading || entries.length === 0 ? 0.5 : 1,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                color: '#2B3990',
+              }}
+            >
+              <Download size={14} /> {exporting ? 'Exporting...' : 'Export'}
+            </button>
+            <button
+              onClick={resetFilters}
+              style={{
+                padding: '8px 16px',
+                border: '1px solid #D6DAF0',
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 600,
+                background: '#fff',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                color: '#1e1b4b',
+              }}
+            >
+              <RotateCcw size={14} /> Reset
+            </button>
+          </div>
         </div>
 
         {/* Table */}
