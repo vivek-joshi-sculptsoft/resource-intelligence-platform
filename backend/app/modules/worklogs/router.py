@@ -4,6 +4,7 @@ import uuid
 from datetime import date
 
 from fastapi import APIRouter, Depends, Query
+from fastapi.responses import Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,10 +12,15 @@ from app.dependencies import get_current_user, get_db
 from app.modules.auth.models import User
 from app.modules.projects.models import Project
 from app.modules.resources.models import Resource
+from app.modules.worklogs.export import generate_worklogs_xlsx
 from app.modules.worklogs.schemas import WorklogCreateRequest, WorklogUpdateRequest
 from app.modules.worklogs.service import (
+    _build_all_worklogs_query,
+    _build_my_worklogs_query,
+    _build_project_worklogs_query,
     create_worklog,
     delete_worklog,
+    fetch_all_worklogs,
     list_all_worklogs,
     list_my_worklogs,
     list_project_worklogs,
@@ -25,6 +31,8 @@ from app.shared.access_control import check_access
 from app.shared.exceptions import ForbiddenError, NotFoundError
 
 router = APIRouter(tags=["worklogs"])
+
+XLSX_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 
 def _require_resource_id(user: User) -> uuid.UUID:
@@ -53,6 +61,62 @@ async def get_my_worklogs(
         "page": page,
         "limit": limit,
     }
+
+
+@router.get("/api/v1/worklogs/my/export")
+async def export_my_worklogs(
+    project_id: uuid.UUID | None = Query(None),
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    resource_id = _require_resource_id(current_user)
+    query = _build_my_worklogs_query(resource_id, project_id, start_date, end_date)
+    rows = await fetch_all_worklogs(db, query)
+    file_bytes, filename = generate_worklogs_xlsx(
+        rows,
+        include_resource=False,
+        include_project=True,
+        start_date=start_date,
+        end_date=end_date,
+        filename_prefix="my_worklogs",
+    )
+    return Response(
+        content=file_bytes,
+        media_type=XLSX_CONTENT_TYPE,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get("/api/v1/worklogs/export")
+async def export_worklogs(
+    project_id: uuid.UUID | None = Query(None),
+    resource_id: uuid.UUID | None = Query(None),
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    permission = await check_access(db, current_user, "worklogs")
+    query = _build_all_worklogs_query(
+        permission, current_user.resource_id,
+        project_id, resource_id, start_date, end_date,
+    )
+    rows = await fetch_all_worklogs(db, query)
+    file_bytes, filename = generate_worklogs_xlsx(
+        rows,
+        include_resource=True,
+        include_project=True,
+        start_date=start_date,
+        end_date=end_date,
+        filename_prefix="worklogs",
+    )
+    return Response(
+        content=file_bytes,
+        media_type=XLSX_CONTENT_TYPE,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/api/v1/worklogs")
@@ -121,6 +185,49 @@ async def delete_worklog_endpoint(
     resource_id = _require_resource_id(current_user)
     await delete_worklog(db, worklog_id, resource_id)
     return {"success": True}
+
+
+@router.get("/api/v1/projects/{project_id}/worklogs/export")
+async def export_project_worklogs(
+    project_id: uuid.UUID,
+    resource_id: uuid.UUID | None = Query(None),
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    permission = await check_access(db, current_user, "worklogs")
+
+    if permission.is_self_only:
+        raise ForbiddenError()
+
+    project = (
+        await db.execute(select(Project).where(Project.id == project_id))
+    ).scalar_one_or_none()
+    if not project:
+        raise NotFoundError("Project", str(project_id))
+
+    if permission.is_own_portfolio:
+        if not current_user.resource_id:
+            raise ForbiddenError()
+        if project.dm_id != current_user.resource_id and project.pm_id != current_user.resource_id:
+            raise ForbiddenError()
+
+    query = _build_project_worklogs_query(project_id, resource_id, start_date, end_date)
+    rows = await fetch_all_worklogs(db, query)
+    file_bytes, filename = generate_worklogs_xlsx(
+        rows,
+        include_resource=True,
+        include_project=False,
+        start_date=start_date,
+        end_date=end_date,
+        filename_prefix=f"worklogs_{project.name.replace(' ', '_')}",
+    )
+    return Response(
+        content=file_bytes,
+        media_type=XLSX_CONTENT_TYPE,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/api/v1/projects/{project_id}/worklogs")

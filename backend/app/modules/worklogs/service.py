@@ -3,7 +3,7 @@
 import uuid
 from datetime import date
 
-from sqlalchemy import and_, select
+from sqlalchemy import Select, and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.allocations.models import Assignment
@@ -32,6 +32,81 @@ def _to_response(w: Worklog) -> WorklogResponse:
     )
 
 
+def _build_my_worklogs_query(
+    resource_id: uuid.UUID,
+    project_id: uuid.UUID | None = None,
+    start_date: date | None = None,
+    end_date: date | None = None,
+) -> Select:
+    query = select(Worklog).where(Worklog.resource_id == resource_id)
+    if project_id:
+        query = query.where(Worklog.project_id == project_id)
+    if start_date:
+        query = query.where(Worklog.log_date >= start_date)
+    if end_date:
+        query = query.where(Worklog.log_date <= end_date)
+    return query
+
+
+def _build_all_worklogs_query(
+    permission: Permission,
+    current_user_resource_id: uuid.UUID | None,
+    project_id_filter: uuid.UUID | None = None,
+    resource_id_filter: uuid.UUID | None = None,
+    start_date: date | None = None,
+    end_date: date | None = None,
+) -> Select:
+    """See FSD §10 — scope-filtered worklog query for managers."""
+    query = select(Worklog)
+
+    if permission.is_own_portfolio and current_user_resource_id:
+        query = query.join(Project).where(
+            (Project.dm_id == current_user_resource_id)
+            | (Project.pm_id == current_user_resource_id)
+        )
+    elif permission.is_self_only and current_user_resource_id:
+        query = query.where(Worklog.resource_id == current_user_resource_id)
+
+    if project_id_filter:
+        query = query.where(Worklog.project_id == project_id_filter)
+    if resource_id_filter:
+        query = query.where(Worklog.resource_id == resource_id_filter)
+    if start_date:
+        query = query.where(Worklog.log_date >= start_date)
+    if end_date:
+        query = query.where(Worklog.log_date <= end_date)
+    return query
+
+
+def _build_project_worklogs_query(
+    project_id: uuid.UUID,
+    resource_id_filter: uuid.UUID | None = None,
+    start_date: date | None = None,
+    end_date: date | None = None,
+) -> Select:
+    query = select(Worklog).where(Worklog.project_id == project_id)
+    if resource_id_filter:
+        query = query.where(Worklog.resource_id == resource_id_filter)
+    if start_date:
+        query = query.where(Worklog.log_date >= start_date)
+    if end_date:
+        query = query.where(Worklog.log_date <= end_date)
+    return query
+
+
+async def _paginate(
+    db: AsyncSession, query: Select, page: int, limit: int
+) -> tuple[list[WorklogResponse], int]:
+    count_q = select(func.count()).select_from(query.subquery())
+    total = (await db.execute(count_q)).scalar() or 0
+
+    query = query.order_by(Worklog.log_date.desc(), Worklog.created_at.desc())
+    query = query.offset((page - 1) * limit).limit(limit)
+
+    rows = (await db.execute(query)).scalars().all()
+    return [_to_response(w) for w in rows], total
+
+
 async def list_my_worklogs(
     db: AsyncSession,
     resource_id: uuid.UUID,
@@ -41,25 +116,8 @@ async def list_my_worklogs(
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[WorklogResponse], int]:
-    query = select(Worklog).where(Worklog.resource_id == resource_id)
-
-    if project_id:
-        query = query.where(Worklog.project_id == project_id)
-    if start_date:
-        query = query.where(Worklog.log_date >= start_date)
-    if end_date:
-        query = query.where(Worklog.log_date <= end_date)
-
-    from sqlalchemy import func
-
-    count_q = select(func.count()).select_from(query.subquery())
-    total = (await db.execute(count_q)).scalar() or 0
-
-    query = query.order_by(Worklog.log_date.desc(), Worklog.created_at.desc())
-    query = query.offset((page - 1) * limit).limit(limit)
-
-    rows = (await db.execute(query)).scalars().all()
-    return [_to_response(w) for w in rows], total
+    query = _build_my_worklogs_query(resource_id, project_id, start_date, end_date)
+    return await _paginate(db, query, page, limit)
 
 
 async def create_worklog(
@@ -180,25 +238,8 @@ async def list_project_worklogs(
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[WorklogResponse], int]:
-    query = select(Worklog).where(Worklog.project_id == project_id)
-
-    if resource_id_filter:
-        query = query.where(Worklog.resource_id == resource_id_filter)
-    if start_date:
-        query = query.where(Worklog.log_date >= start_date)
-    if end_date:
-        query = query.where(Worklog.log_date <= end_date)
-
-    from sqlalchemy import func
-
-    count_q = select(func.count()).select_from(query.subquery())
-    total = (await db.execute(count_q)).scalar() or 0
-
-    query = query.order_by(Worklog.log_date.desc(), Worklog.created_at.desc())
-    query = query.offset((page - 1) * limit).limit(limit)
-
-    rows = (await db.execute(query)).scalars().all()
-    return [_to_response(w) for w in rows], total
+    query = _build_project_worklogs_query(project_id, resource_id_filter, start_date, end_date)
+    return await _paginate(db, query, page, limit)
 
 
 async def list_all_worklogs(
@@ -213,36 +254,11 @@ async def list_all_worklogs(
     limit: int = 20,
 ) -> tuple[list[WorklogResponse], int]:
     """See FSD §10 — scope-filtered worklog listing for managers."""
-
-    query = select(Worklog)
-
-    if permission.is_own_portfolio and current_user_resource_id:
-        query = query.join(Project).where(
-            (Project.dm_id == current_user_resource_id)
-            | (Project.pm_id == current_user_resource_id)
-        )
-    elif permission.is_self_only and current_user_resource_id:
-        query = query.where(Worklog.resource_id == current_user_resource_id)
-
-    if project_id_filter:
-        query = query.where(Worklog.project_id == project_id_filter)
-    if resource_id_filter:
-        query = query.where(Worklog.resource_id == resource_id_filter)
-    if start_date:
-        query = query.where(Worklog.log_date >= start_date)
-    if end_date:
-        query = query.where(Worklog.log_date <= end_date)
-
-    from sqlalchemy import func
-
-    count_q = select(func.count()).select_from(query.subquery())
-    total = (await db.execute(count_q)).scalar() or 0
-
-    query = query.order_by(Worklog.log_date.desc(), Worklog.created_at.desc())
-    query = query.offset((page - 1) * limit).limit(limit)
-
-    rows = (await db.execute(query)).scalars().all()
-    return [_to_response(w) for w in rows], total
+    query = _build_all_worklogs_query(
+        permission, current_user_resource_id,
+        project_id_filter, resource_id_filter, start_date, end_date,
+    )
+    return await _paginate(db, query, page, limit)
 
 
 async def list_resource_worklogs(
@@ -263,13 +279,10 @@ async def list_resource_worklogs(
     if end_date:
         query = query.where(Worklog.log_date <= end_date)
 
-    from sqlalchemy import func
+    return await _paginate(db, query, page, limit)
 
-    count_q = select(func.count()).select_from(query.subquery())
-    total = (await db.execute(count_q)).scalar() or 0
 
+async def fetch_all_worklogs(db: AsyncSession, query: Select) -> list[Worklog]:
+    """Execute a worklog query without pagination — for export."""
     query = query.order_by(Worklog.log_date.desc(), Worklog.created_at.desc())
-    query = query.offset((page - 1) * limit).limit(limit)
-
-    rows = (await db.execute(query)).scalars().all()
-    return [_to_response(w) for w in rows], total
+    return list((await db.execute(query)).scalars().all())
