@@ -7,7 +7,7 @@
 **Auth:** CEO, CTO, FINANCE, HR (ALL); DM/PM (own portfolio); ENGINEER (SELF_ONLY — own entries only). Reference `shared/ACCESS-MATRIX.md` (`worklogs`).
 **Scope:** Per role, per `shared/ACCESS-MATRIX.md`
 **Response:** Paginated: `[{ id, resource: { id, name }, project: { id, name }, log_date, hours, note }]`
-**Notes:** `?project_id=<uuid>&resource_id=<uuid>&start_date=<date>&end_date=<date>` filters.
+**Notes:** `?client_id=<uuid>&project_id=<uuid>&resource_id=<uuid>&start_date=<date>&end_date=<date>` filters. `client_id` joins through Project.client_id to filter worklogs belonging to projects under that client.
 
 ---
 
@@ -16,7 +16,7 @@
 **Auth:** Same as `GET /api/worklogs`.
 **Scope:** Same as `GET /api/worklogs`.
 **Response:** `.xlsx` file stream (`Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`) — all matching rows, no pagination.
-**Notes:** `?project_id=<uuid>&resource_id=<uuid>&start_date=<date>&end_date=<date>` filters — identical params to `GET /api/worklogs`. Columns: Date, Resource, Project, Hours, Note.
+**Notes:** `?client_id=<uuid>&project_id=<uuid>&resource_id=<uuid>&start_date=<date>&end_date=<date>` filters — identical params to `GET /api/worklogs`. Columns: Date, Resource, Project, Hours, Note.
 
 ---
 

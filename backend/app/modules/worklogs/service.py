@@ -55,17 +55,28 @@ def _build_all_worklogs_query(
     resource_id_filter: uuid.UUID | None = None,
     start_date: date | None = None,
     end_date: date | None = None,
+    client_id_filter: uuid.UUID | None = None,
 ) -> Select:
     """See FSD §10 — scope-filtered worklog query for managers."""
     query = select(Worklog)
 
-    if permission.is_own_portfolio and current_user_resource_id:
-        query = query.join(Project).where(
-            (Project.dm_id == current_user_resource_id)
-            | (Project.pm_id == current_user_resource_id)
-        )
-    elif permission.is_self_only and current_user_resource_id:
+    if permission.is_self_only and current_user_resource_id:
         query = query.where(Worklog.resource_id == current_user_resource_id)
+
+    needs_project_join = (
+        (permission.is_own_portfolio and current_user_resource_id)
+        or client_id_filter
+    )
+
+    if needs_project_join:
+        query = query.join(Project)
+        if permission.is_own_portfolio and current_user_resource_id:
+            query = query.where(
+                (Project.dm_id == current_user_resource_id)
+                | (Project.pm_id == current_user_resource_id)
+            )
+        if client_id_filter:
+            query = query.where(Project.client_id == client_id_filter)
 
     if project_id_filter:
         query = query.where(Worklog.project_id == project_id_filter)
@@ -252,11 +263,13 @@ async def list_all_worklogs(
     end_date: date | None = None,
     page: int = 1,
     limit: int = 20,
+    client_id_filter: uuid.UUID | None = None,
 ) -> tuple[list[WorklogResponse], int]:
     """See FSD §10 — scope-filtered worklog listing for managers."""
     query = _build_all_worklogs_query(
         permission, current_user_resource_id,
         project_id_filter, resource_id_filter, start_date, end_date,
+        client_id_filter,
     )
     return await _paginate(db, query, page, limit)
 

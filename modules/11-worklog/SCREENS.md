@@ -75,6 +75,9 @@ Manager view only. Engineers view their own entries via `/my-assignments` not th
 
 ### Components
 - Date range filter (start/end)
+- Client filter dropdown (all clients with worklog-enabled projects; filters worklogs by client's projects)
+- Project filter dropdown (all projects visible to the user; filtered by selected client if one is chosen)
+- Resource filter dropdown (all resources visible to the user; shows avatar + name)
 - Worklog table
 - Export button
 
@@ -89,8 +92,8 @@ Manager view only. Engineers view their own entries via `/my-assignments` not th
 | Notes | Worklog.note | Truncated with expand |
 
 ### Actions
-- Filter by date range
-- Export → GET /api/worklogs/export → downloads .xlsx of the currently filtered entries
+- Filter by date range, client, project, and/or resource (all combinable)
+- Export → GET /api/worklogs/export → downloads .xlsx of the currently filtered entries (all active filters applied)
 
 ### Empty State
 "No worklog entries found."

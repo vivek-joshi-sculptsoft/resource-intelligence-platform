@@ -3,6 +3,10 @@ import { useQuery } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight, RotateCcw, Clock, Download } from 'lucide-react'
 import { toast } from 'sonner'
 import { fetchAllWorklogs, exportAllWorklogs, type WorklogEntry } from '../api'
+import { fetchClients } from '../../clients/api'
+import { fetchProjects } from '../../projects/api'
+import { fetchResourcesDropdown } from '../../resources/api'
+import { SearchableSelect } from '../../../shared/components'
 
 const AVATAR_COLORS = ['#6366f1', '#f59e0b', '#22c55e', '#ec4899', '#8b5cf6', '#06b6d4', '#ef4444']
 const PAGE_SIZE = 20
@@ -22,16 +26,57 @@ function displayDate(iso: string): string {
 }
 
 export function WorklogsPage() {
+  const [clientId, setClientId] = useState('')
+  const [projectId, setProjectId] = useState('')
+  const [resourceId, setResourceId] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [page, setPage] = useState(1)
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set())
   const [exporting, setExporting] = useState(false)
 
+  const { data: clientsData } = useQuery({
+    queryKey: ['clients-for-filter'],
+    queryFn: () => fetchClients({ limit: 100, status: 'ACTIVE' }),
+  })
+
+  const { data: projectsData } = useQuery({
+    queryKey: ['projects-for-filter', clientId],
+    queryFn: () =>
+      fetchProjects({
+        limit: 100,
+        status: 'ACTIVE',
+        ...(clientId ? { client_id: clientId } : {}),
+      }),
+  })
+
+  const { data: resourcesData } = useQuery({
+    queryKey: ['resources-for-filter'],
+    queryFn: fetchResourcesDropdown,
+  })
+
+  const clientOptions = useMemo(
+    () => (clientsData?.data ?? []).map((c) => ({ value: c.id, label: c.name })),
+    [clientsData],
+  )
+
+  const projectOptions = useMemo(
+    () => (projectsData?.data ?? []).map((p) => ({ value: p.id, label: p.name })),
+    [projectsData],
+  )
+
+  const resourceOptions = useMemo(
+    () => (resourcesData ?? []).map((r) => ({ value: r.id, label: r.name })),
+    [resourcesData],
+  )
+
   const { data, isLoading } = useQuery({
-    queryKey: ['all-worklogs', startDate, endDate, page],
+    queryKey: ['all-worklogs', clientId, projectId, resourceId, startDate, endDate, page],
     queryFn: () =>
       fetchAllWorklogs({
+        client_id: clientId || undefined,
+        project_id: projectId || undefined,
+        resource_id: resourceId || undefined,
         start_date: startDate || undefined,
         end_date: endDate || undefined,
         page,
@@ -55,7 +100,16 @@ export function WorklogsPage() {
     return m
   }, [entries])
 
+  function handleClientChange(value: string) {
+    setClientId(value)
+    setProjectId('')
+    setPage(1)
+  }
+
   function resetFilters() {
+    setClientId('')
+    setProjectId('')
+    setResourceId('')
     setStartDate('')
     setEndDate('')
     setPage(1)
@@ -65,6 +119,9 @@ export function WorklogsPage() {
     setExporting(true)
     try {
       await exportAllWorklogs({
+        client_id: clientId || undefined,
+        project_id: projectId || undefined,
+        resource_id: resourceId || undefined,
         start_date: startDate || undefined,
         end_date: endDate || undefined,
       })
@@ -88,6 +145,8 @@ export function WorklogsPage() {
     () => entries.reduce((sum, e) => sum + Number(e.hours), 0),
     [entries],
   )
+
+  const hasActiveFilters = clientId || projectId || resourceId || startDate || endDate
 
   return (
     <div>
@@ -122,6 +181,30 @@ export function WorklogsPage() {
             flexWrap: 'wrap',
           }}
         >
+          <SearchableSelect
+            value={clientId}
+            onChange={handleClientChange}
+            options={clientOptions}
+            placeholder="All Clients"
+            variant="filter"
+            style={{ minWidth: 160 }}
+          />
+          <SearchableSelect
+            value={projectId}
+            onChange={(v) => { setProjectId(v); setPage(1) }}
+            options={projectOptions}
+            placeholder="All Projects"
+            variant="filter"
+            style={{ minWidth: 160 }}
+          />
+          <SearchableSelect
+            value={resourceId}
+            onChange={(v) => { setResourceId(v); setPage(1) }}
+            options={resourceOptions}
+            placeholder="All Resources"
+            variant="filter"
+            style={{ minWidth: 160 }}
+          />
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <label style={{ fontSize: 13, color: '#6b7280', fontWeight: 500 }}>From:</label>
             <input
@@ -179,24 +262,26 @@ export function WorklogsPage() {
             >
               <Download size={14} /> {exporting ? 'Exporting...' : 'Export'}
             </button>
-            <button
-              onClick={resetFilters}
-              style={{
-                padding: '8px 16px',
-                border: '1px solid #D6DAF0',
-                borderRadius: 8,
-                fontSize: 13,
-                fontWeight: 600,
-                background: '#fff',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                color: '#1e1b4b',
-              }}
-            >
-              <RotateCcw size={14} /> Reset
-            </button>
+            {hasActiveFilters && (
+              <button
+                onClick={resetFilters}
+                style={{
+                  padding: '8px 16px',
+                  border: '1px solid #D6DAF0',
+                  borderRadius: 8,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  background: '#fff',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  color: '#1e1b4b',
+                }}
+              >
+                <RotateCcw size={14} /> Reset
+              </button>
+            )}
           </div>
         </div>
 

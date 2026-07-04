@@ -75,6 +75,7 @@ export async function deleteWorklog(id: string): Promise<{ success: boolean }> {
 }
 
 export async function fetchAllWorklogs(params?: {
+  client_id?: string
   project_id?: string
   resource_id?: string
   start_date?: string
@@ -83,6 +84,7 @@ export async function fetchAllWorklogs(params?: {
   limit?: number
 }): Promise<WorklogListResponse> {
   const qs = new URLSearchParams()
+  if (params?.client_id) qs.set('client_id', params.client_id)
   if (params?.project_id) qs.set('project_id', params.project_id)
   if (params?.resource_id) qs.set('resource_id', params.resource_id)
   if (params?.start_date) qs.set('start_date', params.start_date)
@@ -131,12 +133,14 @@ function extractFilename(headers: Record<string, string>, fallback: string): str
 }
 
 export async function exportAllWorklogs(params?: {
+  client_id?: string
   project_id?: string
   resource_id?: string
   start_date?: string
   end_date?: string
 }): Promise<void> {
   const qs = new URLSearchParams()
+  if (params?.client_id) qs.set('client_id', params.client_id)
   if (params?.project_id) qs.set('project_id', params.project_id)
   if (params?.resource_id) qs.set('resource_id', params.resource_id)
   if (params?.start_date) qs.set('start_date', params.start_date)

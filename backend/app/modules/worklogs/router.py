@@ -93,6 +93,7 @@ async def export_my_worklogs(
 async def export_worklogs(
     project_id: uuid.UUID | None = Query(None),
     resource_id: uuid.UUID | None = Query(None),
+    client_id: uuid.UUID | None = Query(None),
     start_date: date | None = Query(None),
     end_date: date | None = Query(None),
     current_user: User = Depends(get_current_user),
@@ -101,7 +102,7 @@ async def export_worklogs(
     permission = await check_access(db, current_user, "worklogs")
     query = _build_all_worklogs_query(
         permission, current_user.resource_id,
-        project_id, resource_id, start_date, end_date,
+        project_id, resource_id, start_date, end_date, client_id,
     )
     rows = await fetch_all_worklogs(db, query)
     file_bytes, filename = generate_worklogs_xlsx(
@@ -123,6 +124,7 @@ async def export_worklogs(
 async def list_worklogs_endpoint(
     project_id: uuid.UUID | None = Query(None),
     resource_id: uuid.UUID | None = Query(None),
+    client_id: uuid.UUID | None = Query(None),
     start_date: date | None = Query(None),
     end_date: date | None = Query(None),
     page: int = Query(1, ge=1),
@@ -141,6 +143,7 @@ async def list_worklogs_endpoint(
         end_date,
         page,
         limit,
+        client_id,
     )
     return {
         "data": [i.model_dump() for i in items],
