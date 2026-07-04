@@ -66,12 +66,12 @@ export function CompanyFinanceDashboard() {
 
   const { data: projectsData } = useQuery({
     queryKey: ['projects-list-for-filter'],
-    queryFn: () => fetchProjects({ limit: 200 }),
+    queryFn: () => fetchProjects({ limit: 100 }),
   })
 
   const { data: clientsData } = useQuery({
     queryKey: ['clients-list-for-filter'],
-    queryFn: () => fetchClients({ limit: 200 }),
+    queryFn: () => fetchClients({ limit: 100 }),
   })
 
   const projects: ProjectListItem[] = projectsData?.data ?? []
