@@ -4,6 +4,7 @@ import { InfoTooltip, type InfoTooltipContent } from '../../../shared/components
 import { fetchCompanyFinanceDashboard, type CompanyFinanceFilters } from '../api'
 import { fetchProjects, type ProjectListItem } from '../../projects/api'
 import { fetchClients, type ClientListItem } from '../../clients/api'
+import { SearchableSelect } from '../../../shared/components/SearchableSelect'
 
 function formatInr(val: number | null | undefined): string {
   if (val === null || val === undefined) return '—'
@@ -152,23 +153,23 @@ export function CompanyFinanceDashboard() {
           <label className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: '#7C85C0' }}>
             Project
           </label>
-          <select
+          <SearchableSelect
             value={projectId}
-            onChange={(e) => {
-              setProjectId(e.target.value)
-              if (e.target.value) {
-                const proj = projects.find((p: ProjectListItem) => p.id === e.target.value)
+            onChange={(val) => {
+              setProjectId(val)
+              if (val) {
+                const proj = projects.find((p: ProjectListItem) => p.id === val)
                 if (proj?.client_id) setClientId(proj.client_id)
               }
             }}
-            className="min-w-[180px] rounded-lg border border-[#D6DAF0] bg-white px-2.5 py-1.5 text-[13px]"
-            style={{ color: '#1e1b4b' }}
-          >
-            <option value="">All Projects</option>
-            {projects.map((p: ProjectListItem) => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
+            options={[
+              { value: '', label: 'All Projects' },
+              ...projects.map((p: ProjectListItem) => ({ value: p.id, label: p.name })),
+            ]}
+            placeholder="All Projects"
+            variant="filter"
+            className="min-w-[200px]"
+          />
         </div>
 
         {/* Client filter */}
@@ -176,17 +177,17 @@ export function CompanyFinanceDashboard() {
           <label className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: '#7C85C0' }}>
             Client
           </label>
-          <select
+          <SearchableSelect
             value={clientId}
-            onChange={(e) => setClientId(e.target.value)}
-            className="min-w-[180px] rounded-lg border border-[#D6DAF0] bg-white px-2.5 py-1.5 text-[13px]"
-            style={{ color: '#1e1b4b' }}
-          >
-            <option value="">All Clients</option>
-            {filteredClients.map((c: ClientListItem) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
+            onChange={(val) => setClientId(val)}
+            options={[
+              { value: '', label: 'All Clients' },
+              ...filteredClients.map((c: ClientListItem) => ({ value: c.id, label: c.name })),
+            ]}
+            placeholder="All Clients"
+            variant="filter"
+            className="min-w-[200px]"
+          />
         </div>
       </div>
 
