@@ -17,6 +17,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Receipt,
+  TrendingUp,
 } from 'lucide-react'
 
 interface NavItem {
@@ -56,6 +57,12 @@ const MAIN_NAV: NavItem[] = [
     to: '/worklogs',
     icon: <Clock size={18} />,
     allowedRoles: ['CEO', 'CTO', 'DM', 'PM', 'FINANCE', 'HR'],
+  },
+  {
+    label: 'Finance',
+    to: '/dashboard/finance',
+    icon: <TrendingUp size={18} />,
+    allowedRoles: ['CEO', 'CTO', 'FINANCE'],
   },
   {
     label: 'Receivables',

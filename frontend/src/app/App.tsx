@@ -24,6 +24,7 @@ import { AvailabilityPage } from './routes/availability'
 import { MyAssignmentsRoute } from './routes/my-assignments'
 import { WorklogsRoute } from './routes/worklogs'
 import { ReceivablesRoute } from './routes/receivables'
+import { FinanceDashboardPage } from './routes/finance-dashboard'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -109,6 +110,16 @@ function AppRoutes() {
 
         {/* Worklogs (manager view) */}
         <Route path="/worklogs" element={<WorklogsRoute />} />
+
+        {/* Finance Dashboard */}
+        <Route
+          path="/dashboard/finance"
+          element={
+            <RoleGuard allowedRoles={['CEO', 'CTO', 'FINANCE']}>
+              <FinanceDashboardPage />
+            </RoleGuard>
+          }
+        />
 
         {/* Receivables */}
         <Route

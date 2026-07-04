@@ -147,3 +147,55 @@ export async function fetchAvailability(window = 30): Promise<AvailabilityData> 
   const { data } = await api.get<{ data: AvailabilityData }>(`/dashboard/availability?window=${window}`)
   return data.data
 }
+
+// See BUSINESS-RULES.md §7.3a, §7.4, §7.5a — Company Finance Dashboard
+export interface CompanyFinanceDashboard {
+  period_start: string
+  period_end: string
+  actual_revenue_inr: number
+  projected_revenue_inr: number
+  resource_cost_inr: number
+  non_human_cost_inr: number
+  total_cost_inr: number
+  projected_margin_inr: number
+  projected_margin_pct: number | null
+  actual_margin_inr: number
+  actual_margin_pct: number | null
+  projects_with_incomplete_financial_data: number
+}
+
+export interface CompanyFinanceFilters {
+  range?: 'THIS_MONTH' | 'LAST_3_MONTHS' | 'CUSTOM'
+  start_date?: string
+  end_date?: string
+  project_id?: string
+  client_id?: string
+}
+
+export async function fetchCompanyFinanceDashboard(
+  filters: CompanyFinanceFilters = {},
+): Promise<CompanyFinanceDashboard> {
+  const params = new URLSearchParams()
+  if (filters.range) params.set('range', filters.range)
+  if (filters.start_date) params.set('start_date', filters.start_date)
+  if (filters.end_date) params.set('end_date', filters.end_date)
+  if (filters.project_id) params.set('project_id', filters.project_id)
+  if (filters.client_id) params.set('client_id', filters.client_id)
+
+  const { data } = await api.get<{ data: CompanyFinanceDashboard }>(
+    `/dashboard/company-finance?${params.toString()}`,
+  )
+  const raw = data.data
+  return {
+    ...raw,
+    actual_revenue_inr: Number(raw.actual_revenue_inr),
+    projected_revenue_inr: Number(raw.projected_revenue_inr),
+    resource_cost_inr: Number(raw.resource_cost_inr),
+    non_human_cost_inr: Number(raw.non_human_cost_inr),
+    total_cost_inr: Number(raw.total_cost_inr),
+    projected_margin_inr: Number(raw.projected_margin_inr),
+    projected_margin_pct: n(raw.projected_margin_pct),
+    actual_margin_inr: Number(raw.actual_margin_inr),
+    actual_margin_pct: n(raw.actual_margin_pct),
+  }
+}

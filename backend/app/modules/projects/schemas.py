@@ -58,6 +58,7 @@ class RelatedEntity(BaseModel):
 class ProjectListItem(BaseModel):
     id: uuid.UUID
     name: str
+    client_id: uuid.UUID
     client_name: str
     type: str
     status: str

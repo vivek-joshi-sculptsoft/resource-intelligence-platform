@@ -1,5 +1,6 @@
 """See BUSINESS-RULES.md §7.2-§7.6 — project cost, revenue, margin, and bench cost calculations."""
 
+import uuid
 from datetime import date
 from decimal import Decimal
 
@@ -11,6 +12,7 @@ from app.modules.auth.models import SystemConfig
 from app.modules.financial.schemas import (
     ClientFinancialsResponse,
     ClientPerProjectItem,
+    CompanyFinanceDashboardResponse,
     CompanyFinancialsResponse,
     ProjectFinancialsResponse,
     ProjectTypeRevenueItem,
@@ -411,4 +413,204 @@ async def get_resource_bench_cost(
         daily_bench_cost_inr=daily_bench_cost_inr,
         total_bench_cost_inr=total_bench_cost_inr,
         bench_start_date=bench_start_date,
+    )
+
+
+def _count_weekdays(start: date, end: date) -> int:
+    """Count weekdays (Mon-Fri) in [start, end] inclusive."""
+    if start > end:
+        return 0
+    total = 0
+    current = start
+    from datetime import timedelta
+
+    while current <= end:
+        if current.weekday() < 5:
+            total += 1
+        current += timedelta(days=1)
+    return total
+
+
+async def get_company_finance_dashboard(
+    db: AsyncSession,
+    period_start: date,
+    period_end: date,
+    project_id: str | None = None,
+    client_id: str | None = None,
+) -> CompanyFinanceDashboardResponse:
+    """See BUSINESS-RULES.md §7.3a, §7.4, §7.5a — date-range revenue/cost/margin."""
+
+    working_days_per_month = await _get_working_days(db)
+
+    # Build project filter
+    project_filter_clauses = [Project.is_active == True]  # noqa: E712
+    if project_id:
+        project_filter_clauses.append(Project.id == uuid.UUID(project_id))
+    if client_id:
+        project_filter_clauses.append(Project.client_id == uuid.UUID(client_id))
+
+    projects = (
+        (await db.execute(select(Project).where(*project_filter_clauses)))
+        .scalars()
+        .all()
+    )
+    project_ids = [p.id for p in projects]
+
+    if not project_ids:
+        return CompanyFinanceDashboardResponse(
+            period_start=period_start,
+            period_end=period_end,
+            actual_revenue_inr=Decimal("0"),
+            projected_revenue_inr=Decimal("0"),
+            resource_cost_inr=Decimal("0"),
+            non_human_cost_inr=Decimal("0"),
+            total_cost_inr=Decimal("0"),
+            projected_margin_inr=Decimal("0"),
+            projected_margin_pct=None,
+            actual_margin_inr=Decimal("0"),
+            actual_margin_pct=None,
+            projects_with_incomplete_financial_data=0,
+        )
+
+    # See BUSINESS-RULES.md §7.4 — Actual Revenue
+    invoices = (
+        (
+            await db.execute(
+                select(Invoice).where(
+                    Invoice.project_id.in_(project_ids),
+                    Invoice.status.in_(["APPROVED", "PAID"]),
+                    Invoice.invoice_date >= period_start,
+                    Invoice.invoice_date <= period_end,
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    actual_revenue_inr = sum(
+        (Decimal(str(i.amount_inr)) for i in invoices), Decimal("0")
+    )
+
+    # See BUSINESS-RULES.md §7.3a — assignments overlapping the period
+    assignments = (
+        (
+            await db.execute(
+                select(Assignment).where(
+                    Assignment.project_id.in_(project_ids),
+                    Assignment.start_date <= period_end,
+                    (Assignment.end_date >= period_start) | (Assignment.end_date.is_(None)),
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+    # See BUSINESS-RULES.md §7.3a — Projected Revenue (date range)
+    projected_revenue_inr = Decimal("0")
+    resource_cost_inr = Decimal("0")
+    incomplete_project_ids: set = set()
+
+    for a in assignments:
+        effective_start = max(a.start_date, period_start)
+        effective_end = min(a.end_date or period_end, period_end)
+        working_days_in_period = _count_weekdays(effective_start, effective_end)
+
+        # See BUSINESS-RULES.md §7.5a — Resource Cost (date range)
+        if a.resource.loaded_cost_monthly is not None:
+            loaded_cost = Decimal(str(a.resource.loaded_cost_monthly))
+            cost_contribution = (
+                loaded_cost
+                / Decimal(working_days_per_month)
+                * Decimal(working_days_in_period)
+                * Decimal(a.allocation_pct)
+                / Decimal("100")
+            )
+            resource_cost_inr += cost_contribution
+        else:
+            incomplete_project_ids.add(a.project_id)
+
+        # See BUSINESS-RULES.md §7.3a — Projected Revenue (non-shadow only)
+        if not a.is_shadow:
+            if a.billing_rate is not None:
+                revenue_contribution = (
+                    Decimal(a.billability_pct)
+                    / Decimal("100")
+                    * Decimal(working_days_in_period)
+                    * Decimal(WORKING_HOURS_PER_DAY)
+                    * Decimal(str(a.billing_rate))
+                )
+                projected_revenue_inr += revenue_contribution
+            else:
+                incomplete_project_ids.add(a.project_id)
+
+    # See BUSINESS-RULES.md §7.5a — Non-Human Cost (date range)
+    # One-time costs: cost_date within period
+    one_time_costs = (
+        (
+            await db.execute(
+                select(NonHumanCost).where(
+                    NonHumanCost.project_id.in_(project_ids),
+                    NonHumanCost.is_active == True,  # noqa: E712
+                    NonHumanCost.is_recurring == False,  # noqa: E712
+                    NonHumanCost.cost_date >= period_start,
+                    NonHumanCost.cost_date <= period_end,
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    # Recurring costs: active at any point during period
+    # A recurring cost is "active during period" if cost_date <= period_end AND
+    # (recurring_end_date IS NULL OR recurring_end_date >= period_start)
+    recurring_costs = (
+        (
+            await db.execute(
+                select(NonHumanCost).where(
+                    NonHumanCost.project_id.in_(project_ids),
+                    NonHumanCost.is_active == True,  # noqa: E712
+                    NonHumanCost.is_recurring == True,  # noqa: E712
+                    NonHumanCost.cost_date <= period_end,
+                    (NonHumanCost.recurring_end_date >= period_start)
+                    | (NonHumanCost.recurring_end_date.is_(None)),
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    non_human_cost_inr = sum(
+        (Decimal(str(c.amount_inr)) for c in one_time_costs), Decimal("0")
+    ) + sum((Decimal(str(c.amount_inr)) for c in recurring_costs), Decimal("0"))
+
+    total_cost_inr = resource_cost_inr + non_human_cost_inr
+
+    # See BUSINESS-RULES.md §7.5a — Margins
+    projected_margin_inr = projected_revenue_inr - total_cost_inr
+    projected_margin_pct = (
+        (projected_margin_inr / projected_revenue_inr * 100).quantize(Decimal("0.01"))
+        if projected_revenue_inr != 0
+        else None
+    )
+    actual_margin_inr = actual_revenue_inr - total_cost_inr
+    actual_margin_pct = (
+        (actual_margin_inr / actual_revenue_inr * 100).quantize(Decimal("0.01"))
+        if actual_revenue_inr != 0
+        else None
+    )
+
+    return CompanyFinanceDashboardResponse(
+        period_start=period_start,
+        period_end=period_end,
+        actual_revenue_inr=actual_revenue_inr,
+        projected_revenue_inr=projected_revenue_inr,
+        resource_cost_inr=resource_cost_inr,
+        non_human_cost_inr=non_human_cost_inr,
+        total_cost_inr=total_cost_inr,
+        projected_margin_inr=projected_margin_inr,
+        projected_margin_pct=projected_margin_pct,
+        actual_margin_inr=actual_margin_inr,
+        actual_margin_pct=actual_margin_pct,
+        projects_with_incomplete_financial_data=len(incomplete_project_ids),
     )

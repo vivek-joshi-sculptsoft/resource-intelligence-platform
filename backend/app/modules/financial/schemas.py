@@ -79,3 +79,20 @@ class ResourceBenchCostResponse(BaseModel):
     daily_bench_cost_inr: Decimal | None
     total_bench_cost_inr: Decimal | None
     bench_start_date: date | None
+
+
+class CompanyFinanceDashboardResponse(BaseModel):
+    """See BUSINESS-RULES.md §7.3a, §7.4, §7.5a — Company Finance Dashboard aggregations."""
+
+    period_start: date
+    period_end: date
+    actual_revenue_inr: Decimal
+    projected_revenue_inr: Decimal
+    resource_cost_inr: Decimal
+    non_human_cost_inr: Decimal
+    total_cost_inr: Decimal
+    projected_margin_inr: Decimal
+    projected_margin_pct: Decimal | None
+    actual_margin_inr: Decimal
+    actual_margin_pct: Decimal | None
+    projects_with_incomplete_financial_data: int

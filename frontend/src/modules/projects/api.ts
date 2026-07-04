@@ -4,6 +4,7 @@ import type { PaginatedResponse } from '../../shared/types/api'
 export interface ProjectListItem {
   id: string
   name: string
+  client_id: string
   client_name: string
   type: string
   status: string

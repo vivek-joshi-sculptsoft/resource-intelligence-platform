@@ -76,6 +76,7 @@ def _project_to_list_item(p: Project) -> dict:
     return {
         "id": p.id,
         "name": p.name,
+        "client_id": p.client_id,
         "client_name": p.client.name if p.client else "",
         "type": p.type,
         "status": p.status,

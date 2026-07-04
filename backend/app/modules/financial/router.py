@@ -1,8 +1,9 @@
 """See modules/08-financial-engine/API.md — financial aggregation endpoints."""
 
 import uuid
+from datetime import date
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,6 +12,7 @@ from app.modules.auth.models import User
 from app.modules.clients.models import Client
 from app.modules.financial.service import (
     get_client_financials,
+    get_company_finance_dashboard,
     get_company_financials,
     get_project_financials,
     get_resource_bench_cost,
@@ -18,7 +20,7 @@ from app.modules.financial.service import (
 from app.modules.projects.models import Project
 from app.modules.resources.models import Resource
 from app.shared.access_control import can_see_field, check_access, has_access
-from app.shared.exceptions import ForbiddenError, NotFoundError
+from app.shared.exceptions import ForbiddenError, NotFoundError, ValidationError
 
 router = APIRouter(prefix="/api/v1/projects", tags=["financial"])
 client_financial_router = APIRouter(prefix="/api/v1/clients", tags=["financial"])
@@ -88,6 +90,55 @@ async def get_client_financials_endpoint(
         can_see_rate=can_see_field(role_code, "billing_rate"),
         can_see_invoicing=await has_access(db, current_user, "invoicing"),
         can_see_nonhuman=await has_access(db, current_user, "non_human_costs"),
+    )
+    return {"data": data.model_dump()}
+
+
+@dashboard_financial_router.get("/company-finance")
+async def company_finance_dashboard(
+    range: str = Query("THIS_MONTH", alias="range"),
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
+    project_id: uuid.UUID | None = Query(None),
+    client_id: uuid.UUID | None = Query(None),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    # See ACCESS-MATRIX.md — project_margin: CEO/CTO/Finance (ALL) only.
+    # DM's OWN_PORTFOLIO scope excludes this company-wide endpoint (403).
+    permission = await check_access(db, current_user, "project_margin")
+    if permission.is_own_portfolio:
+        raise ForbiddenError()
+
+    # See SCREENS.md — filter behavior: resolve date range
+    today = date.today()
+    if range == "THIS_MONTH":
+        period_start = today.replace(day=1)
+        period_end = today
+    elif range == "LAST_3_MONTHS":
+        month = today.month - 2
+        year = today.year
+        if month <= 0:
+            month += 12
+            year -= 1
+        period_start = date(year, month, 1)
+        period_end = today
+    elif range == "CUSTOM":
+        if start_date is None or end_date is None:
+            raise ValidationError("start_date and end_date required for CUSTOM range")
+        if end_date < start_date:
+            raise ValidationError("end_date must be >= start_date", field="end_date")
+        period_start = start_date
+        period_end = end_date
+    else:
+        raise ValidationError("range must be THIS_MONTH, LAST_3_MONTHS, or CUSTOM", field="range")
+
+    data = await get_company_finance_dashboard(
+        db,
+        period_start=period_start,
+        period_end=period_end,
+        project_id=str(project_id) if project_id else None,
+        client_id=str(client_id) if client_id else None,
     )
     return {"data": data.model_dump()}
 
