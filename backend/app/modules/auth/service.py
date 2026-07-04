@@ -136,13 +136,16 @@ async def create_user(
     return result.scalar_one()
 
 
+_UNSET = object()
+
+
 async def update_user(
     db: AsyncSession,
     user_id: uuid.UUID,
     current_user_id: uuid.UUID,
     name: str | None = None,
     role_id: uuid.UUID | None = None,
-    resource_id: uuid.UUID | None = None,
+    resource_id_explicit: object = _UNSET,
     is_active: bool | None = None,
     password: str | None = None,
 ) -> User:
@@ -163,12 +166,13 @@ async def update_user(
         changes["role_id"] = (str(user.role_id), str(role_id))
         user.role_id = role_id
 
-    if resource_id is not None:
+    if resource_id_explicit is not _UNSET:
+        new_resource_id = resource_id_explicit  # uuid.UUID | None
         old_val = str(user.resource_id) if user.resource_id else None
-        new_val = str(resource_id) if resource_id else None
+        new_val = str(new_resource_id) if new_resource_id else None
         if old_val != new_val:
             changes["resource_id"] = (old_val, new_val)
-            user.resource_id = resource_id
+            user.resource_id = new_resource_id
 
     if is_active is not None and is_active != user.is_active:
         if not is_active:

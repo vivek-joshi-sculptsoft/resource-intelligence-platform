@@ -102,14 +102,18 @@ async def update_user_endpoint(
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     _require_admin(current_user)
+    kwargs: dict = {
+        "name": body.name,
+        "role_id": body.role_id,
+        "is_active": body.is_active,
+        "password": body.password,
+    }
+    if "resource_id" in body.model_fields_set:
+        kwargs["resource_id_explicit"] = body.resource_id
     user = await update_user(
         db,
         user_id=user_id,
         current_user_id=current_user.id,
-        name=body.name,
-        role_id=body.role_id,
-        resource_id=body.resource_id,
-        is_active=body.is_active,
-        password=body.password,
+        **kwargs,
     )
     return {"data": _user_to_list_response(user)}
