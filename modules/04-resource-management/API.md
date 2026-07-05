@@ -7,7 +7,7 @@
 **Auth:** CEO, CTO, DM, PM, Finance, HR (VIEW/EDIT per matrix); Engineer (SELF_ONLY). Reference `shared/ACCESS-MATRIX.md`.
 **Scope:** ALL for most roles; SELF_ONLY for Engineer
 **Response:** Paginated. Each item: `{ id, employee_id, name, designation, technical_expertise, total_allocation_pct, is_active, tags }`
-**Notes:** `?page=1&limit=20&status=ACTIVE&designation=<val>&expertise=<val>&tag=<val>&availability=bench|partial|full&search=<name>`
+**Notes:** `?page=1&limit=20&status=ACTIVE&designation=<val>&expertise=<val>&tag=<val>&availability=bench|partial|full&search=<name|employee_id|tag>`
 `loaded_cost_monthly` returned as `null` for roles without access.
 
 ---

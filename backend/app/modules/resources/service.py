@@ -59,7 +59,12 @@ async def list_resources(
 
     if search:
         like = f"%{search}%"
-        search_filter = Resource.name.ilike(like) | Resource.employee_id.ilike(like)
+        tag_search_subq = select(ResourceTag.resource_id).where(ResourceTag.tag.ilike(like))
+        search_filter = (
+            Resource.name.ilike(like)
+            | Resource.employee_id.ilike(like)
+            | Resource.id.in_(tag_search_subq)
+        )
         query = query.where(search_filter)
         count_query = count_query.where(search_filter)
 

@@ -178,6 +178,78 @@ async def test_search_filter(client: AsyncClient, db: AsyncSession):
 
 
 @pytest.mark.asyncio
+async def test_search_filter_matches_tags(client: AsyncClient, db: AsyncSession):
+    await login_as(client)
+    await _create_resource(
+        client, employee_id="EMP-TAGSRCH", name="John Doe", tags=["VueJS", "GraphQL"]
+    )
+
+    resp = await client.get("/api/v1/resources?search=VueJS")
+    assert resp.status_code == 200
+    ids = [r["employee_id"] for r in resp.json()["data"]]
+    assert "EMP-TAGSRCH" in ids
+
+
+@pytest.mark.asyncio
+async def test_search_filter_tag_case_insensitive(client: AsyncClient, db: AsyncSession):
+    await login_as(client)
+    await _create_resource(
+        client, employee_id="EMP-TAGCI", name="Jane Smith", tags=["Kubernetes"]
+    )
+
+    resp = await client.get("/api/v1/resources?search=kubernetes")
+    assert resp.status_code == 200
+    ids = [r["employee_id"] for r in resp.json()["data"]]
+    assert "EMP-TAGCI" in ids
+
+
+@pytest.mark.asyncio
+async def test_search_filter_tag_partial_match(client: AsyncClient, db: AsyncSession):
+    await login_as(client)
+    await _create_resource(
+        client, employee_id="EMP-TAGPART", name="Bob Brown", tags=["TensorFlow"]
+    )
+
+    resp = await client.get("/api/v1/resources?search=Tensor")
+    assert resp.status_code == 200
+    ids = [r["employee_id"] for r in resp.json()["data"]]
+    assert "EMP-TAGPART" in ids
+
+
+@pytest.mark.asyncio
+async def test_search_filter_no_tag_match(client: AsyncClient, db: AsyncSession):
+    await login_as(client)
+    await _create_resource(
+        client, employee_id="EMP-TAGNO", name="Alice Green", tags=["Docker"]
+    )
+
+    resp = await client.get("/api/v1/resources?search=NonExistentXYZ999")
+    assert resp.status_code == 200
+    ids = [r["employee_id"] for r in resp.json()["data"]]
+    assert "EMP-TAGNO" not in ids
+
+
+@pytest.mark.asyncio
+async def test_search_combined_with_tag_filter(client: AsyncClient, db: AsyncSession):
+    await login_as(client)
+    await _create_resource(
+        client, employee_id="EMP-COMBO", name="Combo Test", tags=["React", "AWS"]
+    )
+
+    # search matches via tag "React", exact tag filter also set to "AWS" — both must hold
+    resp = await client.get("/api/v1/resources?search=React&tag=AWS")
+    assert resp.status_code == 200
+    ids = [r["employee_id"] for r in resp.json()["data"]]
+    assert "EMP-COMBO" in ids
+
+    # search matches tag "React" but exact tag filter "NonExistent" excludes it
+    resp2 = await client.get("/api/v1/resources?search=React&tag=NonExistent")
+    assert resp2.status_code == 200
+    ids2 = [r["employee_id"] for r in resp2.json()["data"]]
+    assert "EMP-COMBO" not in ids2
+
+
+@pytest.mark.asyncio
 async def test_designation_filter(client: AsyncClient, db: AsyncSession):
     await login_as(client)
     await _create_resource(client, employee_id="EMP-DES", designation="QA Lead")
