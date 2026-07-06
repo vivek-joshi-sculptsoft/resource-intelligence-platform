@@ -33,7 +33,7 @@ def _set_token_cookies(response: Response, access_token: str, refresh_token: str
     common = {
         "httponly": True,
         "samesite": "strict",
-        "secure": not settings.DEBUG,
+        "secure": not settings.DEBUG and os.getenv("TESTING") != "1",
         "path": "/",
     }
     response.set_cookie(
