@@ -12,6 +12,10 @@ from app.modules.clients.models import Client  # noqa: F401
 from app.modules.resources.models import Resource, ResourceTag  # noqa: F401
 from app.modules.projects.models import Project  # noqa: F401
 from app.modules.allocations.models import Assignment  # noqa: F401
+from app.modules.worklogs.models import Worklog  # noqa: F401
+from app.modules.audit.models import AuditLog  # noqa: F401
+from app.modules.invoicing.models import Milestone, Invoice  # noqa: F401
+from app.modules.nonhuman_costs.models import NonHumanCost  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.MIGRATION_DATABASE_URL or settings.DATABASE_URL)
