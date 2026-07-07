@@ -18,7 +18,7 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     op.create_table(
         "audit_logs",
-        sa.Column("id", sa.BigInteger(), autoincrement=True, nullable=False),
+        sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
         sa.Column("entity_type", sa.String(50), nullable=False),
         sa.Column(
             "entity_id", sa.dialects.postgresql.UUID(as_uuid=True), nullable=False
@@ -40,7 +40,7 @@ def upgrade() -> None:
             server_default=sa.func.now(),
             nullable=False,
         ),
-        sa.Column("metadata", sa.dialects.postgresql.JSONB(), nullable=True),
+        sa.Column("metadata", sa.JSON(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
     )
 

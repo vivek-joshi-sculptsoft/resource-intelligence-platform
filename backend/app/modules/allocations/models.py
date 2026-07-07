@@ -16,6 +16,7 @@ from sqlalchemy import (
     String,
     Uuid,
     func,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -56,6 +57,13 @@ class Assignment(Base):
         Index("ix_assignments_resource_id", "resource_id"),
         Index("ix_assignments_status", "status"),
         Index("ix_assignments_end_date", "end_date"),
+        Index(
+            "uq_active_assignment_per_resource_project",
+            "resource_id",
+            "project_id",
+            unique=True,
+            postgresql_where=text("status = 'ACTIVE'"),
+        ),
         CheckConstraint(
             "allocation_pct >= 1 AND allocation_pct <= 100", name="ck_allocation_pct_range"
         ),

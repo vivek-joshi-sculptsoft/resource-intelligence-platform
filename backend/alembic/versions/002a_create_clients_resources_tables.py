@@ -78,8 +78,13 @@ def upgrade() -> None:
     )
     op.create_index("ix_resource_tags_tag", "resource_tags", ["tag"])
 
+    op.create_foreign_key(
+        "fk_users_resource_id", "users", "resources", ["resource_id"], ["id"]
+    )
+
 
 def downgrade() -> None:
+    op.drop_constraint("fk_users_resource_id", "users", type_="foreignkey")
     op.drop_table("resource_tags")
     op.drop_table("resources")
     op.drop_table("clients")
