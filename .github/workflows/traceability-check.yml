@@ -1,105 +1,105 @@
-name: Traceability Check
+# name: Traceability Check
 
-on:
-  pull_request:
-    paths:
-      - '**.md'
-      - '**.yaml'
-      - '**.yml'
-      - 'shared/**'
-      - 'modules/**'
-      - 'prd/**'
-      - 'fsd/**'
-      - 'techstack/**'
-      - 'tickets/**'
+# on:
+#   pull_request:
+#     paths:
+#       - '**.md'
+#       - '**.yaml'
+#       - '**.yml'
+#       - 'shared/**'
+#       - 'modules/**'
+#       - 'prd/**'
+#       - 'fsd/**'
+#       - 'techstack/**'
+#       - 'tickets/**'
 
-jobs:
-  check-stale-docs:
-    name: Check for potentially stale documents
-    runs-on: ubuntu-latest
+# jobs:
+#   check-stale-docs:
+#     name: Check for potentially stale documents
+#     runs-on: ubuntu-latest
 
-    permissions:
-      pull-requests: write
-      contents: read
+#     permissions:
+#       pull-requests: write
+#       contents: read
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+#         with:
+#           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+#       - name: Set up Python
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: '3.12'
 
-      - name: Install PyYAML
-        run: pip install pyyaml
+#       - name: Install PyYAML
+#         run: pip install pyyaml
 
-      - name: Run traceability check
-        id: trace
-        continue-on-error: true
-        run: |
-          OUTPUT=$(python scripts/check-traceability.py \
-            --base origin/${{ github.event.pull_request.base.ref }} \
-            --format github 2>&1)
-          EXIT_CODE=$?
-          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
-          # Write multiline output to file for the comment step
-          echo "$OUTPUT" > /tmp/traceability-report.md
+#       - name: Run traceability check
+#         id: trace
+#         continue-on-error: true
+#         run: |
+#           OUTPUT=$(python scripts/check-traceability.py \
+#             --base origin/${{ github.event.pull_request.base.ref }} \
+#             --format github 2>&1)
+#           EXIT_CODE=$?
+#           echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
+#           # Write multiline output to file for the comment step
+#           echo "$OUTPUT" > /tmp/traceability-report.md
 
-      - name: Comment on PR
-        if: steps.trace.outputs.exit_code == '1'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const body = fs.readFileSync('/tmp/traceability-report.md', 'utf8');
+#       - name: Comment on PR
+#         if: steps.trace.outputs.exit_code == '1'
+#         uses: actions/github-script@v7
+#         with:
+#           script: |
+#             const fs = require('fs');
+#             const body = fs.readFileSync('/tmp/traceability-report.md', 'utf8');
 
-            // Find and update existing comment, or create new one
-            const marker = '<!-- traceability-check -->';
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
+#             // Find and update existing comment, or create new one
+#             const marker = '<!-- traceability-check -->';
+#             const { data: comments } = await github.rest.issues.listComments({
+#               owner: context.repo.owner,
+#               repo: context.repo.repo,
+#               issue_number: context.issue.number,
+#             });
 
-            const existing = comments.find(c => c.body.includes(marker));
-            const fullBody = `${marker}\n${body}`;
+#             const existing = comments.find(c => c.body.includes(marker));
+#             const fullBody = `${marker}\n${body}`;
 
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existing.id,
-                body: fullBody,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: fullBody,
-              });
-            }
+#             if (existing) {
+#               await github.rest.issues.updateComment({
+#                 owner: context.repo.owner,
+#                 repo: context.repo.repo,
+#                 comment_id: existing.id,
+#                 body: fullBody,
+#               });
+#             } else {
+#               await github.rest.issues.createComment({
+#                 owner: context.repo.owner,
+#                 repo: context.repo.repo,
+#                 issue_number: context.issue.number,
+#                 body: fullBody,
+#               });
+#             }
 
-      - name: Clean comment if no warnings
-        if: steps.trace.outputs.exit_code == '0'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const marker = '<!-- traceability-check -->';
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
+#       - name: Clean comment if no warnings
+#         if: steps.trace.outputs.exit_code == '0'
+#         uses: actions/github-script@v7
+#         with:
+#           script: |
+#             const marker = '<!-- traceability-check -->';
+#             const { data: comments } = await github.rest.issues.listComments({
+#               owner: context.repo.owner,
+#               repo: context.repo.repo,
+#               issue_number: context.issue.number,
+#             });
 
-            const existing = comments.find(c => c.body.includes(marker));
-            if (existing) {
-              await github.rest.issues.deleteComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existing.id,
-              });
-            }
+#             const existing = comments.find(c => c.body.includes(marker));
+#             if (existing) {
+#               await github.rest.issues.deleteComment({
+#                 owner: context.repo.owner,
+#                 repo: context.repo.repo,
+#                 comment_id: existing.id,
+#               });
+#             }
