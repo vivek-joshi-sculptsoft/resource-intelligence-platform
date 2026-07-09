@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import JSON, DateTime, Enum, Integer, String, Text, Uuid, func
+from sqlalchemy import DateTime, Enum, Index, Integer, JSON, String, Text, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.models import Base
@@ -32,3 +32,10 @@ class AuditLog(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     metadata_: Mapped[dict | None] = mapped_column("metadata", JSON, nullable=True)
+
+    __table_args__ = (
+        Index("ix_audit_logs_entity", "entity_type", "entity_id"),
+        Index("ix_audit_logs_changed_by", "changed_by"),
+        Index("ix_audit_logs_changed_at", "changed_at"),
+        Index("ix_audit_logs_entity_type_changed_at", "entity_type", "changed_at"),
+    )

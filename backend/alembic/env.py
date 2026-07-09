@@ -12,6 +12,10 @@ from app.modules.clients.models import Client  # noqa: F401
 from app.modules.resources.models import Resource, ResourceTag  # noqa: F401
 from app.modules.projects.models import Project  # noqa: F401
 from app.modules.allocations.models import Assignment  # noqa: F401
+from app.modules.worklogs.models import Worklog  # noqa: F401
+from app.modules.audit.models import AuditLog  # noqa: F401
+from app.modules.invoicing.models import Milestone, Invoice  # noqa: F401
+from app.modules.nonhuman_costs.models import NonHumanCost  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.MIGRATION_DATABASE_URL or settings.DATABASE_URL)
@@ -21,6 +25,16 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
+# Partial unique indexes created via raw SQL in migrations — invisible to
+# SQLAlchemy metadata, so Alembic autogenerate would flag them as drift.
+_RAW_SQL_INDEXES = {"uq_active_assignment_per_resource_project"}
+
+
+def include_object(object, name, type_, reflected, compare_to):
+    if type_ == "index" and name in _RAW_SQL_INDEXES:
+        return False
+    return True
+
 
 def run_migrations_offline() -> None:
     url = config.get_main_option("sqlalchemy.url")
@@ -29,13 +43,14 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_object=include_object,
     )
     with context.begin_transaction():
         context.run_migrations()
 
 
 def do_run_migrations(connection):
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(connection=connection, target_metadata=target_metadata, include_object=include_object)
     with context.begin_transaction():
         context.run_migrations()
 
