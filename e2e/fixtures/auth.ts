@@ -24,6 +24,10 @@ export const test = base.extend<AuthFixtures>({
       const creds = ROLE_CREDENTIALS[role];
       if (!creds) throw new Error(`Unknown role: ${role}`);
 
+      // The login page redirects away immediately if a session is already
+      // authenticated, so switching roles mid-test needs the old cookies cleared
+      // first — otherwise the email field never renders and fill() hangs.
+      await page.context().clearCookies();
       await page.goto("/login");
       await page.getByRole("textbox", { name: /email/i }).fill(creds.email);
       await page.getByRole("textbox", { name: /password/i }).fill(creds.password);

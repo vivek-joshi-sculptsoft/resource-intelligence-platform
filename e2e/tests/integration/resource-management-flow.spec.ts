@@ -18,8 +18,8 @@ test.describe("Resource Management — Full Lifecycle", () => {
     await page.waitForURL(/\/resources\/[a-f0-9-]+/, { timeout: 10_000 });
 
     // Step 2: Verify profile page shows correct data
-    await expect(page.getByText(resourceName)).toBeVisible();
-    await expect(page.getByText(uniqueId)).toBeVisible();
+    await expect(page.getByRole("heading", { name: resourceName })).toBeVisible();
+    await expect(page.getByText(uniqueId, { exact: true })).toBeVisible();
     await expect(page.getByText("Senior Developer")).toBeVisible();
 
     // Step 3: Edit the resource
@@ -98,7 +98,9 @@ test.describe("Resource Management — Cross-Role Interaction", () => {
     // PM views the resource
     await loginAs("PM");
     await page.goto(resourceUrl);
-    await expect(page.getByText("HR Created Resource")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "HR Created Resource" })
+    ).toBeVisible();
     // PM should NOT see edit button
     await expect(
       page.getByRole("button", { name: /edit/i })

@@ -7,7 +7,7 @@ test.describe("Auth Flow — End-to-End", () => {
     // Login
     await page.goto("/login");
     await page.getByLabel(/email/i).fill("admin@riplatform.com");
-    await page.getByLabel(/password/i).fill("admin123");
+    await page.getByRole("textbox", { name: /password/i }).fill("admin123");
     await page.getByRole("button", { name: /sign in/i }).click();
     await page.waitForURL(/\/(dashboard|resources|clients|projects)/);
 
@@ -22,9 +22,8 @@ test.describe("Auth Flow — End-to-End", () => {
     await page.goto("/admin/roles");
     await expect(page.getByText("Role Management")).toBeVisible();
 
-    // Logout
-    const userMenu = page.locator("button").filter({ has: page.locator("svg") });
-    // Find the logout button in the header area
+    // Logout — the Logout button lives in a dropdown behind the user-menu trigger
+    await page.getByRole("button", { name: /CEO/i }).click();
     await page
       .getByRole("button", { name: /logout|sign out|log out/i })
       .click();
