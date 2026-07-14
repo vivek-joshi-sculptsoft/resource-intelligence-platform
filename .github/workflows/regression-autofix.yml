@@ -70,7 +70,11 @@ jobs:
 
       - name: Run API + UI regression suite
         id: regression
-        run: cd e2e && npx playwright test --project=api-regression --project=ui-regression --reporter=json,github
+        # No --reporter flag here on purpose: it would override playwright.config.ts's
+        # CI-aware reporter array wholesale, dropping the json reporter's outputFile
+        # option — the JSON report would go to stdout instead of test-results/results.json,
+        # and the auto-fix job's artifact download would find nothing.
+        run: cd e2e && npx playwright test --project=api-regression --project=ui-regression
         env:
           CI: "1"
 
