@@ -195,8 +195,6 @@ async def update_resource(
     changes: dict[str, tuple] = {}
 
     for field_name, new_val in fields.items():
-        if new_val is None:
-            continue
         old_val = getattr(resource, field_name, None)
 
         if field_name == "reporting_manager_id" and new_val:
