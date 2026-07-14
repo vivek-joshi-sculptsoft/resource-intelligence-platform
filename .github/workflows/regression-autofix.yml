@@ -135,7 +135,7 @@ jobs:
         continue-on-error: true
         run: |
           AUTH=$(echo -n "${{ secrets.JIRA_USER_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}" | base64)
-          TRANSITIONS=$(curl -s -H "Authorization: Basic $AUTH" -H "Accept: application/json" \
+          TRANSITIONS=$(curl -s --http1.1 -H "Authorization: Basic $AUTH" -H "Accept: application/json" \
             "https://sspl-organisation.atlassian.net/rest/api/3/issue/${{ steps.jira.outputs.ticket_key }}/transitions")
           TRANSITION_ID=$(echo "$TRANSITIONS" | node -e "
             let id = '';
@@ -147,7 +147,7 @@ jobs:
             console.log(id);
           " || true)
           if [ -n "$TRANSITION_ID" ]; then
-            curl -s -X POST -H "Authorization: Basic $AUTH" -H "Content-Type: application/json" \
+            curl -s --http1.1 -X POST -H "Authorization: Basic $AUTH" -H "Content-Type: application/json" \
               "https://sspl-organisation.atlassian.net/rest/api/3/issue/${{ steps.jira.outputs.ticket_key }}/transitions" \
               -d "{\"transition\": {\"id\": \"$TRANSITION_ID\"}}" || true
           else
@@ -259,8 +259,13 @@ jobs:
 
       - name: No fix generated — leave Jira ticket for manual triage
         if: steps.jira.outputs.ticket_key && steps.commit.outputs.has_changes == 'false'
+        # Best-effort — a failed comment post shouldn't mark the whole job
+        # (and by extension the run) as failed when the actual pipeline logic
+        # already completed correctly.
+        continue-on-error: true
         run: |
           AUTH=$(echo -n "${{ secrets.JIRA_USER_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}" | base64)
-          curl -s -X POST -H "Authorization: Basic $AUTH" -H "Content-Type: application/json" \
+          curl -s --http1.1 -X POST -H "Authorization: Basic $AUTH" -H "Content-Type: application/json" \
             "https://sspl-organisation.atlassian.net/rest/api/3/issue/${{ steps.jira.outputs.ticket_key }}/comment" \
-            -d '{"body": {"type": "doc", "version": 1, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Claude Code did not produce a fix for this failure — needs manual triage. See the linked CI run for details."}]}]}}'
+            -d '{"body": {"type": "doc", "version": 1, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Claude Code did not produce a fix for this failure — needs manual triage. See the linked CI run for details."}]}]}}' \
+            || echo "Comment post failed — non-fatal, ticket ${{ steps.jira.outputs.ticket_key }} was still created and left for manual triage."
