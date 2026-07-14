@@ -165,41 +165,57 @@ jobs:
 
       - name: Run Claude Code to analyze and fix
         if: steps.jira.outputs.ticket_key
-        # If this errors out partway (rate limit, budget cap, action bug), the
-        # next step still inspects git status and either commits whatever
-        # partial fix exists or falls through to the manual-triage comment —
-        # it must not be treated as a hard gate that skips both.
+        # anthropics/claude-code-action@v1 rejects `push`-triggered workflow
+        # runs outright ("Unsupported event type: push") — it expects PR/issue
+        # context to post progress to, which doesn't exist yet at this point
+        # in the job. Installing and invoking the CLI directly sidesteps that
+        # restriction entirely; a plain `run:` step doesn't care about
+        # github.event_name.
+        #
+        # continue-on-error: if this errors out partway (rate limit, budget
+        # cap, CLI bug), the next step still inspects git status and either
+        # commits whatever partial fix exists or falls through to the
+        # manual-triage comment — it must not be a hard gate that skips both.
         continue-on-error: true
-        uses: anthropics/claude-code-action@v1
-        with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          prompt: |
-            Regression tests failed on a push to main (Jira ticket ${{ steps.jira.outputs.ticket_key }}).
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TICKET_KEY: ${{ steps.jira.outputs.ticket_key }}
+        run: |
+          curl -fsSL https://claude.ai/install.sh | bash
+          export PATH="$HOME/.local/bin:$PATH"
 
-            Full failure details are in `regression-failures.md` at the repo root — read it first.
+          node -e '
+            const lines = [
+              `Regression tests failed on a push to main (Jira ticket ${process.env.TICKET_KEY}).`,
+              "",
+              "Full failure details are in \`regression-failures.md\` at the repo root — read it first.",
+              "",
+              "Your task:",
+              "1. For each failure, determine whether the root cause is a bug in the",
+              "   application code (backend/ or frontend/) or a bug in the test itself",
+              "   (e2e/tests/regression/). Prefer fixing application code — only change",
+              "   a test if the test'"'"'s assertion is factually wrong about intended",
+              "   product behavior (check shared/BUSINESS-RULES.md and",
+              "   shared/ACCESS-MATRIX.md as the source of truth for business rules and",
+              "   access control before concluding a test is wrong).",
+              "2. Fix the root cause with the smallest correct change. Do not refactor",
+              "   unrelated code or add speculative abstractions — see CLAUDE.md'"'"'s",
+              "   engineering conventions.",
+              "3. After fixing, verify: run \`cd backend && python -m pytest tests/ -q\`",
+              "   if you touched backend code. Do not attempt to run the e2e suite",
+              "   (no browser/servers available in this step).",
+              "4. Do not touch files outside backend/, frontend/, or e2e/tests/regression/",
+              "   unless the failure clearly originates elsewhere.",
+              `5. Reference "See ${process.env.TICKET_KEY}" in a code comment only if the`,
+              "   fix includes a non-obvious workaround — otherwise no comment is needed",
+              "   per CLAUDE.md'"'"'s no-comments-by-default convention.",
+            ];
+            require("fs").writeFileSync("claude-prompt.md", lines.join("\n"));
+          '
 
-            Your task:
-            1. For each failure, determine whether the root cause is a bug in the
-               application code (backend/ or frontend/) or a bug in the test itself
-               (e2e/tests/regression/). Prefer fixing application code — only change
-               a test if the test's assertion is factually wrong about intended
-               product behavior (check shared/BUSINESS-RULES.md and
-               shared/ACCESS-MATRIX.md as the source of truth for business rules and
-               access control before concluding a test is wrong).
-            2. Fix the root cause with the smallest correct change. Do not refactor
-               unrelated code or add speculative abstractions — see CLAUDE.md's
-               engineering conventions.
-            3. After fixing, verify: run `cd backend && python -m pytest tests/ -q`
-               if you touched backend code. Do not attempt to run the e2e suite
-               (no browser/servers available in this step).
-            4. Do not touch files outside backend/, frontend/, or e2e/tests/regression/
-               unless the failure clearly originates elsewhere.
-            5. Reference "See ${{ steps.jira.outputs.ticket_key }}" in a code comment
-               only if the fix includes a non-obvious workaround — otherwise no
-               comment is needed per CLAUDE.md's no-comments-by-default convention.
-          claude_args: |
-            --max-turns 30
-            --dangerously-skip-permissions
+          claude -p "$(cat claude-prompt.md)" \
+            --max-turns 30 \
+            --dangerously-skip-permissions \
             --allowedTools "Edit,Write,Read,Bash,Glob,Grep"
 
       - name: Commit and push fix
