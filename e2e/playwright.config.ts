@@ -76,13 +76,16 @@ export default defineConfig({
       command:
         "cd ../backend && TESTING=1 python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000",
       url: "http://localhost:8000/api/v1/health",
-      reuseExistingServer: !process.env.CI,
+      // Both local dev and CI (regression-autofix.yml) always start the backend/
+      // frontend as separate steps before invoking Playwright — never let
+      // Playwright spin up a second, port-conflicting instance of its own.
+      reuseExistingServer: true,
       timeout: 30_000,
     },
     {
       command: "cd ../frontend && npm run dev",
       url: "http://localhost:5173",
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: true,
       timeout: 30_000,
     },
   ],
