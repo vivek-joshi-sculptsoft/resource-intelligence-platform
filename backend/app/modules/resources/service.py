@@ -195,11 +195,11 @@ async def update_resource(
     changes: dict[str, tuple] = {}
 
     for field_name, new_val in fields.items():
+        if new_val is None:
+            continue
         old_val = getattr(resource, field_name, None)
 
-        # None is a legitimate explicit value here (e.g. clearing reporting_manager_id) —
-        # fields only contains keys the caller actually sent (exclude_unset=True upstream).
-        if field_name == "reporting_manager_id" and new_val is not None:
+        if field_name == "reporting_manager_id" and new_val:
             if new_val == resource_id:
                 raise ValidationError(
                     "Resource cannot be their own reporting manager",
@@ -209,7 +209,7 @@ async def update_resource(
             if mgr.scalar_one_or_none() is None:
                 raise NotFoundError("Reporting manager", str(new_val))
 
-        if field_name == "employee_id" and new_val is not None and new_val != old_val:
+        if field_name == "employee_id" and new_val != old_val:
             dup = await db.execute(
                 select(Resource).where(
                     Resource.employee_id == new_val,
