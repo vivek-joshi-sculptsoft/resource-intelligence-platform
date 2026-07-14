@@ -11,15 +11,29 @@ test.describe("Client Management — Full Lifecycle", () => {
     await page.goto("/clients/new");
     const uniqueName = `IntegClient ${Date.now()}`;
     await page.getByLabel(/client name|name/i).first().fill(uniqueName);
-    await page.getByLabel(/industry/i).fill("Healthcare");
-    await page.getByLabel(/contact name/i).fill("Dr. Smith");
-    await page.getByLabel(/contact email/i).fill("smith@hospital.com");
-    await page.getByLabel(/contact phone/i).fill("+91-8888888888");
+    // Industry/Contact fields have no htmlFor association in ClientForm — locate
+    // via the sibling input immediately after each label instead of getByLabel.
+    const industryInput = page
+      .getByText("Industry", { exact: true })
+      .locator("xpath=following-sibling::input[1]");
+    await industryInput.fill("Healthcare");
+    await page
+      .getByText("Contact Name", { exact: true })
+      .locator("xpath=following-sibling::input[1]")
+      .fill("Dr. Smith");
+    await page
+      .getByText("Contact Email", { exact: true })
+      .locator("xpath=following-sibling::input[1]")
+      .fill("smith@hospital.com");
+    await page
+      .getByText("Contact Phone", { exact: true })
+      .locator("xpath=following-sibling::input[1]")
+      .fill("+91-8888888888");
     await page.getByRole("button", { name: /create client/i }).click();
     await page.waitForURL(/\/clients\/[a-f0-9-]+/, { timeout: 10_000 });
 
     // Step 2: Verify detail page shows correct data
-    await expect(page.getByText(uniqueName)).toBeVisible();
+    await expect(page.getByRole("heading", { name: uniqueName })).toBeVisible();
     await expect(page.getByText("Healthcare")).toBeVisible();
     await expect(page.getByText("Dr. Smith")).toBeVisible();
     await expect(page.getByText("smith@hospital.com")).toBeVisible();
@@ -28,9 +42,12 @@ test.describe("Client Management — Full Lifecycle", () => {
     // Step 3: Edit the client
     await page.getByRole("button", { name: /edit/i }).first().click();
     await page.waitForURL(/\/edit/);
-    await page.getByLabel(/industry/i).clear();
-    await page.getByLabel(/industry/i).fill("Pharma");
-    await page.getByRole("button", { name: /save client/i }).click();
+    const editIndustryInput = page
+      .getByText("Industry", { exact: true })
+      .locator("xpath=following-sibling::input[1]");
+    await editIndustryInput.clear();
+    await editIndustryInput.fill("Pharma");
+    await page.getByRole("button", { name: /save changes/i }).click();
     await page.waitForURL(/\/clients\/[a-f0-9-]+$/);
     await expect(page.getByText("Pharma")).toBeVisible();
 
@@ -92,6 +109,6 @@ test.describe("Client Management — Cross-Role Access", () => {
     await page.getByLabel(/client name|name/i).first().fill(uniqueName);
     await page.getByRole("button", { name: /create client/i }).click();
     await page.waitForURL(/\/clients\/[a-f0-9-]+/, { timeout: 10_000 });
-    await expect(page.getByText(uniqueName)).toBeVisible();
+    await expect(page.getByRole("heading", { name: uniqueName })).toBeVisible();
   });
 });

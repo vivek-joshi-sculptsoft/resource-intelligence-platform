@@ -1,0 +1,242 @@
+name: Regression Auto-Fix
+
+# Runs the full API + UI regression suite on every push to main. On failure,
+# automatically: creates a Jira bug (assigned + linked to this run), creates a
+# fix branch, runs Claude Code to analyze and fix the root cause, and opens a
+# PR back to main for human review. See CLAUDE.md "Testing Expectations".
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  regression-tests:
+    name: Regression Tests (API + UI)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: ri_platform_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d ri_platform_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/ri_platform_test
+      JWT_SECRET_KEY: test-secret-key-regression
+      JWT_REFRESH_SECRET_KEY: test-refresh-secret-key-regression
+      TESTING: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install backend dependencies
+        run: cd backend && pip install -e ".[dev]"
+
+      - name: Start backend server
+        run: |
+          cd backend && python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          timeout 30 bash -c 'until curl -sf http://localhost:8000/api/v1/health; do sleep 1; done'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build and serve frontend
+        run: |
+          cd frontend && npm ci && npm run build && npx vite preview --port 5173 --host &
+          timeout 30 bash -c 'until curl -sf http://localhost:5173; do sleep 1; done'
+
+      - name: Install Playwright
+        run: cd e2e && npm ci && npx playwright install chromium --with-deps
+
+      - name: Run API + UI regression suite
+        id: regression
+        run: cd e2e && npx playwright test --project=api-regression --project=ui-regression --reporter=json,github
+        env:
+          CI: "1"
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: regression-report
+          path: |
+            e2e/playwright-report/
+            e2e/test-results/results.json
+          retention-days: 14
+
+  auto-fix:
+    name: Auto-Fix Failed Regression
+    needs: regression-tests
+    if: failure()
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: regression-report
+          path: artifact
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Parse regression failures
+        id: parse
+        run: node scripts/regression/parse-test-failures.mjs artifact/test-results/results.json .
+
+      - name: Create Jira bug
+        id: jira
+        if: steps.parse.outputs.has_failures == 'true'
+        run: node scripts/regression/create-jira-bug.mjs regression-failures.json "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        env:
+          JIRA_SITE: sspl-organisation.atlassian.net
+          JIRA_PROJECT_KEY: VRIP
+          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_ASSIGNEE_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+
+      - name: Transition Jira ticket to In Progress
+        if: steps.jira.outputs.ticket_key
+        run: |
+          AUTH=$(echo -n "${{ secrets.JIRA_USER_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}" | base64)
+          TRANSITIONS=$(curl -s -H "Authorization: Basic $AUTH" -H "Accept: application/json" \
+            "https://sspl-organisation.atlassian.net/rest/api/3/issue/${{ steps.jira.outputs.ticket_key }}/transitions")
+          TRANSITION_ID=$(echo "$TRANSITIONS" | node -e "
+            const data = JSON.parse(require('fs').readFileSync(0, 'utf8'));
+            const t = data.transitions.find(t => /in progress/i.test(t.name));
+            if (t) console.log(t.id);
+          ")
+          if [ -n "$TRANSITION_ID" ]; then
+            curl -s -X POST -H "Authorization: Basic $AUTH" -H "Content-Type: application/json" \
+              "https://sspl-organisation.atlassian.net/rest/api/3/issue/${{ steps.jira.outputs.ticket_key }}/transitions" \
+              -d "{\"transition\": {\"id\": \"$TRANSITION_ID\"}}"
+          fi
+
+      - name: Create fix branch
+        if: steps.jira.outputs.ticket_key
+        run: |
+          git config user.name "regression-autofix-bot"
+          git config user.email "actions@github.com"
+          BRANCH="fix/${{ steps.jira.outputs.ticket_key }}-regression-failure"
+          git checkout -b "$BRANCH"
+          echo "FIX_BRANCH=$BRANCH" >> "$GITHUB_ENV"
+
+      - name: Run Claude Code to analyze and fix
+        if: steps.jira.outputs.ticket_key
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Regression tests failed on a push to main (Jira ticket ${{ steps.jira.outputs.ticket_key }}).
+
+            Full failure details are in `regression-failures.md` at the repo root — read it first.
+
+            Your task:
+            1. For each failure, determine whether the root cause is a bug in the
+               application code (backend/ or frontend/) or a bug in the test itself
+               (e2e/tests/regression/). Prefer fixing application code — only change
+               a test if the test's assertion is factually wrong about intended
+               product behavior (check shared/BUSINESS-RULES.md and
+               shared/ACCESS-MATRIX.md as the source of truth for business rules and
+               access control before concluding a test is wrong).
+            2. Fix the root cause with the smallest correct change. Do not refactor
+               unrelated code or add speculative abstractions — see CLAUDE.md's
+               engineering conventions.
+            3. After fixing, verify: run `cd backend && python -m pytest tests/ -q`
+               if you touched backend code. Do not attempt to run the e2e suite
+               (no browser/servers available in this step).
+            4. Do not touch files outside backend/, frontend/, or e2e/tests/regression/
+               unless the failure clearly originates elsewhere.
+            5. Reference "See ${{ steps.jira.outputs.ticket_key }}" in a code comment
+               only if the fix includes a non-obvious workaround — otherwise no
+               comment is needed per CLAUDE.md's no-comments-by-default convention.
+          claude_args: |
+            --max-turns 30
+            --dangerously-skip-permissions
+            --allowedTools "Edit,Write,Read,Bash,Glob,Grep"
+
+      - name: Commit and push fix
+        if: steps.jira.outputs.ticket_key
+        id: commit
+        run: |
+          git config user.name "regression-autofix-bot"
+          git config user.email "actions@github.com"
+          # Pipeline scratch files (failure report, downloaded artifact) live in the
+          # repo root but aren't part of the fix — drop them before checking status.
+          rm -rf regression-failures.json regression-failures.md artifact/
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No changes made by Claude Code — nothing to commit."
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            git add -A
+            git commit \
+              -m "Fix: regression failure(s) from ${{ steps.jira.outputs.ticket_key }}" \
+              -m "Auto-fix for regression test failure(s) detected on push to main. See ${{ steps.jira.outputs.ticket_key }} for full failure details." \
+              -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+            git push -u origin "$FIX_BRANCH"
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open pull request
+        if: steps.commit.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JIRA_TICKET_URL: ${{ steps.jira.outputs.ticket_url }}
+          CI_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          node -e '
+            const lines = [
+              "Auto-generated fix for regression test failure(s) detected on push to main.",
+              "",
+              "## Jira",
+              process.env.JIRA_TICKET_URL,
+              "",
+              "## CI run that caught the failure",
+              process.env.CI_RUN_URL,
+              "",
+              "## Review checklist",
+              "- [ ] Fix addresses the actual root cause, not just the symptom",
+              "- [ ] No unrelated changes",
+              "- [ ] Backend tests pass (`cd backend && python -m pytest`)",
+              "- [ ] Regression suite passes on this branch before merging",
+              "",
+              "\u{1F916} Generated by the regression-autofix pipeline. Human review required before merge.",
+            ];
+            require("fs").writeFileSync("pr-body.md", lines.join("\n"));
+          '
+          gh pr create \
+            --title "Fix: ${{ steps.jira.outputs.ticket_key }} — regression failure on main" \
+            --base main \
+            --head "$FIX_BRANCH" \
+            --body-file pr-body.md
+
+      - name: No fix generated — leave Jira ticket for manual triage
+        if: steps.jira.outputs.ticket_key && steps.commit.outputs.has_changes == 'false'
+        run: |
+          AUTH=$(echo -n "${{ secrets.JIRA_USER_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}" | base64)
+          curl -s -X POST -H "Authorization: Basic $AUTH" -H "Content-Type: application/json" \
+            "https://sspl-organisation.atlassian.net/rest/api/3/issue/${{ steps.jira.outputs.ticket_key }}/comment" \
+            -d '{"body": {"type": "doc", "version": 1, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Claude Code did not produce a fix for this failure — needs manual triage. See the linked CI run for details."}]}]}}'

@@ -7,7 +7,11 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI
-    ? [["html", { open: "never" }], ["github"]]
+    ? [
+        ["html", { open: "never" }],
+        ["github"],
+        ["json", { outputFile: "test-results/results.json" }],
+      ]
     : [["html", { open: "on-failure" }]],
 
   use: {
@@ -45,6 +49,21 @@ export default defineConfig({
     {
       name: "smoke",
       testDir: "./tests/smoke",
+      use: { ...devices["Desktop Chrome"] },
+      dependencies: ["setup"],
+    },
+
+    // --- Tier 4a: API regression (full endpoint coverage, no browser) ---
+    {
+      name: "api-regression",
+      testDir: "./tests/regression/api",
+      dependencies: ["setup"],
+    },
+
+    // --- Tier 4b: UI regression (full CRUD + role visibility flows) ---
+    {
+      name: "ui-regression",
+      testDir: "./tests/regression/ui",
       use: { ...devices["Desktop Chrome"] },
       dependencies: ["setup"],
     },

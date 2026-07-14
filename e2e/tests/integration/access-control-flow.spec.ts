@@ -39,9 +39,12 @@ test.describe("Access Control — Cross-Module Role Enforcement", () => {
       page.getByRole("button", { name: /add resource/i })
     ).not.toBeVisible();
 
-    // Clients — blocked
+    // Clients — no route guard on the list view (client_profiles=NONE is enforced
+    // server-side; the page renders with no data and no Add Client button)
     await page.goto("/clients");
-    await expect(page).not.toHaveURL(/\/clients$/);
+    await expect(
+      page.getByRole("button", { name: /add client/i })
+    ).not.toBeVisible();
 
     // Users — blocked
     await page.goto("/admin/users");

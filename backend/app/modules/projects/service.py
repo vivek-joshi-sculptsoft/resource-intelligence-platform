@@ -267,6 +267,9 @@ async def update_project(
         )
 
     await db.flush()
+    # client/dm/pm were already eager-loaded by _load_project() above, so the
+    # identity map won't refresh them on the re-query unless explicitly expired.
+    db.expire(project, ["client", "dm", "pm"])
     return await _load_project(db, project.id)
 
 
