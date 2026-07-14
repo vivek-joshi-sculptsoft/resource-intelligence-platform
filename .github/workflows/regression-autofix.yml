@@ -127,19 +127,31 @@ jobs:
 
       - name: Transition Jira ticket to In Progress
         if: steps.jira.outputs.ticket_key
+        # Best-effort status cosmetics — must never block branch creation / the
+        # actual fix / the PR. Jira's default workflow names the transition
+        # action "Start Progress" (not "In Progress", which is the resulting
+        # status), so match broadly and don't let an unexpected API/JSON shape
+        # kill the step.
+        continue-on-error: true
         run: |
           AUTH=$(echo -n "${{ secrets.JIRA_USER_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}" | base64)
           TRANSITIONS=$(curl -s -H "Authorization: Basic $AUTH" -H "Accept: application/json" \
             "https://sspl-organisation.atlassian.net/rest/api/3/issue/${{ steps.jira.outputs.ticket_key }}/transitions")
           TRANSITION_ID=$(echo "$TRANSITIONS" | node -e "
-            const data = JSON.parse(require('fs').readFileSync(0, 'utf8'));
-            const t = data.transitions.find(t => /in progress/i.test(t.name));
-            if (t) console.log(t.id);
-          ")
+            let id = '';
+            try {
+              const data = JSON.parse(require('fs').readFileSync(0, 'utf8'));
+              const t = (data.transitions || []).find(t => /in progress|start progress|start work/i.test(t.name));
+              if (t) id = t.id;
+            } catch {}
+            console.log(id);
+          " || true)
           if [ -n "$TRANSITION_ID" ]; then
             curl -s -X POST -H "Authorization: Basic $AUTH" -H "Content-Type: application/json" \
               "https://sspl-organisation.atlassian.net/rest/api/3/issue/${{ steps.jira.outputs.ticket_key }}/transitions" \
-              -d "{\"transition\": {\"id\": \"$TRANSITION_ID\"}}"
+              -d "{\"transition\": {\"id\": \"$TRANSITION_ID\"}}" || true
+          else
+            echo "No matching transition found — leaving ticket status as-is."
           fi
 
       - name: Create fix branch
@@ -153,6 +165,11 @@ jobs:
 
       - name: Run Claude Code to analyze and fix
         if: steps.jira.outputs.ticket_key
+        # If this errors out partway (rate limit, budget cap, action bug), the
+        # next step still inspects git status and either commits whatever
+        # partial fix exists or falls through to the manual-triage comment —
+        # it must not be treated as a hard gate that skips both.
+        continue-on-error: true
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
