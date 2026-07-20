@@ -13,7 +13,7 @@ Resource Intelligence & Project Economics Platform — an internal tool for an I
 | Cache / Broker | Redis 7 (optional) | Only needed when `SCHEDULER_BACKEND=celery` |
 | Auth | Custom JWT | argon2 password hashing, httpOnly cookies, 15min access + 7d refresh tokens |
 | Hosting | AWS (EC2 + RDS + S3/CloudFront) | ap-south-1 (Mumbai), ~$36/mo |
-| CI/CD | GitHub Actions | Lint → Test → Build → Deploy |
+| CI/CD | GitHub Actions | Lint → Test → Build → Deploy, plus Claude PR review and CI auto-fix (see [Agentic SDLC](#agentic-sdlc)) |
 
 ## Repo Structure
 
@@ -57,8 +57,18 @@ project/
 ├── modules/                    # Module-wise specs (13 modules)
 ├── techstack/                  # Architecture decisions and stack docs
 ├── tickets/                    # JIRA-ready story breakdowns
+├── docs/approvals/             # Gate 1 spec-approval marker (see Agentic SDLC)
+├── scripts/check-gate1.sh      # Gate 1 check, called by implement-ticket/implement-sprint
+├── .claude/
+│   ├── settings.json           # Model, plugins, permissions, Gate 2 hooks
+│   ├── agents/                 # code-reviewer, security-reviewer, qa-engineer
+│   └── skills/                 # PRD, FSD, tickets, implementation, qa, ship, fix-bug
 ├── docker-compose.dev.yml      # Local dev: api, postgres (+ optional celery-worker, redis via `--profile celery`)
-├── .github/workflows/ci.yml    # CI pipeline
+├── .github/workflows/
+│   ├── ci.yml                  # Lint → Test → Build
+│   ├── regression-autofix.yml  # CI-failure → Jira bug → Claude fix → PR
+│   ├── claude-pr-review.yml    # AI first-pass review on every PR
+│   └── claude-interactive.yml  # @claude on issues/PR comments
 ├── CLAUDE.md                   # Master build instructions
 └── ROADMAP.md                  # Phase-wise build plan
 ```
@@ -121,6 +131,8 @@ cd backend && celery -A app.jobs.celery_app beat -l info   # separate terminal, 
 | `/lint` | Run linters (ruff + tsc) |
 | `/lint fix` | Auto-fix backend lint issues |
 
+See [Agentic SDLC](#agentic-sdlc) below for the full requirement-to-ship skill pipeline (`/prd-brainstorm`, `/implement-ticket`, `/qa`, `/ship`, etc.).
+
 ### Running Tests
 
 ```bash
@@ -165,6 +177,88 @@ cd e2e && npx playwright test                        # All tiers
 | HR | 50 | Resource onboarding, bench tracking |
 | Engineer | 10 | Own profile, assignments, worklogs |
 
+## Agentic SDLC
+
+This repo runs its full software development lifecycle through Claude Code skills, agents, and CI workflows — from requirement discovery through shipping — with two mandatory human checkpoints ("gates") between them.
+
+```
+/prd-brainstorm → /fsd-generator → /techstack-advisor → /repo-architect
+                                                              │
+                                          ██ GATE 1: human approves spec ██
+                                          echo "approved-by: <name> <date>" \
+                                            > docs/approvals/SPEC-APPROVED
+                                                              │
+              /jira-ticket-generator → /mockup-generator → /new-requirement
+                                                              │
+                          /implement-sprint → /implement-ticket
+                                       (Jira-driven, TDD via Superpowers)
+                                                              │
+                                                            /qa
+                              (code-reviewer + security-reviewer + qa-engineer,
+                                    fresh context each, must score ≥ 85/100)
+                                                              │
+                                                           /ship
+                                        (opens PR — never merges, never pushes to main)
+                                                              │
+                                          ██ GATE 2: human reviews & merges ██
+                                       branch protection + settings.json hooks
+                                                              │
+                CI: claude-pr-review.yml (advisory review) · regression-autofix.yml
+```
+
+Bug fixes go through `/fix-bug` instead of `/implement-ticket` — it enforces a failing regression test before any code change.
+
+### The two gates
+
+| Gate | What it blocks | Enforced by |
+|---|---|---|
+| **Gate 1 — Spec approval** | `/implement-ticket` and `/implement-sprint` refuse to start coding | `scripts/check-gate1.sh` checks for `docs/approvals/SPEC-APPROVED`, created only by a human |
+| **Gate 2 — Human merge** | Agents pushing to `main` or merging PRs | `.claude/settings.json` `permissions.deny` + `PreToolUse` hook (blocks `git push origin main`, `gh pr merge`), backed by GitHub branch protection |
+
+See `docs/approvals/README.md` for how to approve a spec.
+
+### Review agents (`.claude/agents/`)
+
+Invoked by `/qa` with fresh context each — never the session that wrote the code:
+
+| Agent | Scope | Score |
+|---|---|---|
+| `code-reviewer` | Correctness, conventions, FSD compliance | /50 |
+| `security-reviewer` | Auth, injection, ACCESS-MATRIX compliance | /20 |
+| `qa-engineer` | Acceptance-criteria coverage, edge cases, relationship tests | /30 |
+
+### SDLC skills (`.claude/skills/`)
+
+| Skill | Phase | Notes |
+|---|---|---|
+| `/prd-brainstorm` | Requirements | Interview-driven PRD generation |
+| `/fsd-generator` | Design | Functional spec from PRD |
+| `/techstack-advisor` | Design | Stack decisions and ADRs |
+| `/repo-architect` | Design | Repo/module scaffolding |
+| `/new-requirement` | Design | Change-impact analysis for new asks |
+| `/jira-ticket-generator` | Planning | PRD/FSD → Jira-ready tickets |
+| `/mockup-generator` | Planning | Clickable HTML wireframes |
+| `/implement-sprint` | Build | Orchestrates a full sprint via `/implement-ticket` |
+| `/implement-ticket` | Build | Jira status transitions + TDD implementation for one ticket |
+| `/backend-test-ticket` | Test | Backend test generation for a ticket |
+| `/e2e-test-ticket` | Test | Playwright E2E generation for a ticket |
+| `/fix-bug` | Bugfix | Regression-test-first bug fixing, Jira-aware |
+| `/qa` | Review | Multi-agent quality gate, ≥ 85/100 to pass |
+| `/ship` | Ship | Opens the PR; stops at Gate 2 |
+
+### CI workflows (`.github/workflows/`)
+
+| Workflow | Trigger | Does |
+|---|---|---|
+| `ci.yml` | Every push/PR | Lint, test, build |
+| `regression-autofix.yml` | CI failure on `main` | Creates a Jira bug, Claude fixes it, opens a PR |
+| `claude-pr-review.yml` | PR opened/updated | AI first-pass review with inline comments (advisory only) |
+| `claude-interactive.yml` | `@claude` mention on an issue/PR comment | Ad-hoc implementation or Q&A outside the Jira flow |
+
+### Plugins
+
+`superpowers@claude-plugins-official` provides TDD enforcement and self-review during coding steps (planning/brainstorm skills are intentionally skipped inside `/implement-ticket` and `/implement-sprint` — see the "Superpowers Interaction" section in those skill files). `caveman@caveman` keeps responses terse, except during design/spec/QA skills where verbose explanation is needed (see CLAUDE.md → Caveman Mode Exceptions).
+
 ## Build Progress
 
 ### Phase 1 — Foundation & Visibility (Sprints 0–5) ✅ Complete
@@ -193,3 +287,4 @@ cd e2e && npx playwright test                        # All tiers
 | `CLAUDE.md` | Build instructions and conventions |
 | `ROADMAP.md` | Build plan and estimates |
 | `techstack/main.md` | Architecture overview and stack decisions |
+| `docs/approvals/README.md` | How to approve a spec (Gate 1) |
