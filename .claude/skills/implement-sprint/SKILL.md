@@ -39,6 +39,42 @@ Then try again.
 
 ---
 
+## Superpowers Interaction
+
+This skill orchestrates a full sprint by delegating each ticket to
+`/implement-ticket`. **Skip the Superpowers brainstorming and planning skills**
+at the sprint orchestration level — this skill's Steps 1–5 (sprint discovery,
+ticket ordering, workflow pre-check, plan presentation, confirmation) replace
+Superpowers' planning phase entirely with Jira-driven context.
+
+When `/implement-ticket` is invoked for each ticket (Step 6), the same rule
+applies: Superpowers planning is skipped, but TDD enforcement and code review
+remain active during the coding steps.
+
+---
+
+## Gate 1 Check (Spec Approval)
+
+Before any implementation work, verify the spec has been approved:
+
+```bash
+bash scripts/check-gate1.sh
+```
+
+If the script exits non-zero (Gate 1 not approved), STOP immediately.
+Tell the user:
+
+> Implementation is blocked — the spec has not been approved yet.
+> Please review `fsd/FSD.md` and the relevant `modules/` specs, then run:
+> ```
+> echo "approved-by: <your-name> $(date -u +%F)" > docs/approvals/SPEC-APPROVED
+> ```
+> See `docs/approvals/README.md` for details.
+
+Do NOT proceed with implementation. Do NOT offer to create the marker yourself.
+
+---
+
 ## Workflow
 
 ### Step 0: Discover Cloud ID

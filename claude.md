@@ -471,3 +471,85 @@ In repositories indexed by CodeGraph (a `.codegraph/` directory exists at the re
 
 If there is no `.codegraph/` directory, skip CodeGraph entirely — indexing is the user's decision.
 <!-- CODEGRAPH_END -->
+
+---
+
+## SDLC Gates (do not remove)
+
+Two mandatory human gates protect the pipeline. Claude enforces them via hooks
+in `.claude/settings.json` — agents cannot bypass them.
+
+### Gate 1 — Spec Approval
+
+Before any implementation work begins, a human must review the design and create
+`docs/approvals/SPEC-APPROVED`. The skills `/implement-ticket`, `/implement-sprint`,
+and `/ship` all check for this file and refuse to proceed without it.
+
+The `PreToolUse` hook in `settings.json` blocks any bash command that would create
+the marker file (pattern: "SPEC-APPROVED" + any write operator). Only a human
+running a terminal command outside Claude Code can create it.
+
+If you run `/repo-architect`, `/fsd-generator`, or `/new-requirement` and the
+output significantly changes the architecture, **delete the marker** so the gate
+re-closes and forces a human re-review.
+
+### Gate 2 — Human Merge
+
+Claude agents NEVER push to main, merge PRs, or approve their own PRs.
+Enforced three ways:
+
+1. `settings.json` `permissions.deny` blocks `git push origin main`,
+   `git push --force`, and `gh pr merge`
+2. `PreToolUse` hook double-checks with a regex and returns exit code 2 (block)
+3. GitHub branch protection (you must configure this): require 1 human approval,
+   require CI green, no bypasses
+
+The CI `claude-pr-review.yml` workflow posts an AI first-pass review on every PR.
+That review is advisory — it does not count as the required human approval.
+
+---
+
+## Review Agents
+
+Three subagent definitions live in `.claude/agents/`. They are invoked
+automatically by the `/qa` skill and can also be called explicitly:
+
+| Agent | Scope | Score weight |
+|---|---|---|
+| `code-reviewer` | Correctness, conventions, FSD compliance | /50 |
+| `security-reviewer` | Auth, injection, access control, data exposure | /20 |
+| `qa-engineer` | AC coverage, edge cases, relationship tests | /30 |
+
+**Rule: never review code in the same session that wrote it.** Each agent gets
+a fresh context window with only the diff and project docs. This prevents the
+bias where an agent rates its own output favorably.
+
+---
+
+## Post-Implementation Workflow
+
+After `/implement-ticket` or `/implement-sprint` completes:
+
+1. Run `/qa` — dispatches the three review agents, aggregates scores,
+   fixes findings if score < 85, retries up to 2 times.
+2. Run `/ship` — pushes the branch and opens a PR via `gh pr create`.
+   Claude CI review runs automatically. Human reviews and merges.
+3. For bugs: use `/fix-bug VRIP-XX` — enforces regression-test-first
+   discipline (failing test BEFORE any code change).
+
+---
+
+## Caveman Mode Exceptions
+
+Caveman mode is enabled by default for token efficiency, but is automatically
+suspended during these skills where verbose explanation matters:
+
+- `/prd-brainstorm` — requirement discovery needs full sentences
+- `/fsd-generator` — spec generation needs precise language
+- `/techstack-advisor` — architecture decisions need clear trade-off explanations
+- `/repo-architect` — structural decisions need justification
+- `/new-requirement` — change analysis needs thorough reasoning
+- `/qa` — review findings need clear problem descriptions
+
+To manually suspend: say "normal mode". To re-enable: say "caveman mode" or
+type `/caveman`.

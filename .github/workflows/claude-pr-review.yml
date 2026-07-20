@@ -1,0 +1,62 @@
+# AI first-pass review on every PR. Posts inline comments on the diff.
+# Gate 2 still requires a human approval — this is advisory only.
+name: Claude PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  id-token: write
+
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            You are reviewing a pull request for the RI Platform (Resource
+            Intelligence & Project Economics Platform). Read CLAUDE.md first
+            for project conventions.
+
+            Review this PR diff against:
+            1. CLAUDE.md coding conventions and module rules
+            2. fsd/FSD.md — verify implementations match the spec
+            3. shared/BUSINESS-RULES.md — verify calculations use exact formulas
+            4. shared/ACCESS-MATRIX.md — verify RBAC is correct for all 7 roles
+
+            Focus on these high-value checks:
+            - Async SQLAlchemy lazy-load errors (the #1 bug class in this codebase)
+            - Missing relationship serialization tests (FK set/null/invalid)
+            - Access control: scope filtering at DB level, sensitive fields nulled
+            - Audit logging on all write operations
+            - FSD section references in business logic comments
+            - State machine transition validation
+            - 500 errors in any tested code path (never acceptable)
+
+            Post inline comments on specific diff lines. Only report findings
+            you are confident about. Do NOT report style nits unless they
+            violate CLAUDE.md explicitly.
+
+            End with:
+            ## Summary
+            ## Blockers (must fix before merge)
+            ## Suggestions (nice to have)
+            ## What was done well
+
+            You are a first-pass reviewer. A human makes the merge decision.
+          claude_args: "--max-turns 15 --model claude-sonnet-4-6"

@@ -14,6 +14,30 @@
       "mcp__codegraph__codegraph_impact",
       "mcp__codegraph__codegraph_files",
       "mcp__codegraph__codegraph_status"
+    ],
+    "deny": [
+      "Bash(git push origin main:*)",
+      "Bash(git push origin master:*)",
+      "Bash(git push --force:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(git merge main:*)",
+      "Bash(git merge master:*)",
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(**/secrets/**)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import json,sys,re; d=json.load(sys.stdin); c=d.get('tool_input',{}).get('command',''); blocked=re.search(r'git\\s+push\\b.*\\b(main|master)\\b', c) or re.search(r'gh\\s+pr\\s+merge', c) or ('SPEC-APPROVED' in c and re.search(r'(touch|echo|tee|cp|mv|>)', c)); sys.exit(2 if blocked else 0)\""
+          }
+        ]
+      }
     ]
   }
 }

@@ -1,0 +1,33 @@
+# Interactive agent: @claude on any issue/PR comment triggers Claude to
+# analyze, implement, or answer questions. Works alongside the Jira-first
+# workflow for quick fixes and ad-hoc requests.
+name: Claude Interactive
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+
+jobs:
+  claude:
+    if: contains(github.event.comment.body, '@claude')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: "--max-turns 40 --model claude-sonnet-4-6"
+          # No prompt — responds to the @claude mention in context.
+          # CLAUDE.md SDLC rules apply: work on a branch, TDD, never merge.

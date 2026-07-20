@@ -39,6 +39,47 @@ Then try again.
 
 ---
 
+## Superpowers Interaction
+
+This skill has its own Jira-driven planning workflow (fetch ticket → read module
+specs → plan → implement). **Skip the Superpowers brainstorming and planning
+skills** when this skill is active — they would produce a redundant planning
+pass before Step 5 runs, wasting tokens without adding context this skill
+doesn't already gather from Jira and the module files.
+
+Superpowers skills that **remain active and welcome** during implementation:
+- **TDD enforcement** — red/green/refactor during Step 2 (backend) and Step 3
+  (frontend) is exactly what CLAUDE.md Step 2.5 requires
+- **Code review** — Superpowers' self-review during implementation complements
+  (but does not replace) the post-implementation `/qa` gate
+
+In short: Superpowers owns *how* you write code. This skill owns *what* you
+write and *in what order*.
+
+---
+
+## Gate 1 Check (Spec Approval)
+
+Before any implementation work, verify the spec has been approved:
+
+```bash
+bash scripts/check-gate1.sh
+```
+
+If the script exits non-zero (Gate 1 not approved), STOP immediately.
+Tell the user:
+
+> Implementation is blocked — the spec has not been approved yet.
+> Please review `fsd/FSD.md` and the relevant `modules/` specs, then run:
+> ```
+> echo "approved-by: <your-name> $(date -u +%F)" > docs/approvals/SPEC-APPROVED
+> ```
+> See `docs/approvals/README.md` for details.
+
+Do NOT proceed with implementation. Do NOT offer to create the marker yourself.
+
+---
+
 ## Two Modes of Operation
 
 ### Mode 1: Standalone (user invokes directly)
