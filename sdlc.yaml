@@ -1,0 +1,136 @@
+# ============================================================
+# Agentic SDLC Configuration
+# ============================================================
+# Each project fills this file with its specifics. Every skill
+# reads this to know what spec files exist, what tracker to use,
+# what conventions matter, etc.
+#
+# Copy this file to your repo root and edit it.
+# ============================================================
+
+# --- Project identity ---
+project:
+  name: "Resource Intelligence & Project Economics Platform"
+  description: "Internal tool for an IT services company (~30-40 employees) to track resource allocations, project delivery, client billing, and financial margins — replaces Google Sheets."
+  type: fullstack                   # fullstack | backend-only | frontend-only | monorepo
+
+# --- Tech stack (auto-detected by /onboard, or fill manually) ---
+stack:
+  backend:
+    language: python
+    framework: fastapi
+    test_runner: pytest
+    test_command: "cd backend && python -m pytest"
+    lint_command: "cd backend && python3 -m ruff check app/ && python3 -m ruff format --check app/"
+  frontend:
+    framework: react
+    test_runner: vitest
+    test_command: "cd frontend && npx vitest"
+    lint_command: "cd frontend && npx eslint ."
+    typecheck_command: "cd frontend && npx tsc -b --noEmit"
+  e2e:
+    framework: playwright
+    test_command: "cd e2e && npx playwright test"
+    config_path: "e2e/playwright.config.ts"
+
+# --- Spec files (paths relative to repo root) ---
+# Skills reference these for design compliance checking.
+# Leave empty if you don't have them — /discover and /architect create them.
+specs:
+  prd: "prd/PRD.md"
+  architecture: "fsd/FSD.md"
+  business_rules: "shared/BUSINESS-RULES.md"
+  access_matrix: "shared/ACCESS-MATRIX.md"
+  entities: "shared/ENTITIES.md"
+  adr_directory: "techstack/decisions/"
+  module_specs_directory: "modules/"
+  # Additional spec files your reviewers should check (list of paths):
+  additional_specs:
+    - "shared/GLOSSARY.md"
+    - "shared/TRACEABILITY.yaml"
+    - "techstack/main.md"
+
+# --- CodeGraph MCP (optional, recommended for medium/large codebases) ---
+# https://github.com/colbymchenry/codegraph — local, tree-sitter based code
+# knowledge graph. Lets agents query call chains and impact analysis instead
+# of grepping. Skills and agents check this flag before assuming it's there.
+codegraph:
+  enabled: true
+  # Tool name prefix as it appears in your MCP tool list, e.g. "codegraph".
+  # Check with `claude mcp list` or look for mcp__codegraph__* in your tools.
+  tool_prefix: "codegraph"
+
+# --- Ticket tracker ---
+tracker:
+  provider: jira                    # github | jira | linear | azuredevops | none
+  github:
+    method: gh-cli                  # uses `gh issue ...`
+  jira:
+    method: mcp                     # mcp | api
+    mcp_server: atlassian           # name from `claude mcp list`
+    project_key: "VRIP"
+    mcp_url: "https://mcp.atlassian.com/v1/mcp"
+  linear:
+    method: mcp
+    mcp_server: linear
+    team_key: ""
+  azuredevops:
+    method: az-cli
+    organization: ""
+    project: ""
+
+# --- Roles (for access-control testing) ---
+# List the roles your app has. Reviewers verify each role's access is tested.
+roles:
+  - name: CEO
+    level: 100
+  - name: CTO
+    level: 100
+  - name: FINANCE
+    level: 80
+  - name: DM
+    level: 60
+  - name: PM
+    level: 60
+  - name: HR
+    level: 50
+  - name: ENGINEER
+    level: 10
+
+# --- QA thresholds ---
+qa:
+  minimum_score: 85                 # /100 — /qa blocks /ship below this
+  code_review_weight: 50            # /50
+  security_review_weight: 20        # /20
+  qa_coverage_weight: 30            # /30
+  auto_fail_on_blocker: true        # any blocker finding = auto-fail
+  auto_fail_on_uncovered_ac: true   # any uncovered acceptance criterion = auto-fail
+  max_retry_loops: 2                # how many fix-and-rerun cycles before human escalation
+
+# --- Plugins ---
+plugins:
+  superpowers: true                 # TDD enforcement + self-review during coding
+  caveman: true                     # terse output (auto-suspended during design/QA skills) — matches .claude/settings.json enabledPlugins
+  # Skills where caveman is suspended (verbose mode needed).
+  # Must match CLAUDE.md's "Caveman Mode Exceptions" section exactly — that
+  # section is what skills actually read; this list is kept in sync for
+  # tooling that reads sdlc.yaml instead.
+  caveman_exceptions:
+    - prd-brainstorm
+    - fsd-generator
+    - techstack-advisor
+    - repo-architect
+    - new-requirement
+    - qa
+
+# --- Branch conventions ---
+branching:
+  main_branch: main                 # main | master | develop
+  feature_prefix: "feat/"           # e.g. feat/VRIP-43-login
+  fix_prefix: "fix/"                # e.g. fix/VRIP-99-null-crash
+  commit_format: conventional       # conventional | none
+
+# --- Gate 1 marker ---
+gate1:
+  marker_path: "docs/approvals/SPEC-APPROVED"
+  check_script: "scripts/check-gate1.sh"

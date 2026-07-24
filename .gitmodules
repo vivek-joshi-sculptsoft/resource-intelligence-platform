@@ -2,3 +2,6 @@
 	path = submodules/agentic-sdlc-skills-agents
 	url = https://github.com/Sculptsoft-Private-Limited/agentic-sdlc-skills-agents.git
 	branch = main
+[submodule "submodules/agentic-sdlc-kit"]
+	path = submodules/agentic-sdlc-kit
+	url = https://github.com/Sculptsoft-Private-Limited/agentic-sdlc-kit.git

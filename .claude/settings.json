@@ -34,7 +34,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 -c \"import json,sys,re; d=json.load(sys.stdin); c=d.get('tool_input',{}).get('command',''); blocked=re.search(r'git\\s+push\\b.*\\b(main|master)\\b', c) or re.search(r'gh\\s+pr\\s+merge', c) or ('SPEC-APPROVED' in c and re.search(r'(touch|echo|tee|cp|mv|>)', c)); sys.exit(2 if blocked else 0)\""
+            "command": "python3 -c \"import json,sys,re; d=json.load(sys.stdin); c=d.get('tool_input',{}).get('command',''); blocked=re.search(r'git\\s+push\\b.*\\b(main|master)\\b', c) or re.search(r'gh\\s+pr\\s+merge', c) or re.search(r'(>>?|\\btee\\b|\\btouch\\b|\\bcp\\b|\\bmv\\b)[^\\n|&;]*SPEC-APPROVED', c); sys.exit(2 if blocked else 0)\""
           }
         ]
       }

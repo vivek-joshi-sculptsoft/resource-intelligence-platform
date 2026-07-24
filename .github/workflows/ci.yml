@@ -89,3 +89,164 @@ jobs:
       - run: cd frontend && npm ci && npm run build
 
       - run: cd backend && docker build -t ri-platform-api:${{ github.sha }} .
+
+  # PR-time counterpart to regression-autofix.yml, which only reacts to
+  # push-to-main failures (post-merge). This job reacts to a failing PR build
+  # instead: it re-runs whichever check failed to capture the actual error
+  # output (there's no shared artifact across lint/test jobs to read from),
+  # then asks Claude Code to fix it directly on the PR branch and pushes a
+  # follow-up commit — no new branch/PR needed since one is already open.
+  # Skipped for fork PRs: GITHUB_TOKEN can't push to a fork's branch.
+  auto-fix-pr:
+    name: Auto-Fix Failed PR Checks
+    needs: [lint-frontend, test-backend, test-frontend]
+    if: >-
+      always() &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      contains(needs.*.result, 'failure')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pull-requests: write
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: ri_platform_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d ri_platform_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/ri_platform_test
+      REDIS_URL: redis://localhost:6379/0
+      JWT_SECRET_KEY: test-secret-key
+      JWT_REFRESH_SECRET_KEY: test-refresh-secret-key
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Re-run backend tests to capture failure output
+        if: needs.test-backend.result == 'failure'
+        continue-on-error: true
+        run: |
+          cd backend && pip install -e ".[dev]"
+          python -m pytest tests/ -v > ../backend-failure.log 2>&1 || true
+
+      - name: Re-run frontend typecheck to capture failure output
+        if: needs.lint-frontend.result == 'failure'
+        continue-on-error: true
+        run: |
+          cd frontend && npm ci
+          npx tsc -b --noEmit > ../frontend-lint-failure.log 2>&1 || true
+
+      - name: Re-run frontend tests to capture failure output
+        if: needs.test-frontend.result == 'failure'
+        continue-on-error: true
+        run: |
+          cd frontend && npm ci
+          npx vitest run > ../frontend-test-failure.log 2>&1 || true
+
+      - name: Build fix prompt
+        run: |
+          {
+            echo "CI failed on this open PR. Failure logs (only the files that";
+            echo "actually failed exist — others are absent):";
+            echo;
+            for f in backend-failure.log frontend-lint-failure.log frontend-test-failure.log; do
+              if [ -f "$f" ]; then
+                echo "=== $f ===";
+                tail -c 8000 "$f";
+                echo;
+              fi
+            done;
+          } > ci-failure-context.md
+
+      - name: Run Claude Code to analyze and fix
+        continue-on-error: true
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          curl -fsSL https://claude.ai/install.sh | bash
+          export PATH="$HOME/.local/bin:$PATH"
+
+          node -e '
+            const lines = [
+              "CI failed on this pull request before merge.",
+              "",
+              "Full failure output is in `ci-failure-context.md` at the repo root — read it first.",
+              "",
+              "Your task:",
+              "1. Determine whether the root cause is a bug in the application code",
+              "   (backend/ or frontend/) or a bug in the test itself. Prefer fixing",
+              "   application code — only change a test if its assertion is factually",
+              "   wrong about intended product behavior (check shared/BUSINESS-RULES.md",
+              "   and shared/ACCESS-MATRIX.md as the source of truth before concluding",
+              "   a test is wrong).",
+              "2. Fix the root cause with the smallest correct change. Do not refactor",
+              "   unrelated code or add speculative abstractions — see CLAUDE.md'"'"'s",
+              "   engineering conventions.",
+              "3. After fixing, re-run whichever of these failed originally:",
+              "   `cd backend && python -m pytest tests/ -q`,",
+              "   `cd frontend && npx tsc -b --noEmit`,",
+              "   `cd frontend && npx vitest run`.",
+              "4. Do not touch files outside backend/ or frontend/ unless the failure",
+              "   clearly originates elsewhere.",
+            ];
+            require("fs").writeFileSync("claude-prompt.md", lines.join("\n"));
+          '
+
+          claude -p "$(cat claude-prompt.md)" \
+            --max-turns 25 \
+            --dangerously-skip-permissions \
+            --allowedTools "Edit,Write,Read,Bash,Glob,Grep"
+
+      - name: Commit and push fix
+        id: commit
+        run: |
+          git config user.name "ci-autofix-bot"
+          git config user.email "actions@github.com"
+          rm -f backend-failure.log frontend-lint-failure.log frontend-test-failure.log ci-failure-context.md claude-prompt.md
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No changes made by Claude Code — nothing to commit."
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            git add -A
+            git commit \
+              -m "Fix: CI failure on this PR" \
+              -m "Auto-fix for a failing check on this pull request. CI will re-run on this push." \
+              -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+            git push origin HEAD:${{ github.event.pull_request.head.ref }}
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment on PR
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ steps.commit.outputs.has_changes }}" == "true" ]; then
+            gh pr comment ${{ github.event.pull_request.number }} --body "🤖 CI failed on this PR — Claude Code pushed an auto-fix commit. CI is re-running; please review the fix before merging."
+          else
+            gh pr comment ${{ github.event.pull_request.number }} --body "🤖 CI failed on this PR — auto-fix did not produce a change. Needs manual triage."
+          fi
