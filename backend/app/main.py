@@ -85,6 +85,7 @@ def create_app() -> FastAPI:
     from app.modules.projects.router import router as project_router
     from app.modules.resources.router import router as resource_router
     from app.modules.utilization.router import router as utilization_router
+    from app.modules.audit.router import router as audit_router
     from app.modules.worklogs.router import router as worklog_router
 
     app.include_router(auth_router)
@@ -102,6 +103,7 @@ def create_app() -> FastAPI:
     app.include_router(client_financial_router)
     app.include_router(dashboard_financial_router)
     app.include_router(resource_financial_router)
+    app.include_router(audit_router)
 
     @app.get("/api/v1/health")
     async def health_check() -> dict:
