@@ -1,0 +1,16 @@
+{
+  "_comment": "Merge this permissions.allow array into your .claude/settings.json ONLY if you've installed and enabled CodeGraph (see INSTALL.md > Optional: CodeGraph MCP). JSON doesn't support comments, hence this separate snippet file rather than inline notes in settings.json itself.",
+  "permissions": {
+    "allow": [
+      "mcp__codegraph__codegraph_explore",
+      "mcp__codegraph__codegraph_search",
+      "mcp__codegraph__codegraph_context",
+      "mcp__codegraph__codegraph_node",
+      "mcp__codegraph__codegraph_callers",
+      "mcp__codegraph__codegraph_callees",
+      "mcp__codegraph__codegraph_impact",
+      "mcp__codegraph__codegraph_files",
+      "mcp__codegraph__codegraph_status"
+    ]
+  }
+}

@@ -163,8 +163,22 @@ jobs:
           git checkout -b "$BRANCH"
           echo "FIX_BRANCH=$BRANCH" >> "$GITHUB_ENV"
 
+      - uses: actions/setup-python@v5
+        if: steps.jira.outputs.ticket_key
+        with:
+          python-version: "3.12"
+
+      - name: Install backend dependencies
+        # This job runs on a separate runner from `regression-tests` — its pip
+        # install doesn't carry over. Without this, Claude has to pip install
+        # from scratch inside its own Bash tool call before it can run pytest,
+        # which is slow and invisible in the log (looks identical to a hang).
+        if: steps.jira.outputs.ticket_key
+        run: cd backend && pip install -e ".[dev]"
+
       - name: Run Claude Code to analyze and fix
         if: steps.jira.outputs.ticket_key
+        timeout-minutes: 10
         # anthropics/claude-code-action@v1 rejects `push`-triggered workflow
         # runs outright ("Unsupported event type: push") — it expects PR/issue
         # context to post progress to, which doesn't exist yet at this point
